@@ -1,0 +1,49 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--sand);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: Georgia, serif;
+  font-size: 18px;
+  color: var(--g);
+  letter-spacing: 0.03em;
+  font-weight: 400;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.link {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.link:hover, .link.active {
+  background: var(--gl);
+  color: var(--g);
+}
+
+.cta {
+  padding: 7px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--g);
+  color: #fff;
+  font-weight: 500;
+  margin-left: 6px;
+  transition: opacity 0.15s;
+}
+.cta:hover { opacity: 0.88; }

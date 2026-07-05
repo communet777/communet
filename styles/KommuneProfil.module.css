@@ -1,0 +1,49 @@
+.banner { height: 140px; background: linear-gradient(135deg, #1a3a2a, #2d6a4f, #1a4a3a); position: relative; }
+.bannerPattern { position: absolute; inset: 0; opacity: 0.06; background-image: repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%); background-size: 16px 16px; }
+.avatar { width: 72px; height: 72px; border-radius: 16px; background: var(--gl); border: 3px solid var(--sand); display: flex; align-items: center; justify-content: center; font-size: 28px; position: absolute; bottom: -36px; left: 28px; }
+.verifiedBadge { position: absolute; top: 14px; right: 20px; background: rgba(0,0,0,0.3); color: #c9a84c; font-size: 11px; padding: 4px 10px; border-radius: 20px; }
+.profileHeader { padding: 48px 28px 16px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.name { font-family: Georgia, serif; font-size: 24px; font-weight: 400; margin-bottom: 6px; }
+.meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.loc { font-size: 12px; color: var(--muted); }
+.founded { font-size: 12px; color: var(--muted); }
+.actions { display: flex; gap: 8px; }
+.statsRow { display: flex; border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+.statCell { flex: 1; padding: 14px 20px; text-align: center; border-right: 0.5px solid var(--border); }
+.statCell:last-child { border-right: none; }
+.statN { font-size: 20px; font-weight: 500; color: var(--g); }
+.statL { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.content { display: grid; grid-template-columns: 1fr 280px; }
+.main { padding: 24px 28px; border-right: 0.5px solid var(--border); }
+.sidebar { padding: 20px; }
+.section { margin-bottom: 28px; }
+.sectionTitle { font-size: 13px; font-weight: 500; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
+.desc { font-size: 13px; color: var(--muted); line-height: 1.8; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); color: var(--muted); background: var(--surface); }
+.offers { display: flex; flex-direction: column; gap: 8px; }
+.offerCard { border: 0.5px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface); cursor: pointer; }
+.offerCard:hover { border-color: var(--g); background: var(--gl); }
+.offerTop { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.offerHours { font-size: 11px; color: var(--g); font-weight: 500; }
+.offerTitle { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.offerMeta { font-size: 11px; color: var(--muted); }
+.addOffer { display: block; text-align: center; padding: 10px; border: 0.5px dashed var(--border); border-radius: 10px; font-size: 13px; color: var(--g); }
+.addOffer:hover { background: var(--gl); border-color: var(--g); }
+.sideCard { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.sideTitle { font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+.zeitkonto { background: var(--gl); border-radius: 8px; padding: 12px; }
+.zkBalance { font-size: 28px; font-weight: 500; color: var(--g); }
+.zkLabel { font-size: 11px; color: var(--muted); }
+.zkRow { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid rgba(45,106,79,0.2); }
+.mapPlaceholder { height: 80px; background: var(--gl); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--g); cursor: pointer; gap: 6px; }
+
+.statusBadge { position: absolute; top: 14px; right: 20px; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
+.inactiveBanner { display: flex; align-items: center; gap: 12px; padding: 14px 28px; background: #f0f0ee; border-bottom: 0.5px solid var(--border); font-size: 13px; color: var(--muted); }
+.inactiveBanner strong { color: var(--text); }
+.setupNotice { font-size: 13px; color: #7c4a0a; background: #fff3e0; padding: 8px 14px; border-radius: 8px; }
+.inviteBtn { padding: 9px 18px; border-radius: 10px; background: transparent; color: var(--g); border: 1px solid var(--g); font-size: 13px; cursor: pointer; font-weight: 500; white-space: nowrap; }
+.inviteBtn:hover { background: var(--gl); }
+.lockedBox { border: 0.5px dashed var(--border); border-radius: 10px; padding: 28px; text-align: center; background: var(--surface); }
+.lockedIcon { font-size: 28px; margin-bottom: 10px; }
+.lockedText { font-size: 13px; color: var(--muted); line-height: 1.7; }
