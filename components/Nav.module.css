@@ -47,3 +47,8 @@
   transition: opacity 0.15s;
 }
 .cta:hover { opacity: 0.88; }
+
+.langSwitch { display: flex; border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; margin-left: 4px; }
+.langBtn { padding: 5px 10px; border: none; background: none; font-size: 12px; cursor: pointer; color: var(--muted); font-weight: 500; }
+.langBtn:hover { background: var(--gl); color: var(--g); }
+.langActive { background: var(--g) !important; color: #fff !important; }

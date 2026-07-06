@@ -1,24 +1,22 @@
 import Nav from '../components/Nav'
+import { useLang } from '../lib/LanguageContext'
 import styles from '../styles/ComingSoon.module.css'
 
 export default function Spenden() {
+  const { t } = useLang()
   return (
-    <div>
-      <Nav />
-      <div className={styles.page}>
-        <div className={styles.icon}>💚</div>
-        <h1 className={styles.title}>Communet unterstützen</h1>
-        <p className={styles.desc}>
-          Communet ist und bleibt kostenlos — keine Werbung, keine Algorithmen, kein Verkauf von Daten. Wir finanzieren uns ausschließlich über freiwillige Spenden.
-        </p>
-        <div className={styles.features}>
-          <div className={styles.feature}>✅ Keine Werbung</div>
-          <div className={styles.feature}>✅ Open Source</div>
-          <div className={styles.feature}>✅ Keine Nutzerdaten-Verkauf</div>
-          <div className={styles.feature}>✅ Betrieben von Menschen für Menschen</div>
-        </div>
-        <p style={{fontSize:13,color:'var(--muted)',marginTop:8}}>Spendemöglichkeit wird bald eingerichtet.</p>
+    <div><Nav />
+    <div className={styles.page}>
+      <div className={styles.icon}>💚</div>
+      <h1 className={styles.title}>{t('support_title')}</h1>
+      <p className={styles.desc}>{t('support_desc')}</p>
+      <div className={styles.features}>
+        <div className={styles.feature}>✅ {t('support_f1')}</div>
+        <div className={styles.feature}>✅ {t('support_f2')}</div>
+        <div className={styles.feature}>✅ {t('support_f3')}</div>
+        <div className={styles.feature}>✅ {t('support_f4')}</div>
       </div>
-    </div>
+      <p style={{fontSize:13,color:'var(--muted)',marginTop:8}}>{t('support_coming')}</p>
+    </div></div>
   )
 }
