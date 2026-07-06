@@ -12,10 +12,10 @@ export default function Kontakt() {
           Fragen, Feedback oder du möchtest deine Kommune eintragen? Schreib uns direkt.
         </p>
         <div className={styles.features}>
-          <div className={styles.feature}>📧 hallo@communet.net</div>
+          <div className={styles.feature}>📧 communet@outlook.de</div>
           <div className={styles.feature}>📍 Europa</div>
         </div>
-        <a href="mailto:hallo@communet.net" className={styles.btn}>E-Mail schreiben →</a>
+        <a href="mailto:communet@outlook.de" className={styles.btn}>E-Mail schreiben →</a>
       </div>
     </div>
   )

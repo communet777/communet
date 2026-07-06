@@ -17,7 +17,7 @@ export default function Datenschutz() {
           <div className={styles.feature}>✅ DSGVO-konform</div>
         </div>
         <p style={{fontSize:12,color:'var(--muted)',marginTop:16,textAlign:'center'}}>
-          Bei Datenschutzfragen: datenschutz@communet.net
+          Bei Datenschutzfragen: communet@outlook.de
         </p>
       </div>
     </div>

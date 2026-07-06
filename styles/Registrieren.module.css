@@ -1,0 +1,87 @@
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 56px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.icon { font-size: 44px; margin-bottom: 4px; }
+.badge {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--gl, #e8f5ee);
+  color: var(--g, #2d6a4f);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border: 0.5px solid var(--gm, #52b788);
+}
+.title {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--text, #1a1a18);
+}
+.desc {
+  font-size: 14px;
+  color: var(--muted, #6b6b63);
+  line-height: 1.8;
+  max-width: 380px;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.typSelector { display: flex; gap: 8px; }
+.typBtn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 0.5px solid var(--border, rgba(0,0,0,0.08));
+  background: #fff;
+  font-size: 13px;
+  color: var(--muted, #6b6b63);
+  cursor: pointer;
+  font-family: inherit;
+}
+.typBtn:hover { border-color: var(--g, #2d6a4f); color: var(--g, #2d6a4f); }
+.typActive {
+  background: var(--gl, #e8f5ee);
+  border-color: var(--g, #2d6a4f);
+  color: var(--g, #2d6a4f);
+  font-weight: 500;
+}
+.fieldWrap { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+.label { font-size: 12px; font-weight: 500; color: var(--text, #1a1a18); }
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 0.5px solid var(--border, rgba(0,0,0,0.08));
+  background: #fff;
+  font-size: 14px;
+  color: var(--text, #1a1a18);
+  font-family: inherit;
+  outline: none;
+}
+.input:focus { border-color: var(--g, #2d6a4f); }
+.btn {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--g, #2d6a4f);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+}
+.btn:hover { opacity: 0.88; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.error { font-size: 12px; color: #e24b4a; text-align: center; }
