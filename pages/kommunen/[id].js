@@ -58,7 +58,7 @@ return(
 <div className={styles.main}>
 <div className={styles.section}>
 <div className={styles.sectionTitle}>{t('profile_about')}</div>
-<p className={styles.desc}>{k.beschreibung}</p>
+<p className={styles.desc}>{lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung}</p>
 </div>
 
 {/* Besucher-Info */}
