@@ -1,16 +1,1 @@
-{
-  "name": "communet",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "next": "14.2.5",
-    "react": "^18",
-    "react-dom": "^18",
-    "leaflet": "^1.9.4"
-  }
-}
+{"name":"communet","version":"0.1.0","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start"},"dependencies":{"next":"14.2.5","react":"^18","react-dom":"^18","leaflet":"^1.9.4"}}
