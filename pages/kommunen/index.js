@@ -2,20 +2,33 @@ import{useState}from'react'
 import Link from'next/link'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
-import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo}from'../../data/communities'
+import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo,LAND_EN}from'../../data/communities'
 import styles from'../../styles/Kommunen.module.css'
+
 export default function Kommunen(){
-const{t}=useLang()
+const{t,lang}=useLang()
 const[search,setSearch]=useState('')
 const[filter,setFilter]=useState('alle')
 const[statusFilter,setStatusFilter]=useState('alle')
+
 const filtered=COMMUNITIES.filter(k=>{
-const matchTyp=filter==='alle'||k.typ===filter
-const matchStatus=statusFilter==='alle'||k.status===statusFilter
-const q=search.toLowerCase()
-const matchSearch=!q||k.name.toLowerCase().includes(q)||k.ort.toLowerCase().includes(q)||k.land.toLowerCase().includes(q)
-return matchTyp&&matchStatus&&matchSearch
+  const matchTyp=filter==='alle'||k.typ===filter
+  const matchStatus=statusFilter==='alle'||k.status===statusFilter
+  const q=search.toLowerCase()
+  if(!q)return matchTyp&&matchStatus
+  // Search in name, ort, DE land name, EN land name, and EN description
+  const landEn=(LAND_EN[k.land]||'').toLowerCase()
+  const desc=lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung
+  const matchSearch=
+    k.name.toLowerCase().includes(q)||
+    k.ort.toLowerCase().includes(q)||
+    k.land.toLowerCase().includes(q)||
+    landEn.includes(q)||
+    desc.toLowerCase().includes(q)||
+    k.tags.some(tag=>tag.toLowerCase().includes(q))
+  return matchTyp&&matchStatus&&matchSearch
 })
+
 return(
 <div>
 <Nav/>
@@ -26,7 +39,9 @@ return(
 <div className={styles.toolbar}>
 <div className={styles.searchWrap}>
 <span className={styles.searchIcon}>🔍</span>
-<input type="text"className={styles.search}placeholder={t('communities_search')}value={search}onChange={e=>setSearch(e.target.value)}/>
+<input type="text"className={styles.search}
+  placeholder={t('communities_search')}
+  value={search}onChange={e=>setSearch(e.target.value)}/>
 </div>
 <div className={styles.pills}>
 <button className={`${styles.pill}${filter==='alle'?' '+styles.active:''}`}onClick={()=>setFilter('alle')}>{t('communities_all')}</button>
@@ -42,11 +57,12 @@ return(
 <button className={`${styles.pill}${statusFilter==='nicht-registriert'?' '+styles.activeStatus:''}`}onClick={()=>setStatusFilter('nicht-registriert')}>{t('communities_inactive')}</button>
 </div>
 </div>
-<div className={styles.resultsBar}>{filtered.length} {t('communities_all').split(' ')[0]}</div>
+<div className={styles.resultsBar}>{filtered.length} {filtered.length===1?t('communities_found_one'):t('communities_found')}</div>
 <div className={styles.grid}>
 {filtered.length===0?<div className={styles.empty}>—</div>:filtered.map(k=>{
 const status=getStatusInfo(k.status)
 const isInactive=k.status==='nicht-registriert'
+const displayLand=lang==='en'?(LAND_EN[k.land]||k.land):k.land
 return(
 <Link href={`/kommunen/${k.id}`}key={k.id}className={`${styles.card}${isInactive?' '+styles.cardInactive:''}`}>
 <div className={styles.cardImg}style={{background:k.typ==='Kommune'?'#fff3e0':k.typ==='Kollektiv'?'#e8eaf6':'#e8f5ee',opacity:isInactive?0.6:1}}>
@@ -60,10 +76,11 @@ return(
 </span>
 </div>
 <div className={styles.cardName}style={{color:isInactive?'var(--muted)':'var(--text)'}}>{k.name}</div>
-<div className={styles.cardLoc}>📍 {k.ort} · {k.land}</div>
+<div className={styles.cardLoc}>📍 {k.ort} · {displayLand}</div>
 <div className={styles.cardFooter}>
 <span>👥 ~{k.members}</span>
-{isInactive?<span style={{fontSize:11,color:'var(--muted)'}}>{t('communities_invite')}</span>:<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>{k.angebote} {t('nav_offers').toLowerCase()}</span>}
+{isInactive?<span style={{fontSize:11,color:'var(--muted)'}}>{t('communities_invite')}</span>
+:<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>{k.angebote} {t('nav_offers').toLowerCase()}</span>}
 </div>
 </div>
 </Link>

@@ -2,7 +2,7 @@ import Link from'next/link'
 import{useRouter}from'next/router'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
-import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher}from'../../data/communities'
+import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher,LAND_EN}from'../../data/communities'
 import styles from'../../styles/KommuneProfil.module.css'
 
 export default function KommuneProfil(){
