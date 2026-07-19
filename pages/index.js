@@ -14,7 +14,9 @@ return(
 <Nav/>
 <section className={styles.hero}>
 <div className={styles.heroLeft}>
-<img src="/communet_globe.png" alt="Communet" style={{width:'min(360px,80vw)',height:'min(360px,80vw)',objectFit:'contain'}}/>
+<div style={{width:'min(360px,80vw)',height:'min(360px,80vw)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+<img src="/communet_globe.png" alt="Communet" style={{width:'100%',height:'100%',objectFit:'contain'}}/>
+</div>
 </div>
 <div className={styles.heroRight}>
 <div className={styles.eyebrow}>{t('home_eyebrow')}</div>
