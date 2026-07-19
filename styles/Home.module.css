@@ -73,8 +73,7 @@
 .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:16px 20px}
 }
 
-/* Fix white sidebar on mobile */
-html, body { overflow-x: hidden; background: #050d1a; }
+
 .page { background: #050d1a; min-height: 100vh; overflow-x: hidden; }
 
 /* Mobile nav - make compact */
