@@ -29,3 +29,10 @@
 .popupStatus{font-size:11px}
 .popupBtn{display:block;text-align:center;padding:8px;background:var(--g);color:#fff;border-radius:8px;font-size:13px;font-weight:500;margin-top:4px}
 .popupBtn:hover{opacity:.88}
+
+@media(max-width:768px){
+.layout{grid-template-columns:1fr;grid-template-rows:auto 350px}
+.sidebar{border-right:none;border-bottom:.5px solid var(--border);max-height:300px}
+.mapWrap{height:350px}
+.list{max-height:220px}
+}
