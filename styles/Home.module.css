@@ -72,3 +72,13 @@
 .visionSection{padding:40px 24px}
 .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:16px 20px}
 }
+
+/* Fix white sidebar on mobile */
+html, body { overflow-x: hidden; background: #050d1a; }
+.page { background: #050d1a; min-height: 100vh; overflow-x: hidden; }
+
+/* Mobile nav - make compact */
+@media(max-width:768px){
+.heroLeft { width: 100%; display: flex; justify-content: center; padding: 20px 0 0; }
+.heroLeft img { width: 260px !important; height: 260px !important; }
+}

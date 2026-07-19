@@ -1,7 +1,7 @@
 :root{--g:#2d6a4f;--gl:#e8f5ee;--gm:#52b788;--sand:#f7f3ed;--text:#1a1a18;--muted:#6b6b63;--border:rgba(0,0,0,0.08);--gold:#b8892a;--r:12px;--surface:#ffffff}
 @media(prefers-color-scheme:dark){:root{--g:#52b788;--gl:#0d2318;--gm:#2d6a4f;--sand:#0e110d;--text:#e8ede6;--muted:#8a9485;--border:rgba(255,255,255,0.08);--gold:#d4b060;--surface:#1a1f18}}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--sand);color:var(--text);font-size:15px;line-height:1.6}
+html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--sand);color:var(--text);font-size:15px;line-height:1.6;overflow-x:hidden;max-width:100vw}
 a{text-decoration:none;color:inherit}button{font-family:inherit;cursor:pointer}
 .btn-primary{padding:10px 22px;border-radius:10px;background:var(--g);color:#fff;border:none;font-size:14px;font-weight:500;cursor:pointer}
 .btn-primary:hover{opacity:.88}
@@ -11,3 +11,4 @@ a{text-decoration:none;color:inherit}button{font-family:inherit;cursor:pointer}
 .badge-oeko{background:#e8f5ee;color:#2d6a4f}.badge-kommune{background:#fff3e0;color:#7c4a0a}
 .badge-kollektiv{background:#e8eaf6;color:#303f9f}.badge-spirituell{background:#fce4ec;color:#880e4f}
 .badge-wohn{background:#e0f2f1;color:#00695c}
+html{background:#050d1a}
