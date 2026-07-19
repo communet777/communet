@@ -3,6 +3,7 @@ import Link from'next/link'
 import Nav from'../components/Nav'
 import{useLang}from'../lib/LanguageContext'
 import{COMMUNITIES,getTypBadge,getStatusInfo}from'../data/communities'
+import{GLOBE_IMG}from'../lib/globeImg'
 import styles from'../styles/Home.module.css'
 export default function Home(){
 const[mounted,setMounted]=useState(false)
@@ -14,7 +15,7 @@ return(
 <Nav/>
 <section className={styles.hero}>
 <div className={styles.heroLeft}>
-<img src="/communet_globe.png" alt="Communet" style={{width:360,height:360,objectFit:'contain'}}/>
+<img src={GLOBE_IMG} alt="Communet" style={{width:360,height:360,objectFit:'contain'}}/>
 </div>
 <div className={styles.heroRight}>
 <div className={styles.eyebrow}>{t('home_eyebrow')}</div>
