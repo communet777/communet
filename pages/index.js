@@ -1,11 +1,9 @@
 import{useEffect,useState}from'react'
-import dynamic from'next/dynamic'
 import Link from'next/link'
 import Nav from'../components/Nav'
 import{useLang}from'../lib/LanguageContext'
 import{COMMUNITIES,getTypBadge,getStatusInfo}from'../data/communities'
 import styles from'../styles/Home.module.css'
-const Globe=dynamic(()=>import('../components/Globe'),{ssr:false})
 export default function Home(){
 const[mounted,setMounted]=useState(false)
 const{t}=useLang()
@@ -15,7 +13,9 @@ return(
 <div className={styles.page}>
 <Nav/>
 <section className={styles.hero}>
-<div className={styles.heroLeft}>{mounted&&<Globe size={360}/>}</div>
+<div className={styles.heroLeft}>
+<img src="/communet_globe.png" alt="Communet" style={{width:360,height:360,objectFit:'contain'}}/>
+</div>
 <div className={styles.heroRight}>
 <div className={styles.eyebrow}>{t('home_eyebrow')}</div>
 <h1 className={styles.title}>{t('home_title1')}<br/>{t('home_title2')}<br/>{t('home_title3')}</h1>
@@ -29,6 +29,27 @@ return(
 <div className={styles.stat}><div className={styles.statN}>30+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
 <div className={styles.stat}><div className={styles.statN}>🌍</div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
 </div>
+</div>
+</section>
+<section className={styles.visionSection}>
+<div className={styles.visionInner}>
+{lang==='de'?(
+<>
+<div className={styles.sectionLabel}>Unsere Vision</div>
+<h2 className={styles.visionTitle}>Gemeinschaft neu gedacht</h2>
+<p className={styles.visionText}>Communet ist eine offene Plattform für alle, die anders leben wollen — oder es bereits tun.</p>
+<p className={styles.visionText}>Wir verbinden Kommunen, Ökodörfer und Kollektive weltweit mit Menschen, die Gemeinschaft suchen. Nicht als Produkt. Nicht als Algorithmus. Sondern als ehrliche, kostenlose Karte des alternativen Lebens.</p>
+<p className={styles.visionText}>Ob du eine Gemeinschaft suchst, gründen willst oder einfach wissen möchtest: Wo gibt es das schon? — Communet ist dein Ausgangspunkt.</p>
+</>
+):(
+<>
+<div className={styles.sectionLabel}>Our Vision</div>
+<h2 className={styles.visionTitle}>Community reimagined</h2>
+<p className={styles.visionText}>Communet is an open platform for everyone who wants to live differently — or already does.</p>
+<p className={styles.visionText}>We connect communes, ecovillages and collectives worldwide with people seeking community. Not as a product. Not as an algorithm. But as an honest, free map of alternative living.</p>
+<p className={styles.visionText}>Whether you're looking for a community, want to start one, or simply want to know: where does this already exist? — Communet is your starting point.</p>
+</>
+)}
 </div>
 </section>
 <section className={styles.section}>

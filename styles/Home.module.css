@@ -13,6 +13,10 @@
 .statsRow{display:flex;gap:32px;padding-top:24px;border-top:.5px solid rgba(201,168,76,0.2)}
 .statN{font-size:22px;font-weight:500;color:#c9a84c}
 .statL{font-size:11px;color:rgba(200,220,255,0.4);margin-top:2px;letter-spacing:.04em}
+.visionSection{padding:64px 48px;background:#050d1a;text-align:center}
+.visionInner{max-width:680px;margin:0 auto}
+.visionTitle{font-family:Georgia,serif;font-size:32px;font-weight:400;color:#c9a84c;margin:12px 0 24px;letter-spacing:.04em}
+.visionText{font-size:16px;color:rgba(200,220,255,0.75);line-height:1.9;margin-bottom:16px}
 .section{padding:48px}
 .sectionHeader{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
 .sectionLabel{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--g);font-weight:500;margin-bottom:4px}

@@ -57,7 +57,7 @@ return(
 <button className={`${styles.pill}${statusFilter==='nicht-registriert'?' '+styles.activeStatus:''}`}onClick={()=>setStatusFilter('nicht-registriert')}>{t('communities_inactive')}</button>
 </div>
 </div>
-<div className={styles.resultsBar}>{filtered.length} {filtered.length===1?t('communities_found_one'):t('communities_found')}</div>
+<div className={styles.resultsBar}>{filtered.length}+ {t('communities_found')}</div>
 <div className={styles.grid}>
 {filtered.length===0?<div className={styles.empty}>—</div>:filtered.map(k=>{
 const status=getStatusInfo(k.status)
