@@ -23,7 +23,7 @@ return(
 <h1 className={styles.title}>{t('home_title1')}<br/>{t('home_title2')}<br/>{t('home_title3')}</h1>
 <p className={styles.sub}>{t('home_sub')}</p>
 <div className={styles.actions}>
-<Link href="/registrieren"className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
+<Link href="/auth/login"className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
 <Link href="/kommunen"className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
 </div>
 <div className={styles.statsRow}>
@@ -113,12 +113,12 @@ return(
 <h2 className={styles.ctaTitle}>{t('home_cta_title')}</h2>
 <p className={styles.ctaSub}>{t('home_cta_sub')}</p>
 <div className={styles.ctaBtns}>
-<Link href="/registrieren?typ=kommune"className={styles.ctaBtnP}>{t('home_cta_btn1')}</Link>
-<Link href="/registrieren"className={styles.ctaBtnS}>{t('home_cta_btn2')}</Link>
+<Link href="/auth/login"className={styles.ctaBtnP}>{t('home_cta_btn1')}</Link>
+<Link href="/auth/login"className={styles.ctaBtnS}>{t('home_cta_btn2')}</Link>
 </div>
 </section>
 <footer className={styles.footer}>
-<span className={styles.footerLogo}>communet · 2025 · Open source</span>
+<span className={styles.footerLogo}>communet · 2026</span>
 <div className={styles.footerLinks}>
 <Link href="/ueber-uns">{t('about')}</Link>
 <Link href="/kontakt">{t('contact')}</Link>

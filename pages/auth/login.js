@@ -83,8 +83,8 @@ export default function Login() {
         {mode === 'register' && status !== 'registered' && (
           <form onSubmit={handleRegister} className={styles.form}>
             <div className={styles.typSelector}>
-              <button type="button" className={`${styles.typBtn} ${typ==='person'?styles.typActive:''}`} onClick={()=>setTyp('person')}>? Person</button>
-              <button type="button" className={`${styles.typBtn} ${typ==='kommune'?styles.typActive:''}`} onClick={()=>setTyp('kommune')}>? Kommune</button>
+              <button type="button" className={`${styles.typBtn} ${typ==='person'?styles.typActive:''}`} onClick={()=>setTyp('person')}>👤 Person</button>
+              <button type="button" className={`${styles.typBtn} ${typ==='kommune'?styles.typActive:''}`} onClick={()=>setTyp('kommune')}>🏡 Kommune</button>
             </div>
             <div className={styles.field}>
               <label>{typ==='kommune' ? 'Name der Kommune' : 'Dein Name'}</label>
@@ -100,7 +100,7 @@ export default function Login() {
             </div>
             <div className={styles.field}>
               <label>Invite-Code</label>
-              <input type="text" required value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="z.B. COMMUNET2025"/>
+              <input type="text" required value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="Dein Einladungscode"/>
               <span className={styles.hint}>Noch keinen? Schreib an communet@outlook.de</span>
             </div>
             {error && <p className={styles.error}>{error}</p>}
@@ -111,7 +111,7 @@ export default function Login() {
         )}
         {mode === 'register' && status === 'registered' && (
           <div className={styles.success}>
-            <div className={styles.successIcon}>??</div>
+            <div className={styles.successIcon}>🎉</div>
             <h2>Willkommen bei Communet!</h2>
             <p>Bitte bestätige deine E-Mail-Adresse.</p>
           </div>
@@ -131,7 +131,7 @@ export default function Login() {
         )}
         {mode === 'magic' && status === 'magic_sent' && (
           <div className={styles.success}>
-            <div className={styles.successIcon}>?</div>
+            <div className={styles.successIcon}>✉️</div>
             <h2>Check deine E-Mails!</h2>
             <p>Wir haben dir einen Login-Link geschickt.</p>
           </div>
