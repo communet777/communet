@@ -1,4 +1,5 @@
 import{useEffect,useRef}from'react'
+import{getTypIcon}from'../data/communities'
 const TYPE_COLORS={"Ökodorf":"#2d6a4f","Kommune":"#e07820","Kollektiv":"#3f51b5","Spirituelle Gemeinschaft":"#8e24aa","Wohnprojekt":"#00897b","Sonstige":"#757575"}
 export default function Map({communities,selected,onSelect}){
 const mapRef=useRef(null)
@@ -18,7 +19,7 @@ Object.values(markersRef.current).forEach(m=>mapInstanceRef.current.removeLayer(
 markersRef.current={}
 communities.forEach(k=>{
 const color=TYPE_COLORS[k.typ]||'#757575'
-const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;opacity:${k.status==='aktiv'?1:0.55}">${k.icon}</div>`,iconSize:[28,28],iconAnchor:[14,14]})
+const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;opacity:${k.status==='aktiv'?1:0.55}">${getTypIcon(k.typ)}</div>`,iconSize:[28,28],iconAnchor:[14,14]})
 const marker=L.marker([k.lat,k.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelect(k))
 markersRef.current[k.id]=marker
 })
