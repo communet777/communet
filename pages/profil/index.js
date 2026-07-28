@@ -3,26 +3,31 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
 import { useAuth } from '../../lib/AuthContext'
-import { getTypIcon } from '../../data/communities'
+import { supabase } from '../../lib/supabase'
+import { useState } from 'react'
 import styles from '../../styles/Profil.module.css'
 
 export default function Profil() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/auth/login')
   }, [user, loading])
 
+  useEffect(() => {
+    if (!user) return
+    supabase.from('profiles').select('*').eq('id', user.id).single()
+      .then(({ data }) => { if (data) setProfile(data) })
+  }, [user])
+
   if (loading || !user) return (
-    <div className={styles.loading}>
-      <div className={styles.spinner}/>
-    </div>
+    <div className={styles.loading}><div className={styles.spinner}/></div>
   )
 
-  const name = user.user_metadata?.name || user.email
-  const typ = user.user_metadata?.typ || 'person'
-  const icon = typ === 'kommune' ? getTypIcon('Kommune') : getTypIcon('Ökodorf')
+  const name = profile?.name || user.user_metadata?.name || user.email
+  const typ = profile?.typ || user.user_metadata?.typ || 'person'
   const since = new Date(user.created_at).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
 
   async function handleSignOut() {
@@ -35,22 +40,28 @@ export default function Profil() {
       <Nav/>
       <div className={styles.container}>
         <div className={styles.card}>
-          <div className={styles.avatar}>{typ === 'kommune' ? '🏡' : '👤'}</div>
+          <div className={styles.avatar}>
+            {profile?.avatar_url
+              ? <img src={profile.avatar_url} alt="Avatar" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}}/>
+              : typ === 'kommune' ? '🏡' : '👤'
+            }
+          </div>
           <h1 className={styles.name}>{name}</h1>
           <div className={styles.badge}>{typ === 'kommune' ? 'Kommune' : 'Person'}</div>
+          {profile?.land && <div className={styles.email}>📍 {profile.land}</div>}
           <div className={styles.email}>{user.email}</div>
+          {profile?.bio && <p style={{fontSize:13,color:'var(--muted)',textAlign:'center',margin:'4px 0 0',lineHeight:1.6}}>{profile.bio}</p>}
           <div className={styles.since}>Mitglied seit {since}</div>
 
           <div className={styles.divider}/>
 
           <div className={styles.actions}>
-            <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen entdecken</Link>
+            <Link href="/profil/bearbeiten" className={styles.btnPrimary}>Profil bearbeiten</Link>
+            <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen</Link>
             <Link href="/karte" className={styles.btnSecondary}>🗺️ Karte</Link>
           </div>
 
-          <button className={styles.signOut} onClick={handleSignOut}>
-            Abmelden
-          </button>
+          <button className={styles.signOut} onClick={handleSignOut}>Abmelden</button>
         </div>
       </div>
     </div>
