@@ -72,11 +72,11 @@ export default function Login() {
             </div>
             <div className={styles.field}>
               <label>Passwort</label>
-              <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="????????"/>
+              <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="mind. 8 Zeichen"/>
             </div>
             {error && <p className={styles.error}>{error}</p>}
             <button type="submit" className={styles.btn} disabled={status==='loading'}>
-              {status==='loading' ? 'Lädt...' : 'Anmelden ?'}
+              {status==='loading' ? 'Lädt...' : 'Anmelden'}
             </button>
           </form>
         )}
@@ -105,7 +105,7 @@ export default function Login() {
             </div>
             {error && <p className={styles.error}>{error}</p>}
             <button type="submit" className={styles.btn} disabled={status==='loading'}>
-              {status==='loading' ? 'Lädt...' : 'Konto erstellen ?'}
+              {status==='loading' ? 'Lädt...' : 'Konto erstellen'}
             </button>
           </form>
         )}
@@ -125,7 +125,7 @@ export default function Login() {
             </div>
             {error && <p className={styles.error}>{error}</p>}
             <button type="submit" className={styles.btn} disabled={status==='loading'}>
-              {status==='loading' ? 'Lädt...' : 'Link senden ?'}
+              {status==='loading' ? 'Lädt...' : 'Link senden'}
             </button>
           </form>
         )}
