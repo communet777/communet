@@ -2,7 +2,7 @@ import{useEffect,useState}from'react'
 import Link from'next/link'
 import Nav from'../components/Nav'
 import{useLang}from'../lib/LanguageContext'
-import{COMMUNITIES,getTypBadge,getStatusInfo}from'../data/communities'
+import{COMMUNITIES,getTypBadge,getStatusInfo,getTypIcon}from'../data/communities'
 import styles from'../styles/Home.module.css'
 export default function Home(){
 const[mounted,setMounted]=useState(false)
@@ -62,7 +62,7 @@ return(
 <div className={styles.grid}>
 {aktive.length===0?COMMUNITIES.slice(0,4).map(k=>(
 <Link href={`/kommunen/${k.id}`}key={k.id}className={styles.card}>
-<div className={styles.cardImg}>{k.icon}</div>
+<div className={styles.cardImg}>{getTypIcon(k.typ)}</div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
 <span className={`badge ${getTypBadge(k.typ)}`}>{k.typ}</span>
@@ -77,7 +77,7 @@ return(
 const status=getStatusInfo(k.status)
 return(
 <Link href={`/kommunen/${k.id}`}key={k.id}className={styles.card}>
-<div className={styles.cardImg}>{k.icon}</div>
+<div className={styles.cardImg}>{getTypIcon(k.typ)}</div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
 <span className={`badge ${getTypBadge(k.typ)}`}>{k.typ}</span>

@@ -2,7 +2,7 @@ import Link from'next/link'
 import{useRouter}from'next/router'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
-import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher,LAND_EN}from'../../data/communities'
+import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher,LAND_EN,getTypIcon}from'../../data/communities'
 import styles from'../../styles/KommuneProfil.module.css'
 
 export default function KommuneProfil(){
@@ -21,7 +21,7 @@ return(
 <Nav/>
 <div className={styles.banner}style={{opacity:isInactive?0.7:1}}>
 <div className={styles.bannerPattern}/>
-<div className={styles.avatar}>{k.icon}</div>
+<div className={styles.avatar}>{getTypIcon(k.typ)}</div>
 <div className={styles.statusBadge}style={{background:status.bg,color:status.color}}>
 {isActive?`🟢 ${t('status_active')}`:isSetup?`🟡`:` ⚫ ${t('status_inactive')}`}
 </div>
@@ -61,7 +61,6 @@ return(
 <p className={styles.desc}>{lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung}</p>
 </div>
 
-{/* Besucher-Info */}
 <div className={styles.section}>
 <div className={styles.sectionTitle}>{lang==='en'?'Visitors':'Besucher'}</div>
 <div className={styles.besucherBadge}style={{background:besucher.bg,borderColor:besucher.color}}>
@@ -96,7 +95,6 @@ return(
 </>}
 </div>
 
-{/* Besucher Sidebar Card */}
 <div className={styles.sideCard}>
 <div className={styles.sideTitle}>{lang==='en'?'🧳 Visitors':'🧳 Besucher'}</div>
 <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,background:besucher.bg,border:`0.5px solid ${besucher.color}22`}}>

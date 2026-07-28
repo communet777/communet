@@ -2,7 +2,7 @@ import{useState}from'react'
 import Link from'next/link'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
-import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo,LAND_EN}from'../../data/communities'
+import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo,LAND_EN,getTypIcon}from'../../data/communities'
 import styles from'../../styles/Kommunen.module.css'
 
 export default function Kommunen(){
@@ -16,7 +16,6 @@ const filtered=COMMUNITIES.filter(k=>{
   const matchStatus=statusFilter==='alle'||k.status===statusFilter
   const q=search.toLowerCase()
   if(!q)return matchTyp&&matchStatus
-  // Search in name, ort, DE land name, EN land name, and EN description
   const landEn=(LAND_EN[k.land]||'').toLowerCase()
   const desc=lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung
   const matchSearch=
@@ -47,7 +46,7 @@ return(
 <button className={`${styles.pill}${filter==='alle'?' '+styles.active:''}`}onClick={()=>setFilter('alle')}>{t('communities_all')}</button>
 {TYPEN.map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
-{typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}
+{getTypIcon(typ)} {typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}
 </button>
 ))}
 </div>
@@ -66,7 +65,7 @@ const displayLand=lang==='en'?(LAND_EN[k.land]||k.land):k.land
 return(
 <Link href={`/kommunen/${k.id}`}key={k.id}className={`${styles.card}${isInactive?' '+styles.cardInactive:''}`}>
 <div className={styles.cardImg}style={{background:k.typ==='Kommune'?'#fff3e0':k.typ==='Kollektiv'?'#e8eaf6':'#e8f5ee',opacity:isInactive?0.6:1}}>
-<span style={{fontSize:32,filter:isInactive?'grayscale(80%)':'none'}}>{k.icon}</span>
+<span style={{fontSize:32,filter:isInactive?'grayscale(80%)':'none'}}>{getTypIcon(k.typ)}</span>
 </div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6,gap:4}}>

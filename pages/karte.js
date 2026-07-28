@@ -2,7 +2,7 @@ import{useState}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import{useLang}from'../lib/LanguageContext'
-import{COMMUNITIES,getTypBadge}from'../data/communities'
+import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 export default function Karte(){
@@ -20,16 +20,16 @@ return(
 <p className={styles.sub}>{filtered.length} {t('map_communities')}</p>
 </div>
 <div className={styles.pills}>
-{['alle','Ökodorf','Kommune','Kollektiv','Wohnprojekt'].map(typ=>(
+{['alle','Ökodorf','Kommune','Kollektiv','Spirituelle Gemeinschaft','Wohnprojekt'].map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
-{typ==='alle'?t('communities_all').split(' ')[0]:typ}
+{typ==='alle'?t('communities_all').split(' ')[0]:`${getTypIcon(typ)} ${typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}`}
 </button>
 ))}
 </div>
 <div className={styles.list}>
 {filtered.map(k=>(
 <div key={k.id}className={`${styles.listItem}${selected?.id===k.id?' '+styles.listActive:''}`}onClick={()=>setSelected(k)}>
-<span className={styles.listIcon}>{k.icon}</span>
+<span className={styles.listIcon}>{getTypIcon(k.typ)}</span>
 <div className={styles.listBody}>
 <div className={styles.listName}>{k.name}</div>
 <div className={styles.listLoc}>{k.ort} · {k.land}</div>
@@ -44,7 +44,7 @@ return(
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>
-<div className={styles.popupIcon}>{selected.icon}</div>
+<div className={styles.popupIcon}>{getTypIcon(selected.typ)}</div>
 <div className={styles.popupName}>{selected.name}</div>
 <span className={`badge ${getTypBadge(selected.typ)}`}>{selected.typ}</span>
 <div className={styles.popupLoc}>📍 {selected.ort} · {selected.land}</div>
