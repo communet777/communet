@@ -23,7 +23,7 @@ export default function Login() {
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError('E-Mail oder Passwort falsch.'); setStatus('idle') }
-    else router.push('/')
+    else router.push('/profil')
   }
 
   async function handleRegister(e) {
@@ -50,7 +50,10 @@ export default function Login() {
     e.preventDefault()
     setStatus('loading')
     setError('')
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: 'https://communet.net/profil' }
+    })
     if (error) { setError(error.message); setStatus('idle') }
     else setStatus('magic_sent')
   }
@@ -113,7 +116,7 @@ export default function Login() {
           <div className={styles.success}>
             <div className={styles.successIcon}>🎉</div>
             <h2>Willkommen bei Communet!</h2>
-            <p>Bitte bestätige deine E-Mail-Adresse.</p>
+            <p>Bitte bestätige deine E-Mail-Adresse — danach kannst du dich anmelden.</p>
           </div>
         )}
         {mode === 'magic' && status !== 'magic_sent' && (
@@ -133,7 +136,7 @@ export default function Login() {
           <div className={styles.success}>
             <div className={styles.successIcon}>✉️</div>
             <h2>Check deine E-Mails!</h2>
-            <p>Wir haben dir einen Login-Link geschickt.</p>
+            <p>Wir haben dir einen Login-Link geschickt. Nach dem Klick landest du direkt in deinem Profil.</p>
           </div>
         )}
       </div>
