@@ -14,7 +14,7 @@ export const COMMUNITIES = [
   {id:11,name:"Friland",land:"Dänemark",region:"Djursland",ort:"Feldballe",lat:56.302,lon:10.542,typ:"Ökodorf",jahr:2002,members:115,angebote:0,besucher:"anmeldung",status:"nicht-registriert",verified:false,icon:"🏕️",beschreibung:"Ökodorf mit Selbstbauhäusern. Rechtlich anerkannter Sonderstatus in Dänemark.",beschreibung_en:"Ecovillage with self-built homes. Legally recognised special status in Denmark.",website:"https://friland.org",tags:["Selbstbau","Sonderstatus"]},
   // UK / SCHOTTLAND
   {id:12,name:"Findhorn Foundation",land:"Schottland",region:"Moray",ort:"Findhorn",lat:57.655,lon:-3.606,typ:"Ökodorf",jahr:1962,members:400,angebote:0,besucher:"offen",status:"nicht-registriert",verified:false,icon:"☀️",beschreibung:"Weltberühmtes spirituell-ökologisches Ökodorf. Pionier nachhaltigen Bauens, UN-Habitat ausgezeichnet.",beschreibung_en:"World-famous spiritual ecovillage. Pioneer of sustainable building, UN-Habitat awarded.",website:"https://findhorn.org",tags:["Spirituell","UN-ausgezeichnet","Pionier"]},
-  {id:13,name:"Tinkers Bubble",land:"England",region:"Somerset",ort:"Stoke-sub-Hamdon",lat:50.961,lon:-2.772,typ:"Kommune",jahr:1994,members:15,angebote:0,besucher:"einladung",status:"nicht-registriert",verified:false,icon:"🫧",beschreibung:"Low-Impact-Wald- und Landwirtschaftsgemeinschaft in Somerset. Fossilarm, Off-grid.",beschreibung_en:"Low-impact woodland and farming community in Somerset. Fossil-free, off-grid.",website:"https://tinkersbubble.org",tags:["Low-Impact","Off-grid"]},
+  {id:13,name:"Tinkers Bubble",land:"England",region:"Somerset",ort:"Stoke-sub-Hamdon",lat:50.961,lon:-2.772,typ:"Kommune",jahr:1994,members:15,angebote:0,besucher:"einladung",status:"nicht-registriert",verified:false,icon:"🫗",beschreibung:"Low-Impact-Wald- und Landwirtschaftsgemeinschaft in Somerset. Fossilarm, Off-grid.",beschreibung_en:"Low-impact woodland and farming community in Somerset. Fossil-free, off-grid.",website:"https://tinkersbubble.org",tags:["Low-Impact","Off-grid"]},
   {id:14,name:"Lammas Ecovillage",land:"Wales",region:"Pembrokeshire",ort:"Glandwr",lat:51.985,lon:-4.747,typ:"Ökodorf",jahr:2009,members:70,angebote:0,besucher:"anmeldung",status:"nicht-registriert",verified:false,icon:"🏴󠁧󠁢󠁷󠁬󠁳󠁿",beschreibung:"Low-Impact-Siedlung in Wales. Selbstbau, Permakultur, staatlich genehmigt.",beschreibung_en:"Low-impact settlement in Wales. Self-built homes, permaculture, state-approved.",website:"https://lammas.org.uk",tags:["Low-Impact","Wales"]},
   {id:15,name:"Bruderhof Darvell",land:"England",region:"East Sussex",ort:"Robertsbridge",lat:51.0,lon:0.483,typ:"Spirituelle Gemeinschaft",jahr:1971,members:350,angebote:0,besucher:"anmeldung",status:"nicht-registriert",verified:false,icon:"✝️",beschreibung:"Christliche Anabaptisten-Gemeinschaft. Gütergemeinschaft, Handwerk, Schule.",beschreibung_en:"Christian Anabaptist community. Shared property, handicrafts, school.",website:"https://bruderhof.com",tags:["Christlich","Gütergemeinschaft"]},
   {id:16,name:"LILAC Leeds",land:"England",region:"Yorkshire",ort:"Leeds",lat:53.807,lon:-1.62,typ:"Wohnprojekt",jahr:2013,members:35,angebote:0,besucher:"geschlossen",status:"nicht-registriert",verified:false,icon:"🌸",beschreibung:"Low Impact Living Affordable Community in Leeds. Mutual Home Ownership, ökologische Bauweise.",beschreibung_en:"Low Impact Living Affordable Community in Leeds. Mutual home ownership, ecological construction.",website:"https://lilac.coop",tags:["Cohousing","Genossenschaft"]},
@@ -218,6 +218,17 @@ export function getBesucher(besucher) {
     "unbekannt":  { label: "Unbekannt — bitte anfragen", label_en: "Unknown — please enquire", icon: "⚪", color: "#6b6b63", bg: "#f0f0ee" },
   }
   return map[besucher] || map["unbekannt"]
+}
+
+export function getTypIcon(typ) {
+  const map = {
+    "Ökodorf": "🌿",
+    "Kommune": "🤝",
+    "Kollektiv": "✊",
+    "Spirituelle Gemeinschaft": "🕊️",
+    "Wohnprojekt": "🏡",
+  }
+  return map[typ] || "🌿"
 }
 
 // Country name translations for search
