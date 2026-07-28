@@ -44,7 +44,7 @@ export default function ProfilBearbeiten() {
     const ext = file.name.split('.').pop()
     const path = `${user.id}/avatar.${ext}`
     const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-    if (upErr) { setError('Upload fehlgeschlagen.'); setUploading(false); return }
+    if (upErr) { setError('Upload fehlgeschlagen: ' + upErr.message); setUploading(false); return }
     const { data } = supabase.storage.from('avatars').getPublicUrl(path)
     setProfile(p => ({ ...p, avatar_url: data.publicUrl }))
     setUploading(false)
@@ -54,16 +54,18 @@ export default function ProfilBearbeiten() {
     e.preventDefault()
     setSaving(true)
     setError('')
-    const { error: saveErr } = await supabase.from('profiles').update({
+    const { error: saveErr } = await supabase.from('profiles').upsert({
+      id: user.id,
+      email: user.email,
       name: profile.name,
       bio: profile.bio,
       land: profile.land,
       website: profile.website,
       instagram: profile.instagram,
       avatar_url: profile.avatar_url
-    }).eq('id', user.id)
+    })
     setSaving(false)
-    if (saveErr) { setError('Speichern fehlgeschlagen.'); return }
+    if (saveErr) { setError('Speichern fehlgeschlagen: ' + saveErr.message); return }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -80,7 +82,6 @@ export default function ProfilBearbeiten() {
         </div>
 
         <form onSubmit={handleSave} className={styles.form}>
-          {/* Avatar */}
           <div className={styles.avatarSection}>
             <div className={styles.avatarWrap} onClick={() => fileRef.current.click()}>
               {profile.avatar_url
