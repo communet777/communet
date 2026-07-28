@@ -1,0 +1,26 @@
+.page{min-height:100vh;background:#050d1a;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:var(--sand,#f7f3ed);border-radius:16px;padding:32px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:20px}
+.logo{font-family:Georgia,serif;font-size:22px;color:var(--g,#2d6a4f);text-align:center;letter-spacing:.05em;text-decoration:none}
+.tabs{display:flex;border-radius:10px;overflow:hidden;border:.5px solid var(--border,rgba(0,0,0,.1));background:#fff}
+.tab{flex:1;padding:9px 6px;border:none;background:none;font-size:12px;cursor:pointer;color:var(--muted,#6b6b63);font-family:inherit;transition:all .15s}
+.tab:hover{background:var(--gl,#e8f5ee);color:var(--g,#2d6a4f)}
+.tabActive{background:var(--g,#2d6a4f)!important;color:#fff!important;font-weight:500}
+.form{display:flex;flex-direction:column;gap:14px}
+.typSelector{display:flex;gap:8px}
+.typBtn{flex:1;padding:10px;border-radius:8px;border:.5px solid var(--border,rgba(0,0,0,.1));background:#fff;font-size:13px;cursor:pointer;font-family:inherit;color:var(--muted,#6b6b63)}
+.typBtn:hover{border-color:var(--g,#2d6a4f);color:var(--g,#2d6a4f)}
+.typActive{background:var(--gl,#e8f5ee);border-color:var(--g,#2d6a4f);color:var(--g,#2d6a4f);font-weight:500}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:500;color:var(--text,#1a1a18)}
+.field input{padding:10px 12px;border-radius:8px;border:.5px solid var(--border,rgba(0,0,0,.1));background:#fff;font-size:14px;color:var(--text,#1a1a18);font-family:inherit;outline:none}
+.field input:focus{border-color:var(--g,#2d6a4f)}
+.hint{font-size:11px;color:var(--muted,#6b6b63)}
+.btn{padding:12px;border-radius:10px;background:var(--g,#2d6a4f);color:#fff;border:none;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:4px}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.error{font-size:12px;color:#e24b4a;text-align:center}
+.magicInfo{font-size:13px;color:var(--muted,#6b6b63);line-height:1.6}
+.success{text-align:center;padding:16px 0;display:flex;flex-direction:column;gap:10px;align-items:center}
+.successIcon{font-size:40px}
+.success h2{font-family:Georgia,serif;font-size:20px;font-weight:400}
+.success p{font-size:13px;color:var(--muted,#6b6b63);line-height:1.7;max-width:300px}
