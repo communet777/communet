@@ -45,7 +45,7 @@
   font-size: 24px;
   font-weight: 700;
   color: var(--text);
-  margin: 0;
+  margin: 0 0 12px;
 }
 
 .form {
@@ -122,7 +122,8 @@
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   padding: 10px 14px;
   border-radius: 10px;
   border: 1.5px solid var(--border);
@@ -132,10 +133,12 @@
   font-family: inherit;
   resize: vertical;
   transition: border-color 0.15s;
+  width: 100%;
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   outline: none;
   border-color: var(--g);
 }
@@ -188,3 +191,64 @@
 
 .btn:hover { opacity: 0.88; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Kommune-spezifisch */
+
+.pendingBanner {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #7c4a0a;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.approvedBanner {
+  background: #e8f5ee;
+  border: 1px solid #a5d6a7;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #2d6a4f;
+  margin-bottom: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sichtbarkeitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sichtbarkeitOption {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sichtbarkeitActive {
+  border-color: var(--g);
+  background: #e8f5ee;
+}
+
+.sichtbarkeitLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.sichtbarkeitDesc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
