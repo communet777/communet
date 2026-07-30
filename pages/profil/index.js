@@ -10,7 +10,7 @@ export default function Profil() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState(null)
-  const [feedEvents, setFeedEvents] = useState([])
+  const [feedOffers, setFeedOffers] = useState([])
   const [feedLoading, setFeedLoading] = useState(true)
 
   useEffect(() => {
@@ -26,33 +26,21 @@ export default function Profil() {
   useEffect(() => {
     if (!user) return
     async function loadFeed() {
-      // 1. Favoriten holen
-      const { data: favs } = await supabase
-        .from('favorites').select('community_id').eq('user_id', user.id)
+      const { data: favs } = await supabase.from('favorites').select('community_id').eq('user_id', user.id)
       if (!favs || favs.length === 0) { setFeedLoading(false); return }
-
-      // 2. Nur UUID-IDs (DB-Kommunen) — keine numerischen IDs statischer Einträge
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       const uuidIds = favs.map(f => f.community_id).filter(id => uuidRegex.test(id))
       if (uuidIds.length === 0) { setFeedLoading(false); return }
-
-      // 3. Events dieser Kommunen
-      const today = new Date().toISOString().split('T')[0]
-      const { data: evs } = await supabase
-        .from('events').select('*')
+      // Alle Angebote der favorisierten Kommunen laden
+      const { data: offs } = await supabase.from('offers').select('*')
         .in('kommune_id', uuidIds)
-        .gte('datum', today)
-        .order('datum')
-
-      if (!evs || evs.length === 0) { setFeedLoading(false); return }
-
-      // 4. Kommunen-Namen separat laden
-      const { data: kommunen } = await supabase
-        .from('profiles').select('id, name, avatar_url').in('id', uuidIds)
+        .order('created_at', { ascending: false })
+      if (!offs || offs.length === 0) { setFeedLoading(false); return }
+      // Kommunen-Namen laden
+      const { data: kommunen } = await supabase.from('profiles').select('id, name, avatar_url').in('id', uuidIds)
       const kommuneMap = {}
       if (kommunen) kommunen.forEach(k => { kommuneMap[k.id] = k })
-
-      setFeedEvents(evs.map(ev => ({ ...ev, kommune: kommuneMap[ev.kommune_id] || null })))
+      setFeedOffers(offs.map(o => ({ ...o, kommune: kommuneMap[o.kommune_id] || null })))
       setFeedLoading(false)
     }
     loadFeed()
@@ -68,10 +56,7 @@ export default function Profil() {
   const isKommune = typ === 'kommune'
   const isPending = profile?.status === 'pending'
 
-  async function handleSignOut() {
-    await signOut()
-    router.push('/')
-  }
+  async function handleSignOut() { await signOut(); router.push('/') }
 
   return (
     <div className={styles.page}>
@@ -104,32 +89,28 @@ export default function Profil() {
 
         <main className={styles.feed}>
           <h2 className={styles.feedTitle}>Dein Feed</h2>
-
           {feedLoading && <div style={{color:'var(--muted)',fontSize:13,padding:24,textAlign:'center'}}>Lädt...</div>}
-
-          {!feedLoading && feedEvents.length === 0 && (
+          {!feedLoading && feedOffers.length === 0 && (
             <div className={styles.feedPlaceholder}>
               <div className={styles.feedIcon}>🌏</div>
               <p className={styles.feedSub}>
-                Hier erscheinen Veranstaltungen von Kommunen denen du folgst.<br/>
+                Hier erscheinen Angebote von Kommunen denen du folgst.<br/>
                 Klick auf ♡ auf einer Kommunen-Seite um ihr zu folgen.
               </p>
               <Link href="/kommunen" className={styles.btnPrimary} style={{display:'inline-block',marginTop:16}}>Kommunen entdecken</Link>
             </div>
           )}
-
-          {feedEvents.map(ev => (
-            <div key={ev.id} className={styles.feedCard}>
-              <div className={styles.feedCardMeta}>
-                🏡 {ev.kommune?.name || 'Kommune'}
+          {feedOffers.map(o => (
+            <div key={o.id} className={styles.feedCard}>
+              <div className={styles.feedCardMeta}>🏡 {o.kommune?.name || 'Kommune'}</div>
+              <div style={{display:'flex',gap:8,alignItems:'center',margin:'4px 0'}}>
+                <span style={{fontSize:11,fontWeight:600,background:'#e8f5ee',color:'var(--g)',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
+                {o.datum && <span style={{fontSize:11,color:'var(--muted)'}}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'long'})}{o.uhrzeit?' · '+o.uhrzeit.slice(0,5)+' Uhr':''}</span>}
+                {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
               </div>
-              <div className={styles.feedCardDate}>
-                📅 {new Date(ev.datum).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'long'})}
-                {ev.uhrzeit ? ' · ' + ev.uhrzeit.slice(0,5) + ' Uhr' : ''}
-              </div>
-              <div className={styles.feedCardTitle}>{ev.titel}</div>
-              {ev.ort && <div className={styles.feedCardOrt}>📍 {ev.ort}</div>}</p>
-              {ev.beschreibung && <p className={styles.feedCardDesc}>{ev.beschreibung}</p>}
+              <div className={styles.feedCardTitle}>{o.titel}</div>
+              {o.ort && <div className={styles.feedCardOrt}>📍 {o.ort}</div>}
+              {o.beschreibung && <p className={styles.feedCardDesc}>{o.beschreibung}</p>}
             </div>
           ))}
         </main>
