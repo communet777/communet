@@ -1,30 +1,66 @@
-import{useState}from'react'
+import{useState,useEffect}from'react'
 import Link from'next/link'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo,LAND_EN,getTypIcon}from'../../data/communities'
+import{supabase}from'../../lib/supabase'
 import styles from'../../styles/Kommunen.module.css'
+
+function dbToCard(p) {
+  return {
+    id: 'db_'+p.id,
+    name: p.name || '(kein Name)',
+    typ: p.kommune_typ || 'Kommune',
+    ort: p.land ? p.land.split(',')[0].trim() : '',
+    land: p.land ? p.land.split(',').slice(-1)[0].trim() : '',
+    lat: p.lat,
+    lon: p.lon,
+    jahr: p.gruendungsjahr,
+    members: p.mitglieder || '?',
+    angebote: 0,
+    besucher: 'anmeldung',
+    status: 'aktiv',
+    verified: true,
+    beschreibung: p.bio || '',
+    beschreibung_en: p.bio || '',
+    website: p.website || '',
+    tags: [],
+    avatar_url: p.avatar_url || null,
+    dbId: p.id,
+  }
+}
 
 export default function Kommunen(){
 const{t,lang}=useLang()
 const[search,setSearch]=useState('')
 const[filter,setFilter]=useState('alle')
 const[statusFilter,setStatusFilter]=useState('alle')
+const[dbKommunen,setDbKommunen]=useState([])
 
-const filtered=COMMUNITIES.filter(k=>{
+useEffect(()=>{
+  supabase.from('profiles')
+    .select('*')
+    .eq('typ','kommune')
+    .eq('status','approved')
+    .then(({data})=>{ if(data) setDbKommunen(data.map(dbToCard)) })
+},[])
+
+const allKommunen=[...dbKommunen,...COMMUNITIES]
+
+const filtered=allKommunen.filter(k=>{
   const matchTyp=filter==='alle'||k.typ===filter
-  const matchStatus=statusFilter==='alle'||k.status===statusFilter
+  const matchStatus=statusFilter==='alle'||(statusFilter==='aktiv'&&k.status==='aktiv')||(statusFilter==='nicht-registriert'&&k.status==='nicht-registriert')
   const q=search.toLowerCase()
   if(!q)return matchTyp&&matchStatus
   const landEn=(LAND_EN[k.land]||'').toLowerCase()
   const desc=lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung
   const matchSearch=
     k.name.toLowerCase().includes(q)||
-    k.ort.toLowerCase().includes(q)||
-    k.land.toLowerCase().includes(q)||
+    (k.ort||'').toLowerCase().includes(q)||
+    (k.land||'').toLowerCase().includes(q)||
     landEn.includes(q)||
-    desc.toLowerCase().includes(q)||
-    k.tags.some(tag=>tag.toLowerCase().includes(q))
+    (desc||'').toLowerCase().includes(q)||
+    (k.tags||[]).some(tag=>tag.toLowerCase().includes(q))
   return matchTyp&&matchStatus&&matchSearch
 })
 
@@ -61,11 +97,16 @@ return(
 {filtered.length===0?<div className={styles.empty}>—</div>:filtered.map(k=>{
 const status=getStatusInfo(k.status)
 const isInactive=k.status==='nicht-registriert'
+const isDb=!!k.dbId
 const displayLand=lang==='en'?(LAND_EN[k.land]||k.land):k.land
+const href=isDb?`/profil/p/${k.dbId}`:`/kommunen/${k.id}`
 return(
-<Link href={`/kommunen/${k.id}`}key={k.id}className={`${styles.card}${isInactive?' '+styles.cardInactive:''}`}>
+<Link href={href}key={k.id}className={`${styles.card}${isInactive?' '+styles.cardInactive:''}`}>
 <div className={styles.cardImg}style={{background:k.typ==='Kommune'?'#fff3e0':k.typ==='Kollektiv'?'#e8eaf6':'#e8f5ee',opacity:isInactive?0.6:1}}>
-<span style={{fontSize:32,filter:isInactive?'grayscale(80%)':'none'}}>{getTypIcon(k.typ)}</span>
+  {k.avatar_url
+    ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>
+    :<span style={{fontSize:32,filter:isInactive?'grayscale(80%)':'none'}}>{getTypIcon(k.typ)}</span>
+  }
 </div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6,gap:4}}>
@@ -75,11 +116,11 @@ return(
 </span>
 </div>
 <div className={styles.cardName}style={{color:isInactive?'var(--muted)':'var(--text)'}}>{k.name}</div>
-<div className={styles.cardLoc}>📍 {k.ort} · {displayLand}</div>
+<div className={styles.cardLoc}>📍 {k.ort}{k.ort&&k.land?' · ':''}{displayLand}</div>
 <div className={styles.cardFooter}>
 <span>👥 ~{k.members}</span>
 {isInactive?<span style={{fontSize:11,color:'var(--muted)'}}>{t('communities_invite')}</span>
-:<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>{k.angebote} {t('nav_offers').toLowerCase()}</span>}
+:<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>{isDb?'Auf Communet':k.angebote+' '+t('nav_offers').toLowerCase()}</span>}
 </div>
 </div>
 </Link>
