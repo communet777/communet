@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
@@ -15,18 +15,78 @@ const SICHTBARKEIT = [
   { value: 'genau', label: 'Genaue Adresse', desc: 'Exakter Marker auf der Karte' },
 ]
 
-async function geocode(query) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
-      { headers: { 'Accept-Language': 'de', 'User-Agent': 'communet.net' } }
-    )
-    const data = await res.json()
-    if (data && data.length > 0) {
-      return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) }
+function OrtAutocomplete({ value, onChange, onSelect, placeholder, hint }) {
+  const [query, setQuery] = useState(value || '')
+  const [suggestions, setSuggestions] = useState([])
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const debounceRef = useRef(null)
+  const wrapRef = useRef(null)
+
+  useEffect(() => { setQuery(value || '') }, [value])
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
     }
-  } catch (e) {}
-  return null
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  function handleChange(e) {
+    const val = e.target.value
+    setQuery(val)
+    onChange(val)
+    clearTimeout(debounceRef.current)
+    if (val.length < 3) { setSuggestions([]); setOpen(false); return }
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=5&addressdetails=1`,
+          { headers: { 'Accept-Language': 'de', 'User-Agent': 'communet.net' } }
+        )
+        const data = await res.json()
+        setSuggestions(data)
+        setOpen(data.length > 0)
+      } catch {}
+      setLoading(false)
+    }, 400)
+  }
+
+  function handleSelect(item) {
+    const label = item.display_name
+    setQuery(label)
+    onChange(label)
+    onSelect({ label, lat: parseFloat(item.lat), lon: parseFloat(item.lon) })
+    setSuggestions([])
+    setOpen(false)
+  }
+
+  return (
+    <div ref={wrapRef} style={{position:'relative'}}>
+      <input
+        type="text"
+        value={query}
+        onChange={handleChange}
+        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      {loading && <div style={{position:'absolute',right:12,top:10,fontSize:11,color:'var(--muted)'}}>sucht...</div>}
+      {open && suggestions.length > 0 && (
+        <div className={styles.autocompleteDropdown}>
+          {suggestions.map((s, i) => (
+            <div key={i} className={styles.autocompleteItem} onMouseDown={() => handleSelect(s)}>
+              <div className={styles.autocompleteMain}>{s.display_name.split(',')[0]}</div>
+              <div className={styles.autocompleteSub}>{s.display_name.split(',').slice(1,3).join(',').trim()}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {hint && <span className={styles.hint}>{hint}</span>}
+    </div>
+  )
 }
 
 export default function KommuneBearbeiten() {
@@ -39,11 +99,11 @@ export default function KommuneBearbeiten() {
     avatar_url: '', kommune_typ: 'Ökodorf', gruendungsjahr: '', mitglieder: '',
     sichtbarkeit: 'stadt'
   })
+  const [coords, setCoords] = useState({ lat: null, lon: null })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
-  const [geocodeInfo, setGeocodeInfo] = useState('')
   const [profileStatus, setProfileStatus] = useState('pending')
 
   useEffect(() => {
@@ -68,6 +128,7 @@ export default function KommuneBearbeiten() {
             mitglieder: data.mitglieder || '',
             sichtbarkeit: data.sichtbarkeit || 'stadt'
           })
+          setCoords({ lat: data.lat || null, lon: data.lon || null })
           setProfileStatus(data.status || 'pending')
         }
       })
@@ -90,31 +151,14 @@ export default function KommuneBearbeiten() {
     e.preventDefault()
     setSaving(true)
     setError('')
-    setGeocodeInfo('')
-
-    let lat = null
-    let lon = null
-
-    // Geocoding je nach Sichtbarkeit
-    if (profile.sichtbarkeit === 'genau' && profile.adresse) {
-      setGeocodeInfo('Adresse wird gesucht...')
-      const coords = await geocode(profile.adresse)
-      if (coords) { lat = coords.lat; lon = coords.lon; setGeocodeInfo('✅ Ort gefunden') }
-      else setGeocodeInfo('⚠️ Adresse nicht gefunden — Marker wird nicht gesetzt')
-    } else if ((profile.sichtbarkeit === 'stadt' || profile.sichtbarkeit === 'region') && profile.land) {
-      setGeocodeInfo('Ort wird gesucht...')
-      const coords = await geocode(profile.land)
-      if (coords) { lat = coords.lat; lon = coords.lon; setGeocodeInfo('✅ Ort gefunden') }
-      else setGeocodeInfo('⚠️ Ort nicht gefunden — Marker wird nicht gesetzt')
-    }
 
     const { error: saveErr } = await supabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
       typ: 'kommune',
       ...profile,
-      lat,
-      lon,
+      lat: coords.lat,
+      lon: coords.lon,
       gruendungsjahr: profile.gruendungsjahr ? parseInt(profile.gruendungsjahr) : null,
       mitglieder: profile.mitglieder ? parseInt(profile.mitglieder) : null,
     })
@@ -122,7 +166,7 @@ export default function KommuneBearbeiten() {
     setSaving(false)
     if (saveErr) { setError('Speichern fehlgeschlagen: ' + saveErr.message); return }
     setSaved(true)
-    setTimeout(() => { setSaved(false); setGeocodeInfo('') }, 3000)
+    setTimeout(() => setSaved(false), 2500)
   }
 
   if (loading || !user) return <div className={styles.loading}><div className={styles.spinner}/></div>
@@ -190,7 +234,7 @@ export default function KommuneBearbeiten() {
               {SICHTBARKEIT.map(s => (
                 <div key={s.value}
                   className={`${styles.sichtbarkeitOption} ${profile.sichtbarkeit === s.value ? styles.sichtbarkeitActive : ''}`}
-                  onClick={() => setProfile(p => ({...p, sichtbarkeit: s.value}))}
+                  onClick={() => { setProfile(p => ({...p, sichtbarkeit: s.value})); setCoords({lat:null,lon:null}) }}
                 >
                   <div className={styles.sichtbarkeitLabel}>{s.label}</div>
                   <div className={styles.sichtbarkeitDesc}>{s.desc}</div>
@@ -202,26 +246,26 @@ export default function KommuneBearbeiten() {
           {(profile.sichtbarkeit === 'stadt' || profile.sichtbarkeit === 'region') && (
             <div className={styles.field}>
               <label>Ort / Region</label>
-              <input
-                type="text"
+              <OrtAutocomplete
                 value={profile.land}
-                onChange={e => setProfile(p => ({...p, land: e.target.value}))}
-                placeholder={profile.sichtbarkeit === 'region' ? 'z.B. Nordrhein-Westfalen, Deutschland' : 'z.B. Köln, Deutschland'}
+                onChange={val => setProfile(p => ({...p, land: val}))}
+                onSelect={({label, lat, lon}) => { setProfile(p => ({...p, land: label})); setCoords({lat, lon}) }}
+                placeholder={profile.sichtbarkeit === 'region' ? 'z.B. Nordrhein-Westfalen' : 'z.B. Köln'}
+                hint={coords.lat ? `✅ Verortet (${coords.lat.toFixed(3)}, ${coords.lon.toFixed(3)})` : 'Tipp: Ort auswählen um Koordinaten zu setzen'}
               />
-              <span className={styles.hint}>Wird beim Speichern automatisch auf der Karte verortet</span>
             </div>
           )}
 
           {profile.sichtbarkeit === 'genau' && (
             <div className={styles.field}>
               <label>Genaue Adresse</label>
-              <input
-                type="text"
+              <OrtAutocomplete
                 value={profile.adresse}
-                onChange={e => setProfile(p => ({...p, adresse: e.target.value}))}
-                placeholder="Straße, Hausnummer, PLZ, Ort"
+                onChange={val => setProfile(p => ({...p, adresse: val}))}
+                onSelect={({label, lat, lon}) => { setProfile(p => ({...p, adresse: label})); setCoords({lat, lon}) }}
+                placeholder="Straße, Hausnummer, Ort"
+                hint={coords.lat ? `✅ Verortet (${coords.lat.toFixed(3)}, ${coords.lon.toFixed(3)})` : 'Intern für die Karte — nicht öffentlich sichtbar'}
               />
-              <span className={styles.hint}>Intern für die Karte — wird nicht öffentlich angezeigt. Automatisch verortet beim Speichern.</span>
             </div>
           )}
 
@@ -238,11 +282,10 @@ export default function KommuneBearbeiten() {
             </div>
           </div>
 
-          {geocodeInfo && <p className={styles.hint} style={{textAlign:'center'}}>{geocodeInfo}</p>}
           {error && <p className={styles.error}>{error}</p>}
 
           <button type="submit" className={styles.btn} disabled={saving || uploading}>
-            {saving ? 'Speichert & verortet...' : saved ? '✓ Gespeichert' : 'Speichern'}
+            {saving ? 'Wird gespeichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
           </button>
         </form>
       </div>
