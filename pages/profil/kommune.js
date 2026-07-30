@@ -15,6 +15,20 @@ const SICHTBARKEIT = [
   { value: 'genau', label: 'Genaue Adresse', desc: 'Exakter Marker auf der Karte' },
 ]
 
+async function geocode(query) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+      { headers: { 'Accept-Language': 'de', 'User-Agent': 'communet.net' } }
+    )
+    const data = await res.json()
+    if (data && data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) }
+    }
+  } catch (e) {}
+  return null
+}
+
 export default function KommuneBearbeiten() {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -29,6 +43,7 @@ export default function KommuneBearbeiten() {
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [geocodeInfo, setGeocodeInfo] = useState('')
   const [profileStatus, setProfileStatus] = useState('pending')
 
   useEffect(() => {
@@ -75,18 +90,39 @@ export default function KommuneBearbeiten() {
     e.preventDefault()
     setSaving(true)
     setError('')
+    setGeocodeInfo('')
+
+    let lat = null
+    let lon = null
+
+    // Geocoding je nach Sichtbarkeit
+    if (profile.sichtbarkeit === 'genau' && profile.adresse) {
+      setGeocodeInfo('Adresse wird gesucht...')
+      const coords = await geocode(profile.adresse)
+      if (coords) { lat = coords.lat; lon = coords.lon; setGeocodeInfo('✅ Ort gefunden') }
+      else setGeocodeInfo('⚠️ Adresse nicht gefunden — Marker wird nicht gesetzt')
+    } else if ((profile.sichtbarkeit === 'stadt' || profile.sichtbarkeit === 'region') && profile.land) {
+      setGeocodeInfo('Ort wird gesucht...')
+      const coords = await geocode(profile.land)
+      if (coords) { lat = coords.lat; lon = coords.lon; setGeocodeInfo('✅ Ort gefunden') }
+      else setGeocodeInfo('⚠️ Ort nicht gefunden — Marker wird nicht gesetzt')
+    }
+
     const { error: saveErr } = await supabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
       typ: 'kommune',
       ...profile,
+      lat,
+      lon,
       gruendungsjahr: profile.gruendungsjahr ? parseInt(profile.gruendungsjahr) : null,
       mitglieder: profile.mitglieder ? parseInt(profile.mitglieder) : null,
     })
+
     setSaving(false)
     if (saveErr) { setError('Speichern fehlgeschlagen: ' + saveErr.message); return }
     setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+    setTimeout(() => { setSaved(false); setGeocodeInfo('') }, 3000)
   }
 
   if (loading || !user) return <div className={styles.loading}><div className={styles.spinner}/></div>
@@ -166,15 +202,26 @@ export default function KommuneBearbeiten() {
           {(profile.sichtbarkeit === 'stadt' || profile.sichtbarkeit === 'region') && (
             <div className={styles.field}>
               <label>Ort / Region</label>
-              <input type="text" value={profile.land} onChange={e => setProfile(p => ({...p, land: e.target.value}))} placeholder="z.B. Köln, NRW"/>
+              <input
+                type="text"
+                value={profile.land}
+                onChange={e => setProfile(p => ({...p, land: e.target.value}))}
+                placeholder={profile.sichtbarkeit === 'region' ? 'z.B. Nordrhein-Westfalen, Deutschland' : 'z.B. Köln, Deutschland'}
+              />
+              <span className={styles.hint}>Wird beim Speichern automatisch auf der Karte verortet</span>
             </div>
           )}
 
           {profile.sichtbarkeit === 'genau' && (
             <div className={styles.field}>
               <label>Genaue Adresse</label>
-              <input type="text" value={profile.adresse} onChange={e => setProfile(p => ({...p, adresse: e.target.value}))} placeholder="Straße, Hausnummer, PLZ, Ort"/>
-              <span className={styles.hint}>Die Adresse wird intern für die Kartendarstellung genutzt, aber nicht öffentlich angezeigt.</span>
+              <input
+                type="text"
+                value={profile.adresse}
+                onChange={e => setProfile(p => ({...p, adresse: e.target.value}))}
+                placeholder="Straße, Hausnummer, PLZ, Ort"
+              />
+              <span className={styles.hint}>Intern für die Karte — wird nicht öffentlich angezeigt. Automatisch verortet beim Speichern.</span>
             </div>
           )}
 
@@ -191,10 +238,11 @@ export default function KommuneBearbeiten() {
             </div>
           </div>
 
+          {geocodeInfo && <p className={styles.hint} style={{textAlign:'center'}}>{geocodeInfo}</p>}
           {error && <p className={styles.error}>{error}</p>}
 
           <button type="submit" className={styles.btn} disabled={saving || uploading}>
-            {saving ? 'Wird gespeichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
+            {saving ? 'Speichert & verortet...' : saved ? '✓ Gespeichert' : 'Speichern'}
           </button>
         </form>
       </div>
