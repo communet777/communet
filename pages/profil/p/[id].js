@@ -11,7 +11,6 @@ export default function OeffentlichesKommuneProfil() {
   const router = useRouter()
   const { id } = router.query
   const [k, setK] = useState(null)
-  const [events, setEvents] = useState([])
   const [offers, setOffers] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -20,9 +19,6 @@ export default function OeffentlichesKommuneProfil() {
     supabase.from('profiles')
       .select('*').eq('id', id).eq('typ', 'kommune').eq('status', 'approved').single()
       .then(({ data }) => { setK(data); setLoading(false) })
-    supabase.from('events')
-      .select('*').eq('kommune_id', id).order('datum')
-      .then(({ data }) => { if (data) setEvents(data) })
     supabase.from('offers')
       .select('*').eq('kommune_id', id).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setOffers(data) })
@@ -32,8 +28,6 @@ export default function OeffentlichesKommuneProfil() {
   if (!k) return <div><Nav/><div style={{padding:48,textAlign:'center',color:'var(--muted)'}}>— Profil nicht gefunden. <Link href="/kommunen" style={{color:'var(--g)'}}>Zurück</Link></div></div>
 
   const typ = k.kommune_typ || 'Kommune'
-  const today = new Date().toISOString().split('T')[0]
-  const upcoming = events.filter(e => e.datum >= today)
 
   return (
     <div>
@@ -46,9 +40,7 @@ export default function OeffentlichesKommuneProfil() {
             : getTypIcon(typ)
           }
         </div>
-        <div className={styles.statusBadge} style={{background:'#e8f5ee',color:'#2d6a4f'}}>
-          🟢 Auf Communet
-        </div>
+        <div className={styles.statusBadge} style={{background:'#e8f5ee',color:'#2d6a4f'}}>🟢 Auf Communet</div>
       </div>
 
       <div className={styles.profileHeader}>
@@ -74,7 +66,6 @@ export default function OeffentlichesKommuneProfil() {
 
       <div className={styles.content}>
         <div className={styles.main}>
-
           {k.bio && (
             <div className={styles.section}>
               <div className={styles.sectionTitle}>Beschreibung</div>
@@ -82,42 +73,25 @@ export default function OeffentlichesKommuneProfil() {
             </div>
           )}
 
-          {/* Veranstaltungen */}
-          {upcoming.length > 0 && (
-            <div className={styles.section}>
-              <div className={styles.sectionTitle}>📅 Kommende Veranstaltungen</div>
-              {upcoming.map(ev => (
-                <div key={ev.id} style={{background:'var(--bg)',border:'1.5px solid var(--border)',borderLeft:'3px solid var(--g)',borderRadius:10,padding:'12px 16px',marginBottom:10}}>
-                  <div style={{fontSize:12,fontWeight:600,color:'var(--g)',marginBottom:2}}>
-                    {new Date(ev.datum).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'long',year:'numeric'})}
-                    {ev.uhrzeit ? ' · ' + ev.uhrzeit.slice(0,5) + ' Uhr' : ''}
-                  </div>
-                  <div style={{fontSize:15,fontWeight:700,color:'var(--text)'}}>{ev.titel}</div>
-                  {ev.ort && <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>📍 {ev.ort}</div>}
-                  {ev.beschreibung && <p style={{fontSize:13,color:'var(--muted)',marginTop:6,lineHeight:1.5}}>{ev.beschreibung}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Angebote */}
           {offers.length > 0 && (
             <div className={styles.section}>
-              <div className={styles.sectionTitle}>✨ Angebote</div>
+              <div className={styles.sectionTitle}>✨ Angebote & Veranstaltungen</div>
               {offers.map(o => (
-                <div key={o.id} style={{background:'var(--bg)',border:'1.5px solid var(--border)',borderLeft:'3px solid #e07820',borderRadius:10,padding:'12px 16px',marginBottom:10}}>
-                  <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:4}}>
-                    <span style={{fontSize:11,fontWeight:600,background:'#fff3e0',color:'#e07820',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
-                    {o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
+                <Link key={o.id} href={`/angebote/${o.id}`} style={{textDecoration:'none'}}>
+                  <div style={{background:'var(--bg)',border:'1.5px solid var(--border)',borderLeft:'3px solid var(--g)',borderRadius:10,padding:'12px 16px',marginBottom:10,cursor:'pointer'}}>
+                    <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:4,flexWrap:'wrap'}}>
+                      <span style={{fontSize:11,fontWeight:600,background:'#e8f5ee',color:'var(--g)',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
+                      {o.datum && <span style={{fontSize:11,color:'var(--muted)'}}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'short'})}{o.uhrzeit?' · '+o.uhrzeit.slice(0,5)+' Uhr':''}</span>}
+                      {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
+                    </div>
+                    <div style={{fontSize:15,fontWeight:700,color:'var(--text)'}}>{o.titel}</div>
+                    {o.ort && <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>📍 {o.ort}</div>}
+                    {o.beschreibung && <p style={{fontSize:13,color:'var(--muted)',marginTop:6,lineHeight:1.5,margin:'6px 0 0'}}>{o.beschreibung.slice(0,100)}{o.beschreibung.length>100?'…':''}</p>}
                   </div>
-                  <div style={{fontSize:15,fontWeight:700,color:'var(--text)'}}>{o.titel}</div>
-                  {o.ort && <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>📍 {o.ort}</div>}
-                  {o.beschreibung && <p style={{fontSize:13,color:'var(--muted)',marginTop:6,lineHeight:1.5}}>{o.beschreibung}</p>}
-                </div>
+                </Link>
               ))}
             </div>
           )}
-
         </div>
 
         <div className={styles.sidebar}>

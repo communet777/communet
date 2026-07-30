@@ -13,9 +13,7 @@ export default function Profil() {
   const [feedOffers, setFeedOffers] = useState([])
   const [feedLoading, setFeedLoading] = useState(true)
 
-  useEffect(() => {
-    if (!loading && !user) router.replace('/auth/login')
-  }, [user, loading])
+  useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
 
   useEffect(() => {
     if (!user) return
@@ -31,12 +29,9 @@ export default function Profil() {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       const uuidIds = favs.map(f => f.community_id).filter(id => uuidRegex.test(id))
       if (uuidIds.length === 0) { setFeedLoading(false); return }
-      // Alle Angebote der favorisierten Kommunen laden
       const { data: offs } = await supabase.from('offers').select('*')
-        .in('kommune_id', uuidIds)
-        .order('created_at', { ascending: false })
+        .in('kommune_id', uuidIds).order('created_at', { ascending: false })
       if (!offs || offs.length === 0) { setFeedLoading(false); return }
-      // Kommunen-Namen laden
       const { data: kommunen } = await supabase.from('profiles').select('id, name, avatar_url').in('id', uuidIds)
       const kommuneMap = {}
       if (kommunen) kommunen.forEach(k => { kommuneMap[k.id] = k })
@@ -46,9 +41,7 @@ export default function Profil() {
     loadFeed()
   }, [user])
 
-  if (loading || !user) return (
-    <div className={styles.loading}><div className={styles.spinner}/></div>
-  )
+  if (loading || !user) return <div className={styles.loading}><div className={styles.spinner}/></div>
 
   const name = profile?.name || user.user_metadata?.name || user.email
   const typ = profile?.typ || user.user_metadata?.typ || 'person'
@@ -101,17 +94,19 @@ export default function Profil() {
             </div>
           )}
           {feedOffers.map(o => (
-            <div key={o.id} className={styles.feedCard}>
-              <div className={styles.feedCardMeta}>🏡 {o.kommune?.name || 'Kommune'}</div>
-              <div style={{display:'flex',gap:8,alignItems:'center',margin:'4px 0'}}>
-                <span style={{fontSize:11,fontWeight:600,background:'#e8f5ee',color:'var(--g)',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
-                {o.datum && <span style={{fontSize:11,color:'var(--muted)'}}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'long'})}{o.uhrzeit?' · '+o.uhrzeit.slice(0,5)+' Uhr':''}</span>}
-                {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
+            <Link key={o.id} href={`/angebote/${o.id}`} style={{textDecoration:'none'}}>
+              <div className={styles.feedCard}>
+                <div className={styles.feedCardMeta}>🏡 {o.kommune?.name || 'Kommune'}</div>
+                <div style={{display:'flex',gap:8,alignItems:'center',margin:'4px 0'}}>
+                  <span style={{fontSize:11,fontWeight:600,background:'#e8f5ee',color:'var(--g)',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
+                  {o.datum && <span style={{fontSize:11,color:'var(--muted)'}}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'long'})}{o.uhrzeit?' · '+o.uhrzeit.slice(0,5)+' Uhr':''}</span>}
+                  {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
+                </div>
+                <div className={styles.feedCardTitle}>{o.titel}</div>
+                {o.ort && <div className={styles.feedCardOrt}>📍 {o.ort}</div>}
+                {o.beschreibung && <p className={styles.feedCardDesc}>{o.beschreibung.slice(0,120)}{o.beschreibung.length>120?'…':''}</p>}
               </div>
-              <div className={styles.feedCardTitle}>{o.titel}</div>
-              {o.ort && <div className={styles.feedCardOrt}>📍 {o.ort}</div>}
-              {o.beschreibung && <p className={styles.feedCardDesc}>{o.beschreibung}</p>}
-            </div>
+            </Link>
           ))}
         </main>
       </div>
