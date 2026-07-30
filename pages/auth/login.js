@@ -41,6 +41,12 @@ export default function Login() {
       options: { data: { name, typ } }
     })
     if (error) { setError(error.message); setStatus('idle'); return }
+    // Supabase gibt keinen Fehler bei doppelter E-Mail — stattdessen leeres identities-Array
+    if (!data.user || data.user.identities?.length === 0) {
+      setError('Diese E-Mail-Adresse ist bereits registriert. Bitte melde dich an oder nutze "Passwort vergessen".')
+      setStatus('idle')
+      return
+    }
     if (data.user) {
       await supabase.from('profiles').upsert({
         id: data.user.id, name, typ, email, status: profileStatus
