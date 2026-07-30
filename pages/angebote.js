@@ -7,6 +7,15 @@ import styles from '../styles/Angebote.module.css'
 
 const OFFER_TYPES = ['Workaway', 'Besuch', 'Langzeitaufenthalt', 'Workshop', 'Volontariat', 'Sonstiges']
 
+// Konvertiert deutsches Datum (30.07.2026) oder ISO (2026-07-30) → ISO oder null
+function parseDate(val) {
+  if (!val) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val
+  const m = val.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/)
+  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`
+  return null
+}
+
 function AngeboteGuest() {
   return (
     <div className={styles.guestWrap}>
@@ -103,6 +112,8 @@ function AngeboteKommune({ user }) {
   async function handleAdd(e) {
     e.preventDefault()
     if (!newOffer.titel) { setError('Titel ist Pflicht.'); return }
+    const von = parseDate(newOffer.von)
+    const bis = parseDate(newOffer.bis)
     setSaving(true); setError('')
     const { data, error: err } = await supabase.from('offers').insert({
       kommune_id: user.id,
@@ -111,8 +122,8 @@ function AngeboteKommune({ user }) {
       beschreibung: newOffer.beschreibung || null,
       typ: newOffer.typ,
       ort: newOffer.ort || profile?.land || null,
-      von: newOffer.von || null,
-      bis: newOffer.bis || null,
+      von: von,
+      bis: bis,
     }).select().single()
     setSaving(false)
     if (err) { setError('Fehler: ' + err.message); return }
@@ -157,8 +168,14 @@ function AngeboteKommune({ user }) {
             <textarea rows={3} value={newOffer.beschreibung} onChange={e=>setNewOffer(n=>({...n,beschreibung:e.target.value}))} placeholder="Was erwartet die Person? Was bietet ihr an?"/>
           </div>
           <div className={styles.formRow}>
-            <div className={styles.field}><label>Von (optional)</label><input type="date" value={newOffer.von} onChange={e=>setNewOffer(n=>({...n,von:e.target.value}))}/></div>
-            <div className={styles.field}><label>Bis (optional)</label><input type="date" value={newOffer.bis} onChange={e=>setNewOffer(n=>({...n,bis:e.target.value}))}/></div>
+            <div className={styles.field}>
+              <label>Von (optional)</label>
+              <input type="text" value={newOffer.von} onChange={e=>setNewOffer(n=>({...n,von:e.target.value}))} placeholder="TT.MM.JJJJ"/>
+            </div>
+            <div className={styles.field}>
+              <label>Bis (optional)</label>
+              <input type="text" value={newOffer.bis} onChange={e=>setNewOffer(n=>({...n,bis:e.target.value}))} placeholder="TT.MM.JJJJ"/>
+            </div>
           </div>
           <div className={styles.field}>
             <label>Ort (optional)</label>
