@@ -10,6 +10,8 @@ export default function Profil() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState(null)
+  const [feedEvents, setFeedEvents] = useState([])
+  const [feedLoading, setFeedLoading] = useState(true)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/auth/login')
@@ -19,6 +21,29 @@ export default function Profil() {
     if (!user) return
     supabase.from('profiles').select('*').eq('id', user.id).single()
       .then(({ data }) => { if (data) setProfile(data) })
+  }, [user])
+
+  // Feed: Veranstaltungen von favorisierten Kommunen
+  useEffect(() => {
+    if (!user) return
+    async function loadFeed() {
+      // 1. Favoriten holen
+      const { data: favs } = await supabase.from('favorites').select('community_id').eq('user_id', user.id)
+      if (!favs || favs.length === 0) { setFeedLoading(false); return }
+      const ids = favs.map(f => f.community_id)
+      // 2. Events dieser Kommunen (nur DB-Kommunen haben UUID-IDs)
+      const uuidIds = ids.filter(id => id.length > 10 && !id.startsWith('db_') && isNaN(id))
+      if (uuidIds.length === 0) { setFeedLoading(false); return }
+      const today = new Date().toISOString().split('T')[0]
+      const { data: evs } = await supabase.from('events')
+        .select('*, profiles(name, avatar_url)')
+        .in('kommune_id', uuidIds)
+        .gte('datum', today)
+        .order('datum')
+      if (evs) setFeedEvents(evs)
+      setFeedLoading(false)
+    }
+    loadFeed()
   }, [user])
 
   if (loading || !user) return (
@@ -40,12 +65,8 @@ export default function Profil() {
     <div className={styles.page}>
       <Nav/>
       <div className={styles.layout}>
-
-        {/* Linke Spalte: Profil-Card */}
         <aside className={styles.sidebar}>
-          {isPending && (
-            <div className={styles.pendingBanner}>⏳ Wartet auf Freischaltung</div>
-          )}
+          {isPending && <div className={styles.pendingBanner}>⏳ Wartet auf Freischaltung</div>}
           <div className={styles.card}>
             <div className={styles.avatar}>
               {profile?.avatar_url
@@ -59,36 +80,47 @@ export default function Profil() {
             <div className={styles.meta}>{user.email}</div>
             {profile?.bio && <p className={styles.bio}>{profile.bio}</p>}
             <div className={styles.since}>Mitglied seit {since}</div>
-
             <div className={styles.divider}/>
-
-            <Link href={isKommune ? '/profil/kommune' : '/profil/bearbeiten'} className={styles.btnPrimary}>
-              Profil bearbeiten
-            </Link>
-
+            <Link href={isKommune ? '/profil/kommune' : '/profil/bearbeiten'} className={styles.btnPrimary}>Profil bearbeiten</Link>
             <div className={styles.actions}>
               <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen</Link>
               <Link href="/karte" className={styles.btnSecondary}>🗺️ Karte</Link>
             </div>
-
             <button className={styles.signOut} onClick={handleSignOut}>Abmelden</button>
           </div>
         </aside>
 
-        {/* Rechte Spalte: Feed */}
         <main className={styles.feed}>
-          <div className={styles.feedPlaceholder}>
-            <div className={styles.feedIcon}>🌏</div>
-            <h2 className={styles.feedTitle}>Dein Feed</h2>
-            <p className={styles.feedSub}>
-              Hier erscheinen bald Neuigkeiten und Veranstaltungen von Kommunen denen du folgst.
-            </p>
-            <Link href="/kommunen" className={styles.btnPrimary} style={{display:'inline-block',marginTop:16}}>
-              Kommunen entdecken
-            </Link>
-          </div>
-        </main>
+          <h2 className={styles.feedTitle}>Dein Feed</h2>
 
+          {feedLoading && <div style={{color:'var(--muted)',fontSize:13,padding:24,textAlign:'center'}}>Lädt...</div>}
+
+          {!feedLoading && feedEvents.length === 0 && (
+            <div className={styles.feedPlaceholder}>
+              <div className={styles.feedIcon}>🌏</div>
+              <p className={styles.feedSub}>
+                Hier erscheinen Veranstaltungen von Kommunen denen du folgst.<br/>
+                Klick auf ♡ auf einer Kommunen-Seite um ihr zu folgen.
+              </p>
+              <Link href="/kommunen" className={styles.btnPrimary} style={{display:'inline-block',marginTop:16}}>Kommunen entdecken</Link>
+            </div>
+          )}
+
+          {feedEvents.map(ev => (
+            <div key={ev.id} className={styles.feedCard}>
+              <div className={styles.feedCardMeta}>
+                🏡 {ev.profiles?.name || 'Kommune'}
+              </div>
+              <div className={styles.feedCardDate}>
+                📅 {new Date(ev.datum).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'long'})}
+                {ev.uhrzeit ? ' · ' + ev.uhrzeit.slice(0,5) + ' Uhr' : ''}
+              </div>
+              <div className={styles.feedCardTitle}>{ev.titel}</div>
+              {ev.ort && <div className={styles.feedCardOrt}>📍 {ev.ort}</div>}
+              {ev.beschreibung && <p className={styles.feedCardDesc}>{ev.beschreibung}</p>}
+            </div>
+          ))}
+        </main>
       </div>
     </div>
   )
