@@ -43,11 +43,7 @@ export default function Login() {
     if (error) { setError(error.message); setStatus('idle'); return }
     if (data.user) {
       await supabase.from('profiles').upsert({
-        id: data.user.id,
-        name,
-        typ,
-        email,
-        status: profileStatus
+        id: data.user.id, name, typ, email, status: profileStatus
       })
     }
     setStatus('registered')
@@ -74,6 +70,7 @@ export default function Login() {
           <button className={`${styles.tab} ${mode==='register'?styles.tabActive:''}`} onClick={()=>setMode('register')}>Registrieren</button>
           <button className={`${styles.tab} ${mode==='magic'?styles.tabActive:''}`} onClick={()=>setMode('magic')}>Magic Link</button>
         </div>
+
         {mode === 'login' && (
           <form onSubmit={handleLogin} className={styles.form}>
             <div className={styles.field}>
@@ -88,8 +85,12 @@ export default function Login() {
             <button type="submit" className={styles.btn} disabled={status==='loading'}>
               {status==='loading' ? 'Lädt...' : 'Anmelden'}
             </button>
+            <Link href="/auth/passwort-vergessen" style={{textAlign:'center',fontSize:12,color:'var(--muted)',display:'block',marginTop:8}}>
+              Passwort vergessen?
+            </Link>
           </form>
         )}
+
         {mode === 'register' && status !== 'registered' && (
           <form onSubmit={handleRegister} className={styles.form}>
             <div className={styles.typSelector}>
@@ -119,6 +120,7 @@ export default function Login() {
             </button>
           </form>
         )}
+
         {mode === 'register' && status === 'registered' && (
           <div className={styles.success}>
             <div className={styles.successIcon}>🎉</div>
@@ -129,6 +131,7 @@ export default function Login() {
             }
           </div>
         )}
+
         {mode === 'magic' && status !== 'magic_sent' && (
           <form onSubmit={handleMagicLink} className={styles.form}>
             <p className={styles.magicInfo}>Kein Passwort nötig — wir schicken dir einen Login-Link per E-Mail.</p>
@@ -142,6 +145,7 @@ export default function Login() {
             </button>
           </form>
         )}
+
         {mode === 'magic' && status === 'magic_sent' && (
           <div className={styles.success}>
             <div className={styles.successIcon}>✉️</div>
