@@ -1,10 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { useState } from 'react'
 import styles from '../../styles/Profil.module.css'
 
 export default function Profil() {
@@ -42,21 +41,22 @@ export default function Profil() {
         <div className={styles.card}>
           <div className={styles.avatar}>
             {profile?.avatar_url
-              ? <img src={profile.avatar_url} alt="Avatar" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}}/>
-              : typ === 'kommune' ? '🏡' : '👤'
+              ? <img src={profile.avatar_url} alt="Avatar" className={styles.avatarImg}/>
+              : <span className={styles.avatarEmoji}>{typ === 'kommune' ? '🏡' : '👤'}</span>
             }
           </div>
           <h1 className={styles.name}>{name}</h1>
           <div className={styles.badge}>{typ === 'kommune' ? 'Kommune' : 'Person'}</div>
-          {profile?.land && <div className={styles.email}>📍 {profile.land}</div>}
-          <div className={styles.email}>{user.email}</div>
-          {profile?.bio && <p style={{fontSize:13,color:'var(--muted)',textAlign:'center',margin:'4px 0 0',lineHeight:1.6}}>{profile.bio}</p>}
+          {profile?.land && <div className={styles.meta}>📍 {profile.land}</div>}
+          <div className={styles.meta}>{user.email}</div>
+          {profile?.bio && <p className={styles.bio}>{profile.bio}</p>}
           <div className={styles.since}>Mitglied seit {since}</div>
 
           <div className={styles.divider}/>
 
+          <Link href="/profil/bearbeiten" className={styles.btnPrimary}>Profil bearbeiten</Link>
+
           <div className={styles.actions}>
-            <Link href="/profil/bearbeiten" className={styles.btnPrimary}>Profil bearbeiten</Link>
             <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen</Link>
             <Link href="/karte" className={styles.btnSecondary}>🗺️ Karte</Link>
           </div>
