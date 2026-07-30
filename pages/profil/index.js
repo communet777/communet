@@ -23,24 +23,36 @@ export default function Profil() {
       .then(({ data }) => { if (data) setProfile(data) })
   }, [user])
 
-  // Feed: Veranstaltungen von favorisierten Kommunen
   useEffect(() => {
     if (!user) return
     async function loadFeed() {
       // 1. Favoriten holen
-      const { data: favs } = await supabase.from('favorites').select('community_id').eq('user_id', user.id)
+      const { data: favs } = await supabase
+        .from('favorites').select('community_id').eq('user_id', user.id)
       if (!favs || favs.length === 0) { setFeedLoading(false); return }
-      const ids = favs.map(f => f.community_id)
-      // 2. Events dieser Kommunen (nur DB-Kommunen haben UUID-IDs)
-      const uuidIds = ids.filter(id => id.length > 10 && !id.startsWith('db_') && isNaN(id))
+
+      // 2. Nur UUID-IDs (DB-Kommunen) — keine numerischen IDs statischer Einträge
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      const uuidIds = favs.map(f => f.community_id).filter(id => uuidRegex.test(id))
       if (uuidIds.length === 0) { setFeedLoading(false); return }
+
+      // 3. Events dieser Kommunen
       const today = new Date().toISOString().split('T')[0]
-      const { data: evs } = await supabase.from('events')
-        .select('*, profiles(name, avatar_url)')
+      const { data: evs } = await supabase
+        .from('events').select('*')
         .in('kommune_id', uuidIds)
         .gte('datum', today)
         .order('datum')
-      if (evs) setFeedEvents(evs)
+
+      if (!evs || evs.length === 0) { setFeedLoading(false); return }
+
+      // 4. Kommunen-Namen separat laden
+      const { data: kommunen } = await supabase
+        .from('profiles').select('id, name, avatar_url').in('id', uuidIds)
+      const kommuneMap = {}
+      if (kommunen) kommunen.forEach(k => { kommuneMap[k.id] = k })
+
+      setFeedEvents(evs.map(ev => ({ ...ev, kommune: kommuneMap[ev.kommune_id] || null })))
       setFeedLoading(false)
     }
     loadFeed()
@@ -109,14 +121,14 @@ export default function Profil() {
           {feedEvents.map(ev => (
             <div key={ev.id} className={styles.feedCard}>
               <div className={styles.feedCardMeta}>
-                🏡 {ev.profiles?.name || 'Kommune'}
+                🏡 {ev.kommune?.name || 'Kommune'}
               </div>
               <div className={styles.feedCardDate}>
                 📅 {new Date(ev.datum).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'long'})}
                 {ev.uhrzeit ? ' · ' + ev.uhrzeit.slice(0,5) + ' Uhr' : ''}
               </div>
               <div className={styles.feedCardTitle}>{ev.titel}</div>
-              {ev.ort && <div className={styles.feedCardOrt}>📍 {ev.ort}</div>}
+              {ev.ort && <div className={styles.feedCardOrt}>📍 {ev.ort}</div>}</p>
               {ev.beschreibung && <p className={styles.feedCardDesc}>{ev.beschreibung}</p>}
             </div>
           ))}
