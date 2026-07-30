@@ -3,6 +3,7 @@ import{useRouter}from'next/router'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher,LAND_EN,getTypIcon}from'../../data/communities'
+import FavoriteBtn from'../../components/FavoriteBtn'
 import styles from'../../styles/KommuneProfil.module.css'
 
 export default function KommuneProfil(){
@@ -35,7 +36,8 @@ return(
 <span className={styles.founded}>{t('profile_since')} {k.jahr}</span>
 </div>
 </div>
-<div className={styles.actions}>
+<div className={styles.actions}style={{display:'flex',alignItems:'center',gap:12}}>
+<FavoriteBtn communityId={String(k.id)}/>
 {isActive&&<><button className="btn-secondary">✉️ {t('profile_contact')}</button><button className="btn-primary">{t('profile_contact')}</button></>}
 {isSetup&&<div className={styles.setupNotice}>🟡 {t('profile_setup')}</div>}
 {isInactive&&<button className={styles.inviteBtn}>✉️ {t('profile_invite')}</button>}
@@ -91,7 +93,7 @@ return(
 <div className={styles.sideTitle}>⚫ {t('status_inactive')}</div>
 <p style={{fontSize:12,color:'var(--muted)',marginBottom:12,lineHeight:1.6}}>{t('profile_inactive_banner')}</p>
 <button className={styles.inviteBtn}style={{width:'100%'}}>✉️ {t('profile_invite')}</button>
-{k.website&&<a href={k.website}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:10,fontSize:12,color:'var(--g)'}}>🔗 {t('profile_direct')}</a>}
+{k.website&&<a href={k.website}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:10,fontSize:12,color:'var(--g)'}}>&#128279; {t('profile_direct')}</a>}
 </>}
 </div>
 
@@ -101,7 +103,7 @@ return(
 <span style={{fontSize:18}}>{besucher.icon}</span>
 <span style={{fontSize:12,color:besucher.color,fontWeight:500}}>{lang==='en'?besucher.label_en:besucher.label}</span>
 </div>
-{k.website&&<a href={k.website}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:8,fontSize:12,color:'var(--g)'}}>🔗 {lang==='en'?'Visit website':'Zur Website'}</a>}
+{k.website&&<a href={k.website}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:8,fontSize:12,color:'var(--g)'}}>&#128279; {lang==='en'?'Visit website':'Zur Website'}</a>}
 </div>
 
 <div className={styles.sideCard}>
