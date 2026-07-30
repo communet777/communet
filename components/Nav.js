@@ -1,10 +1,12 @@
 import Link from'next/link'
 import{useRouter}from'next/router'
 import{useLang}from'../lib/LanguageContext'
+import{useAuth}from'../lib/AuthContext'
 import styles from'./Nav.module.css'
 export default function Nav(){
 const router=useRouter()
 const{lang,setLang,t}=useLang()
+const{user}=useAuth()
 return(
 <nav className={styles.nav}>
 <Link href="/"className={styles.logo}>communet</Link>
@@ -16,7 +18,10 @@ return(
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={()=>setLang('de')}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={()=>setLang('en')}>EN</button>
 </div>
-<Link href="/registrieren"className={styles.cta}>{t('nav_join')}</Link>
+{user
+  ?<Link href="/profil"className={`${styles.cta}${router.pathname.startsWith('/profil')?' '+styles.active:''}`}>👤 Profil</Link>
+  :<Link href="/auth/login"className={styles.cta}>{t('nav_join')}</Link>
+}
 </div>
 </nav>
 )
