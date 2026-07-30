@@ -39,39 +39,56 @@ export default function Profil() {
   return (
     <div className={styles.page}>
       <Nav/>
-      <div className={styles.container}>
-        <div className={styles.card}>
+      <div className={styles.layout}>
+
+        {/* Linke Spalte: Profil-Card */}
+        <aside className={styles.sidebar}>
           {isPending && (
-            <div className={styles.pendingBanner}>
-              ⏳ Deine Kommune wartet auf Freischaltung
-            </div>
+            <div className={styles.pendingBanner}>⏳ Wartet auf Freischaltung</div>
           )}
-          <div className={styles.avatar}>
-            {profile?.avatar_url
-              ? <img src={profile.avatar_url} alt="Avatar" className={styles.avatarImg}/>
-              : <span className={styles.avatarEmoji}>{isKommune ? '🏡' : '👤'}</span>
-            }
+          <div className={styles.card}>
+            <div className={styles.avatar}>
+              {profile?.avatar_url
+                ? <img src={profile.avatar_url} alt="Avatar" className={styles.avatarImg}/>
+                : <span className={styles.avatarEmoji}>{isKommune ? '🏡' : '👤'}</span>
+              }
+            </div>
+            <h1 className={styles.name}>{name}</h1>
+            <div className={styles.badge}>{isKommune ? (profile?.kommune_typ || 'Kommune') : 'Person'}</div>
+            {profile?.land && <div className={styles.meta}>📍 {profile.land}</div>}
+            <div className={styles.meta}>{user.email}</div>
+            {profile?.bio && <p className={styles.bio}>{profile.bio}</p>}
+            <div className={styles.since}>Mitglied seit {since}</div>
+
+            <div className={styles.divider}/>
+
+            <Link href={isKommune ? '/profil/kommune' : '/profil/bearbeiten'} className={styles.btnPrimary}>
+              Profil bearbeiten
+            </Link>
+
+            <div className={styles.actions}>
+              <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen</Link>
+              <Link href="/karte" className={styles.btnSecondary}>🗺️ Karte</Link>
+            </div>
+
+            <button className={styles.signOut} onClick={handleSignOut}>Abmelden</button>
           </div>
-          <h1 className={styles.name}>{name}</h1>
-          <div className={styles.badge}>{isKommune ? (profile?.kommune_typ || 'Kommune') : 'Person'}</div>
-          {profile?.land && <div className={styles.meta}>📍 {profile.land}</div>}
-          <div className={styles.meta}>{user.email}</div>
-          {profile?.bio && <p className={styles.bio}>{profile.bio}</p>}
-          <div className={styles.since}>Mitglied seit {since}</div>
+        </aside>
 
-          <div className={styles.divider}/>
-
-          <Link href={isKommune ? '/profil/kommune' : '/profil/bearbeiten'} className={styles.btnPrimary}>
-            Profil bearbeiten
-          </Link>
-
-          <div className={styles.actions}>
-            <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen</Link>
-            <Link href="/karte" className={styles.btnSecondary}>🗺️ Karte</Link>
+        {/* Rechte Spalte: Feed */}
+        <main className={styles.feed}>
+          <div className={styles.feedPlaceholder}>
+            <div className={styles.feedIcon}>🌏</div>
+            <h2 className={styles.feedTitle}>Dein Feed</h2>
+            <p className={styles.feedSub}>
+              Hier erscheinen bald Neuigkeiten und Veranstaltungen von Kommunen denen du folgst.
+            </p>
+            <Link href="/kommunen" className={styles.btnPrimary} style={{display:'inline-block',marginTop:16}}>
+              Kommunen entdecken
+            </Link>
           </div>
+        </main>
 
-          <button className={styles.signOut} onClick={handleSignOut}>Abmelden</button>
-        </div>
       </div>
     </div>
   )
