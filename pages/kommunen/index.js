@@ -4,6 +4,7 @@ import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo,LAND_EN,getTypIcon}from'../../data/communities'
 import{supabase}from'../../lib/supabase'
+import FavoriteBtn from'../../components/FavoriteBtn'
 import styles from'../../styles/Kommunen.module.css'
 
 function dbToCard(p) {
@@ -13,14 +14,11 @@ function dbToCard(p) {
     typ: p.kommune_typ || 'Kommune',
     ort: p.land ? p.land.split(',')[0].trim() : '',
     land: p.land ? p.land.split(',').slice(-1)[0].trim() : '',
-    lat: p.lat,
-    lon: p.lon,
+    lat: p.lat, lon: p.lon,
     jahr: p.gruendungsjahr,
     members: p.mitglieder || '?',
-    angebote: 0,
-    besucher: 'anmeldung',
-    status: 'aktiv',
-    verified: true,
+    angebote: 0, besucher: 'anmeldung',
+    status: 'aktiv', verified: true,
     beschreibung: p.bio || '',
     beschreibung_en: p.bio || '',
     website: p.website || '',
@@ -38,10 +36,7 @@ const[statusFilter,setStatusFilter]=useState('alle')
 const[dbKommunen,setDbKommunen]=useState([])
 
 useEffect(()=>{
-  supabase.from('profiles')
-    .select('*')
-    .eq('typ','kommune')
-    .eq('status','approved')
+  supabase.from('profiles').select('*').eq('typ','kommune').eq('status','approved')
     .then(({data})=>{ if(data) setDbKommunen(data.map(dbToCard)) })
 },[])
 
@@ -101,29 +96,34 @@ const isDb=!!k.dbId
 const displayLand=lang==='en'?(LAND_EN[k.land]||k.land):k.land
 const href=isDb?`/profil/p/${k.dbId}`:`/kommunen/${k.id}`
 return(
-<Link href={href}key={k.id}className={`${styles.card}${isInactive?' '+styles.cardInactive:''}`}>
-<div className={styles.cardImg}style={{background:k.typ==='Kommune'?'#fff3e0':k.typ==='Kollektiv'?'#e8eaf6':'#e8f5ee',opacity:isInactive?0.6:1}}>
-  {k.avatar_url
-    ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>
-    :<span style={{fontSize:32,filter:isInactive?'grayscale(80%)':'none'}}>{getTypIcon(k.typ)}</span>
-  }
+<div key={k.id} style={{position:'relative'}}>
+  <Link href={href}className={`${styles.card}${isInactive?' '+styles.cardInactive:''}`}>
+    <div className={styles.cardImg}style={{background:k.typ==='Kommune'?'#fff3e0':k.typ==='Kollektiv'?'#e8eaf6':'#e8f5ee',opacity:isInactive?0.6:1}}>
+      {k.avatar_url
+        ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>
+        :<span style={{fontSize:32,filter:isInactive?'grayscale(80%)':'none'}}>{getTypIcon(k.typ)}</span>
+      }
+    </div>
+    <div className={styles.cardBody}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6,gap:4}}>
+        <span className={`badge ${getTypBadge(k.typ)}`}style={{opacity:isInactive?0.6:1}}>{k.typ==='Spirituelle Gemeinschaft'?'Spirituell':k.typ}</span>
+        <span style={{fontSize:10,color:status.color,background:status.bg,padding:'2px 6px',borderRadius:10,whiteSpace:'nowrap',flexShrink:0}}>
+          {isInactive?`⚫ ${t('status_inactive')}`:`🟢 ${t('status_active')}`}
+        </span>
+      </div>
+      <div className={styles.cardName}style={{color:isInactive?'var(--muted)':'var(--text)'}}>{k.name}</div>
+      <div className={styles.cardLoc}>📍 {k.ort}{k.ort&&k.land?' · ':''}{displayLand}</div>
+      <div className={styles.cardFooter}>
+        <span>👥 ~{k.members}</span>
+        {isInactive?<span style={{fontSize:11,color:'var(--muted)'}}>{t('communities_invite')}</span>
+        :<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>{isDb?'Auf Communet':k.angebote+' '+t('nav_offers').toLowerCase()}</span>}
+      </div>
+    </div>
+  </Link>
+  <div style={{position:'absolute',bottom:12,right:12}}>
+    <FavoriteBtn communityId={String(k.dbId||k.id)}/>
+  </div>
 </div>
-<div className={styles.cardBody}>
-<div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6,gap:4}}>
-<span className={`badge ${getTypBadge(k.typ)}`}style={{opacity:isInactive?0.6:1}}>{k.typ==='Spirituelle Gemeinschaft'?'Spirituell':k.typ}</span>
-<span style={{fontSize:10,color:status.color,background:status.bg,padding:'2px 6px',borderRadius:10,whiteSpace:'nowrap',flexShrink:0}}>
-{isInactive?`⚫ ${t('status_inactive')}`:`🟢 ${t('status_active')}`}
-</span>
-</div>
-<div className={styles.cardName}style={{color:isInactive?'var(--muted)':'var(--text)'}}>{k.name}</div>
-<div className={styles.cardLoc}>📍 {k.ort}{k.ort&&k.land?' · ':''}{displayLand}</div>
-<div className={styles.cardFooter}>
-<span>👥 ~{k.members}</span>
-{isInactive?<span style={{fontSize:11,color:'var(--muted)'}}>{t('communities_invite')}</span>
-:<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>{isDb?'Auf Communet':k.angebote+' '+t('nav_offers').toLowerCase()}</span>}
-</div>
-</div>
-</Link>
 )})}
 </div>
 </div>
