@@ -41,7 +41,6 @@ export default function Login() {
       options: { data: { name, typ } }
     })
     if (error) { setError(error.message); setStatus('idle'); return }
-    // Supabase gibt keinen Fehler bei doppelter E-Mail — stattdessen leeres identities-Array
     if (!data.user || data.user.identities?.length === 0) {
       setError('Diese E-Mail-Adresse ist bereits registriert. Bitte melde dich an oder nutze "Passwort vergessen".')
       setStatus('idle')
@@ -59,6 +58,17 @@ export default function Login() {
     e.preventDefault()
     setStatus('loading')
     setError('')
+    // Prüfen ob E-Mail bereits registriert ist
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single()
+    if (!existing) {
+      setError('Kein Account mit dieser E-Mail gefunden. Bitte zuerst registrieren.')
+      setStatus('idle')
+      return
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: 'https://communet.net/profil' }
