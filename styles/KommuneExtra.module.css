@@ -1,0 +1,71 @@
+.pendingBanner {
+  width: 100%;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #7c4a0a;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.approvedBanner {
+  width: 100%;
+  background: #e8f5ee;
+  border: 1px solid #a5d6a7;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #2d6a4f;
+  text-align: center;
+}
+
+.sichtbarkeitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sichtbarkeitOption {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.sichtbarkeitActive {
+  border-color: var(--g);
+  background: #e8f5ee;
+}
+
+.sichtbarkeitLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.sichtbarkeitDesc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+}

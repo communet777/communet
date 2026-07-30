@@ -28,6 +28,8 @@ export default function Profil() {
   const name = profile?.name || user.user_metadata?.name || user.email
   const typ = profile?.typ || user.user_metadata?.typ || 'person'
   const since = new Date(user.created_at).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+  const isKommune = typ === 'kommune'
+  const isPending = profile?.status === 'pending'
 
   async function handleSignOut() {
     await signOut()
@@ -39,14 +41,19 @@ export default function Profil() {
       <Nav/>
       <div className={styles.container}>
         <div className={styles.card}>
+          {isPending && (
+            <div className={styles.pendingBanner}>
+              ⏳ Deine Kommune wartet auf Freischaltung
+            </div>
+          )}
           <div className={styles.avatar}>
             {profile?.avatar_url
               ? <img src={profile.avatar_url} alt="Avatar" className={styles.avatarImg}/>
-              : <span className={styles.avatarEmoji}>{typ === 'kommune' ? '🏡' : '👤'}</span>
+              : <span className={styles.avatarEmoji}>{isKommune ? '🏡' : '👤'}</span>
             }
           </div>
           <h1 className={styles.name}>{name}</h1>
-          <div className={styles.badge}>{typ === 'kommune' ? 'Kommune' : 'Person'}</div>
+          <div className={styles.badge}>{isKommune ? (profile?.kommune_typ || 'Kommune') : 'Person'}</div>
           {profile?.land && <div className={styles.meta}>📍 {profile.land}</div>}
           <div className={styles.meta}>{user.email}</div>
           {profile?.bio && <p className={styles.bio}>{profile.bio}</p>}
@@ -54,7 +61,9 @@ export default function Profil() {
 
           <div className={styles.divider}/>
 
-          <Link href="/profil/bearbeiten" className={styles.btnPrimary}>Profil bearbeiten</Link>
+          <Link href={isKommune ? '/profil/kommune' : '/profil/bearbeiten'} className={styles.btnPrimary}>
+            Profil bearbeiten
+          </Link>
 
           <div className={styles.actions}>
             <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen</Link>

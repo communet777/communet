@@ -35,13 +35,20 @@ export default function Login() {
       setStatus('idle')
       return
     }
+    const profileStatus = typ === 'kommune' ? 'pending' : 'approved'
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { data: { name, typ } }
     })
     if (error) { setError(error.message); setStatus('idle'); return }
     if (data.user) {
-      await supabase.from('profiles').insert({ id: data.user.id, name, typ, email })
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        name,
+        typ,
+        email,
+        status: profileStatus
+      })
     }
     setStatus('registered')
   }
@@ -116,7 +123,10 @@ export default function Login() {
           <div className={styles.success}>
             <div className={styles.successIcon}>🎉</div>
             <h2>Willkommen bei Communet!</h2>
-            <p>Bitte bestätige deine E-Mail-Adresse — danach kannst du dich anmelden.</p>
+            {typ === 'kommune'
+              ? <p>Deine Kommune wurde angelegt und wird bald freigeschaltet. Du kannst dich jetzt anmelden und dein Profil bearbeiten.</p>
+              : <p>Bitte bestätige deine E-Mail-Adresse — danach kannst du dich anmelden.</p>
+            }
           </div>
         )}
         {mode === 'magic' && status !== 'magic_sent' && (
@@ -136,7 +146,7 @@ export default function Login() {
           <div className={styles.success}>
             <div className={styles.successIcon}>✉️</div>
             <h2>Check deine E-Mails!</h2>
-            <p>Wir haben dir einen Login-Link geschickt. Nach dem Klick landest du direkt in deinem Profil.</p>
+            <p>Wir haben dir einen Login-Link geschickt.</p>
           </div>
         )}
       </div>
