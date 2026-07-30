@@ -7,7 +7,6 @@ import styles from '../styles/Angebote.module.css'
 
 const OFFER_TYPES = ['Workaway', 'Besuch', 'Langzeitaufenthalt', 'Workshop', 'Volontariat', 'Sonstiges']
 
-// ─── Nicht eingeloggt ────────────────────────────────────────
 function AngeboteGuest() {
   return (
     <div className={styles.guestWrap}>
@@ -23,7 +22,6 @@ function AngeboteGuest() {
   )
 }
 
-// ─── Eingeloggt als Person ───────────────────────────────────
 function AngebotePerson() {
   const [offers, setOffers] = useState([])
   const [search, setSearch] = useState('')
@@ -53,35 +51,23 @@ function AngebotePerson() {
         <h1 className={styles.title}>Angebote</h1>
         <p className={styles.sub}>Was Kommunen anbieten — Workaway, Besuche, Workshops und mehr</p>
       </div>
-
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <span>🔍</span>
-          <input
-            type="text"
-            placeholder="Ort, Kommune oder Stichwort..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className={styles.search}
-          />
+          <input type="text" placeholder="Ort, Kommune oder Stichwort..." value={search} onChange={e => setSearch(e.target.value)} className={styles.search}/>
         </div>
         <div className={styles.pills}>
           <button className={`${styles.pill} ${filter==='alle'?styles.active:''}`} onClick={()=>setFilter('alle')}>Alle</button>
-          {OFFER_TYPES.map(t => (
-            <button key={t} className={`${styles.pill} ${filter===t?styles.active:''}`} onClick={()=>setFilter(t)}>{t}</button>
-          ))}
+          {OFFER_TYPES.map(t => (<button key={t} className={`${styles.pill} ${filter===t?styles.active:''}`} onClick={()=>setFilter(t)}>{t}</button>))}
         </div>
       </div>
-
       {loading && <div className={styles.loading}>Lädt...</div>}
       {!loading && filtered.length === 0 && (
         <div className={styles.empty}>
           <div style={{fontSize:40,marginBottom:12}}>🌱</div>
           <p>Noch keine Angebote{search ? ` für "${search}"` : ''} gefunden.</p>
-          {search && <button className={styles.btnSecondary} onClick={()=>setSearch('')}>Suche zurücksetzen</button>}
         </div>
       )}
-
       <div className={styles.grid}>
         {filtered.map(o => (
           <div key={o.id} className={styles.card}>
@@ -100,7 +86,6 @@ function AngebotePerson() {
   )
 }
 
-// ─── Eingeloggt als Kommune ──────────────────────────────────
 function AngeboteKommune({ user }) {
   const [offers, setOffers] = useState([])
   const [profile, setProfile] = useState(null)
@@ -110,7 +95,7 @@ function AngeboteKommune({ user }) {
   const [newOffer, setNewOffer] = useState({ titel: '', beschreibung: '', typ: 'Workaway', ort: '', von: '', bis: '' })
 
   useEffect(() => {
-    supabase.from('profiles').select('name').eq('id', user.id).single().then(({ data }) => setProfile(data))
+    supabase.from('profiles').select('name,land').eq('id', user.id).single().then(({ data }) => setProfile(data))
     supabase.from('offers').select('*').eq('kommune_id', user.id).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setOffers(data) })
   }, [user])
@@ -122,7 +107,12 @@ function AngeboteKommune({ user }) {
     const { data, error: err } = await supabase.from('offers').insert({
       kommune_id: user.id,
       kommune_name: profile?.name || '',
-      ...newOffer
+      titel: newOffer.titel,
+      beschreibung: newOffer.beschreibung || null,
+      typ: newOffer.typ,
+      ort: newOffer.ort || profile?.land || null,
+      von: newOffer.von || null,
+      bis: newOffer.bis || null,
     }).select().single()
     setSaving(false)
     if (err) { setError('Fehler: ' + err.message); return }
@@ -167,12 +157,12 @@ function AngeboteKommune({ user }) {
             <textarea rows={3} value={newOffer.beschreibung} onChange={e=>setNewOffer(n=>({...n,beschreibung:e.target.value}))} placeholder="Was erwartet die Person? Was bietet ihr an?"/>
           </div>
           <div className={styles.formRow}>
-            <div className={styles.field}><label>Von</label><input type="date" value={newOffer.von} onChange={e=>setNewOffer(n=>({...n,von:e.target.value}))}/></div>
-            <div className={styles.field}><label>Bis</label><input type="date" value={newOffer.bis} onChange={e=>setNewOffer(n=>({...n,bis:e.target.value}))}/></div>
+            <div className={styles.field}><label>Von (optional)</label><input type="date" value={newOffer.von} onChange={e=>setNewOffer(n=>({...n,von:e.target.value}))}/></div>
+            <div className={styles.field}><label>Bis (optional)</label><input type="date" value={newOffer.bis} onChange={e=>setNewOffer(n=>({...n,bis:e.target.value}))}/></div>
           </div>
           <div className={styles.field}>
             <label>Ort (optional)</label>
-            <input type="text" value={newOffer.ort} onChange={e=>setNewOffer(n=>({...n,ort:e.target.value}))} placeholder="Wird automatisch aus eurem Profil übernommen wenn leer"/>
+            <input type="text" value={newOffer.ort} onChange={e=>setNewOffer(n=>({...n,ort:e.target.value}))} placeholder={profile?.land || 'Wird aus eurem Profil übernommen'}/>
           </div>
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? 'Speichert...' : 'Angebot veröffentlichen'}</button>
@@ -205,7 +195,6 @@ function AngeboteKommune({ user }) {
   )
 }
 
-// ─── Haupt-Komponente ────────────────────────────────────────
 export default function Angebote() {
   const { user, loading } = useAuth()
   const [profile, setProfile] = useState(null)
@@ -225,7 +214,7 @@ export default function Angebote() {
       <Nav/>
       {!user && <AngeboteGuest/>}
       {user && isKommune && <AngeboteKommune user={user}/>}
-      {user && !isKommune && <AngebotePerson/>}
+      {user && !isKommune && profile && <AngebotePerson/>}
     </div>
   )
 }
