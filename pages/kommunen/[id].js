@@ -1,10 +1,13 @@
 import Link from'next/link'
 import{useRouter}from'next/router'
+import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher,LAND_EN,getTypIcon}from'../../data/communities'
 import FavoriteBtn from'../../components/FavoriteBtn'
 import styles from'../../styles/KommuneProfil.module.css'
+
+const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
 
 export default function KommuneProfil(){
 const router=useRouter()
@@ -51,7 +54,7 @@ return(
 <div className={styles.statCell}><div className={styles.statN}>{k.jahr}</div><div className={styles.statL}>{t('profile_since')}</div></div>
 <div className={styles.statCell}><div className={styles.statN}>{isActive?k.angebote:'—'}</div><div className={styles.statL}>{t('nav_offers')}</div></div>
 <div className={styles.statCell}>
-<div className={styles.statN} style={{fontSize:18}}>{besucher.icon}</div>
+<div className={styles.statN}style={{fontSize:18}}>{besucher.icon}</div>
 <div className={styles.statL}>{lang==='en'?'Visitors':t('profile_visitors')||'Besucher'}</div>
 </div>
 </div>
@@ -106,9 +109,13 @@ return(
 {k.website&&<a href={k.website}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:8,fontSize:12,color:'var(--g)'}}>&#128279; {lang==='en'?'Visit website':'Zur Website'}</a>}
 </div>
 
+{/* Mini-Karte */}
 <div className={styles.sideCard}>
 <div className={styles.sideTitle}>📍 {t('profile_location')}</div>
-<div className={styles.mapPlaceholder}>🗺️</div>
+{k.lat&&k.lon
+?<MiniMap lat={k.lat} lon={k.lon} name={k.name}/>
+:<div className={styles.mapPlaceholder} style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}>📍 {k.ort}{k.region?`, ${k.region}`:''}</div>
+}
 <div style={{marginTop:8,fontSize:12,color:'var(--muted)'}}>{k.ort}{k.region?`, ${k.region}`:''}<br/>{k.land}</div>
 </div>
 </div>

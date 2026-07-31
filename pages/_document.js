@@ -3,9 +3,11 @@ export default function Document(){
 return(
 <Html lang="de">
 <Head>
-<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
-<link rel="shortcut icon" href="/favicon.svg"/>
-<meta name="theme-color" content="#1a1c1a"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<link rel="shortcut icon" href="/favicon-32.png"/>
+<meta name="theme-color" content="#2d6a4f"/>
 <meta property="og:title" content="communet — Gemeinschaft neu gedacht"/>
 <meta property="og:description" content="Weltkarte alternativer Gemeinschaften. Ökodörfer, Kommunen und Kollektive weltweit — kostenlos, werbefrei, ohne Algorithmus."/>
 <meta property="og:image" content="https://communet.net/communet_globe.png"/>
@@ -13,8 +15,6 @@ return(
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="communet"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="communet — Gemeinschaft neu gedacht"/>
-<meta name="twitter:description" content="Weltkarte alternativer Gemeinschaften. Ökodörfer, Kommunen und Kollektive weltweit."/>
 <meta name="twitter:image" content="https://communet.net/communet_globe.png"/>
 </Head>
 <body>
