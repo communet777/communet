@@ -27,20 +27,20 @@
 .visionText{font-size:16px;color:rgba(200,220,255,0.75);line-height:1.9;margin-bottom:16px}
 .visionLink{display:inline-block;margin-top:8px;font-size:14px;color:#c9a84c;text-decoration:none;border-bottom:1px solid rgba(201,168,76,0.4);padding-bottom:2px;transition:border-color .15s}
 .visionLink:hover{border-color:#c9a84c}
-/* Active communes */
-.section{padding:48px;background:var(--bg)}
+/* Active communes — heller Bereich */
+.section{padding:48px;background:#f7f4ef}
 .sectionHeader{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
-.sectionLabel{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--g);font-weight:500;margin-bottom:4px}
-.sectionTitle{font-family:Georgia,serif;font-size:24px;font-weight:400}
-.sectionLink{font-size:13px;color:var(--g)}
+.sectionLabel{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#2d6a4f;font-weight:500;margin-bottom:4px}
+.sectionTitle{font-family:Georgia,serif;font-size:24px;font-weight:400;color:#1a1a1a}
+.sectionLink{font-size:13px;color:#2d6a4f}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.card{border-radius:12px;border:.5px solid var(--border);background:var(--surface);overflow:hidden;display:block;transition:border-color .15s,transform .15s;text-decoration:none}
-.card:hover{border-color:var(--g);transform:translateY(-2px)}
+.card{border-radius:12px;border:.5px solid #e0ddd8;background:#fff;overflow:hidden;display:block;transition:border-color .15s,transform .15s;text-decoration:none}
+.card:hover{border-color:#2d6a4f;transform:translateY(-2px)}
 .cardImg{height:80px;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden}
 .cardBody{padding:12px}
-.cardName{font-size:13px;font-weight:500;margin:6px 0 3px;line-height:1.3}
-.cardLoc{font-size:11px;color:var(--muted);margin-bottom:10px}
-.cardFooter{display:flex;justify-content:space-between;font-size:11px;border-top:.5px solid var(--border);padding-top:8px}
+.cardName{font-size:13px;font-weight:500;margin:6px 0 3px;line-height:1.3;color:#1a1a1a}
+.cardLoc{font-size:11px;color:#6b6b63;margin-bottom:10px}
+.cardFooter{display:flex;justify-content:space-between;font-size:11px;border-top:.5px solid #e0ddd8;padding-top:8px}
 /* How — dunkel */
 .howSection{padding:56px 48px;background:#0d1f35}
 .howGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
@@ -48,21 +48,21 @@
 .howIcon{font-size:28px;margin-bottom:12px}
 .howTitle{font-size:14px;font-weight:600;margin-bottom:8px;color:#fff}
 .howText{font-size:13px;color:rgba(200,220,255,0.6);line-height:1.6}
-/* CTA */
-.ctaSection{padding:56px 48px;text-align:center;background:var(--bg);border-top:.5px solid var(--border)}
-.ctaTitle{font-family:Georgia,serif;font-size:28px;font-weight:400;margin-bottom:10px;color:var(--text)}
-.ctaSub{font-size:14px;color:var(--muted);margin-bottom:24px}
+/* CTA — explizit hell */
+.ctaSection{padding:56px 48px;text-align:center;background:#f7f4ef;border-top:1px solid #e0ddd8}
+.ctaTitle{font-family:Georgia,serif;font-size:28px;font-weight:400;margin-bottom:10px;color:#1a1a1a}
+.ctaSub{font-size:14px;color:#6b6b63;margin-bottom:24px}
 .ctaBtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.ctaBtnP{padding:11px 26px;border-radius:10px;background:var(--g);color:#fff;border:none;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block}
+.ctaBtnP{padding:11px 26px;border-radius:10px;background:#2d6a4f;color:#fff;border:none;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block}
 .ctaBtnP:hover{opacity:.88}
-.ctaBtnS{padding:11px 26px;border-radius:10px;background:transparent;color:var(--text);border:1.5px solid var(--border);font-size:14px;cursor:pointer;text-decoration:none;display:inline-block}
-.ctaBtnS:hover{background:var(--gl)}
-/* Footer */
-.footer{padding:20px 48px;border-top:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:var(--bg)}
-.footerLogo{font-size:13px;color:var(--muted)}
+.ctaBtnS{padding:11px 26px;border-radius:10px;background:transparent;color:#1a1a1a;border:1.5px solid #e0ddd8;font-size:14px;cursor:pointer;text-decoration:none;display:inline-block}
+.ctaBtnS:hover{background:#eee9e3}
+/* Footer — hell */
+.footer{padding:20px 48px;border-top:1px solid #e0ddd8;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#f7f4ef}
+.footerLogo{font-size:13px;color:#6b6b63}
 .footerLinks{display:flex;gap:20px}
-.footerLinks a{font-size:12px;color:var(--muted);text-decoration:none}
-.footerLinks a:hover{color:var(--g)}
+.footerLinks a{font-size:12px;color:#6b6b63;text-decoration:none}
+.footerLinks a:hover{color:#2d6a4f}
 @media(max-width:768px){
 .hero{flex-direction:column;padding:40px 24px 32px;min-height:auto;text-align:center;align-items:center}
 .heroLeft{flex:none;width:100%}
