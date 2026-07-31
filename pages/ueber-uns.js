@@ -38,7 +38,7 @@ Nicht als Produkt. Nicht als Algorithmus. Sondern als ehrliche Karte des alterna
 <section className={styles.section}>
 <h2 className={styles.sectionTitle}>Wer steckt dahinter?</h2>
 <p className={styles.text}>
-Communet wird von Jan Lucas Abram gegründet und entwickelt — mit Sitz in Bergisch Gladbach bei Köln. Das Projekt ist unabhängig, nicht kommerziell und wird aus Überzeugung gebaut.
+Communet wird unabhängig entwickelt — nicht kommerziell, sondern aus Überzeugung gebaut.
 </p>
 <p className={styles.text}>
 Das Team wächst. Wenn du mithelfen möchtest — als Entwickler, Designer oder einfach als Mensch der die Idee teilt — meld dich gerne.
