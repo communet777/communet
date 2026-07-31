@@ -4,7 +4,7 @@ import{useRouter}from'next/router'
 import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
 import{useLang}from'../lib/LanguageContext'
-import{COMMUNITIES,getTypBadge,getStatusInfo,getTypIcon}from'../data/communities'
+import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Home.module.css'
 
@@ -13,7 +13,6 @@ const{t,lang}=useLang()
 const router=useRouter()
 const[dbKommunen,setDbKommunen]=useState([])
 const[search,setSearch]=useState('')
-const searchRef=useRef(null)
 
 useEffect(()=>{
 supabase.from('profiles').select('id,name,kommune_typ,land,avatar_url,bio')
@@ -46,19 +45,10 @@ return(
 <div className={styles.eyebrow}>{t('home_eyebrow')}</div>
 <h1 className={styles.title}>{t('home_title1')}<br/>{t('home_title2')}<br/>{t('home_title3')}</h1>
 <p className={styles.sub}>{t('home_sub')}</p>
-
 <form onSubmit={handleSearch} className={styles.searchForm}>
-<input
-ref={searchRef}
-type="text"
-value={search}
-onChange={e=>setSearch(e.target.value)}
-placeholder="Suche nach Gemeinschaft, Ort oder Land..."
-className={styles.searchInput}
-/>
+<input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Suche nach Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
 <button type="submit" className={styles.searchBtn}>🔍</button>
 </form>
-
 <div className={styles.actions}>
 <Link href="/auth/login"className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
 <Link href="/kommunen"className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
@@ -96,10 +86,7 @@ className={styles.searchInput}
 {dbKommunen.length>0&&(
 <section className={styles.section}>
 <div className={styles.sectionHeader}>
-<div>
-<div className={styles.sectionLabel}>{t('home_section_active')}</div>
-<h2 className={styles.sectionTitle}>{t('home_section_title')}</h2>
-</div>
+<div><div className={styles.sectionLabel}>{t('home_section_active')}</div><h2 className={styles.sectionTitle}>{t('home_section_title')}</h2></div>
 <Link href="/kommunen" className={styles.sectionLink}>{t('home_see_all')}</Link>
 </div>
 <div className={styles.grid}>
@@ -108,8 +95,7 @@ className={styles.searchInput}
 <div className={styles.cardImg}style={{background:k.kommune_typ==='Kommune'?'#fff3e0':k.kommune_typ==='Kollektiv'?'#e8eaf6':'#e8f5ee'}}>
 {k.avatar_url
 ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-:<span style={{fontSize:32}}>{getTypIcon(k.kommune_typ||'Ökodorf')}</span>
-}
+:<span style={{fontSize:32}}>{getTypIcon(k.kommune_typ||'Ökodorf')}</span>}
 </div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
@@ -135,16 +121,6 @@ className={styles.searchInput}
 </div>
 </section>
 
-<section className={styles.statusSection}>
-<div className={styles.sectionLabel}style={{marginBottom:8}}>Status</div>
-<h2 className={styles.sectionTitle}style={{marginBottom:16}}>{t('home_status_title')}</h2>
-<div className={styles.statusGrid}>
-<div className={styles.statusCard}><span className={styles.statusDot}>🟢</span><div><div className={styles.statusTitle}>{t('home_status_active_title')}</div><div className={styles.statusDesc}>{t('home_status_active_desc')}</div></div></div>
-<div className={styles.statusCard}><span className={styles.statusDot}>🟡</span><div><div className={styles.statusTitle}>{t('home_status_setup_title')}</div><div className={styles.statusDesc}>{t('home_status_setup_desc')}</div></div></div>
-<div className={styles.statusCard}><span className={styles.statusDot}>⚫</span><div><div className={styles.statusTitle}>{t('home_status_inactive_title')}</div><div className={styles.statusDesc}>{t('home_status_inactive_desc')}</div></div></div>
-</div>
-</section>
-
 <section className={styles.ctaSection}>
 <h2 className={styles.ctaTitle}>{t('home_cta_title')}</h2>
 <p className={styles.ctaSub}>{t('home_cta_sub')}</p>
@@ -162,7 +138,6 @@ className={styles.searchInput}
 <Link href="/datenschutz">{t('privacy')}</Link>
 </div>
 </footer>
-
 <BackToTop/>
 </div>
 )
