@@ -8,28 +8,27 @@ return(
 <div className={styles.hero}>
 <div className={styles.heroInner}>
 <div className={styles.label}>Über uns</div>
-<h1 className={styles.title}>Warum Communet?</h1>
-<p className={styles.sub}>Eine Plattform. Kein Produkt.</p>
+<h1 className={styles.title}>Eine Plattform. Kein Produkt.</h1>
 </div>
 </div>
 <div className={styles.container}>
 <section className={styles.section}>
 <h2 className={styles.sectionTitle}>Die Idee</h2>
 <p className={styles.text}>
-Communet entstand aus einer einfachen Beobachtung: Es gibt weltweit Hunderte von Ökodörfern, Kommunen und alternativen Gemeinschaften — aber kaum einen Ort, der sie alle zusammenbringt. Wer eine Gemeinschaft sucht, findet verstreute Listen, veraltete Websites und keine Möglichkeit, direkt Kontakt aufzunehmen.
+Communet entstand aus einer einfachen Beobachtung: Es gibt weltweit Hunderte von Ökodörfern, Kommunen und alternativen Lebensgemeinschaften — aber kaum einen Ort, der sie alle zusammenbringt. Wer eine Gemeinschaft sucht, findet verstreute Listen, veraltete Websites und keine Möglichkeit, direkt Kontakt aufzunehmen.
 </p>
 <p className={styles.text}>
-Gleichzeitig gibt es Menschen, die genau das suchen — ein anderes Leben, mehr Gemeinschaft, weniger Konsum. Die Verbindung zwischen beiden fehlte.
+Gleichzeitig gibt es Menschen, die genau das suchen: ein anderes Leben, mehr Gemeinschaft, weniger Konsum — und Menschen, die selbst eine Kommune gründen wollen, aber niemanden finden, der dasselbe vorhat. Die Verbindung zwischen all diesen fehlte.
 </p>
 </section>
 
 <section className={styles.section}>
 <h2 className={styles.sectionTitle}>Unsere Mission</h2>
 <p className={styles.text}>
-Communet ist eine offene, kostenlose und werbefreie Plattform für alle, die anders leben wollen — oder es bereits tun. Wir verbinden Kommunen, Ökodörfer und Kollektive weltweit mit Menschen, die Gemeinschaft suchen.
+Communet ist ein offenes, unabhängiges und werbefreies Verzeichnis für alle, die anders leben wollen — oder es bereits tun. Wir verbinden Kommunen, Ökodörfer und Kollektive weltweit untereinander sowie mit Menschen, die solche Gemeinschaften suchen — für einen direkten, unkomplizierten Austausch. Auch bestehende Kommunen finden hier andere Projekte, Höfe und Gemeinschaften in ihrer Nähe.
 </p>
 <p className={styles.text}>
-Nicht als Produkt. Nicht als Algorithmus. Sondern als ehrliche Karte des alternativen Lebens.
+Nicht als Produkt. Nicht als Algorithmus. Sondern als ehrliche Karte des alternativen Lebens — ein Ausgangspunkt für mehr Gemeinschaft und weniger Verbrauch.
 </p>
 </section>
 
@@ -47,19 +46,19 @@ Das Team wächst. Wenn du mithelfen möchtest — als Entwickler, Designer oder 
 <h2 className={styles.sectionTitle}>Grundsätze</h2>
 <div className={styles.principles}>
 <div className={styles.principle}>
-<div className={styles.principleIcon}>🌱</div>
-<div className={styles.principleTitle}>Kostenlos</div>
-<p className={styles.principleText}>Communet ist und bleibt kostenlos für Menschen und Kommunen. Basisfunktionen werden nie hinter einer Paywall verschwinden.</p>
-</div>
-<div className={styles.principle}>
-<div className={styles.principleIcon}>🚫</div>
-<div className={styles.principleTitle}>Keine Werbung</div>
-<p className={styles.principleText}>Wir verkaufen keine Aufmerksamkeit. Keine Anzeigen, keine gesponserten Inhalte, kein Tracking.</p>
+<div className={styles.principleIcon}>🧭</div>
+<div className={styles.principleTitle}>Unabhängig</div>
+<p className={styles.principleText}>Communet gehört keinem Investor, keiner Organisation, keinem Algorithmus-Interesse. Nur der Gemeinschaft, für die es gemacht ist.</p>
 </div>
 <div className={styles.principle}>
 <div className={styles.principleIcon}>⚖️</div>
 <div className={styles.principleTitle}>Neutral</div>
 <p className={styles.principleText}>Kein Algorithmus entscheidet, welche Kommune oben steht. Alle werden gleich behandelt.</p>
+</div>
+<div className={styles.principle}>
+<div className={styles.principleIcon}>🚫</div>
+<div className={styles.principleTitle}>Keine Werbung</div>
+<p className={styles.principleText}>Wir verkaufen keine Aufmerksamkeit. Keine Anzeigen, keine gesponserten Inhalte, kein Tracking.</p>
 </div>
 <div className={styles.principle}>
 <div className={styles.principleIcon}>🌍</div>
