@@ -44,18 +44,9 @@ return(
 </h1>
 <p className={styles.sub}>{t('home_sub')}</p>
 <div className={styles.statsRow}>
-<div className={styles.stat}>
-<div className={styles.statN}>{totalCount}+</div>
-<div className={styles.statL}>{t('home_stat_communities')}</div>
-</div>
-<div className={styles.stat}>
-<div className={styles.statN}>{countryCount}+</div>
-<div className={styles.statL}>{t('home_stat_countries')}</div>
-</div>
-<div className={styles.stat}>
-<div className={styles.statN}>🌍</div>
-<div className={styles.statL}>{t('home_stat_offers')}</div>
-</div>
+<div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
+<div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
+<div className={styles.stat}><div className={styles.statN}>🌍</div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
 </div>
 </div>
 
@@ -67,8 +58,13 @@ return(
 </Link>
 </div>
 
-{/* Rechts: Suche + Buttons */}
+{/* Rechts: Stats oben, dann Suche + Buttons */}
 <div className={styles.heroRight}>
+<div className={styles.statsRowRight}>
+<div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
+<div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
+<div className={styles.stat}><div className={styles.statN}>🌍</div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
+</div>
 <form onSubmit={handleSearch} className={styles.searchForm}>
 <input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
 <button type="submit" className={styles.searchBtn}>🔍</button>
