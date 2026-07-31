@@ -33,20 +33,31 @@ if(search.trim()) router.push(`/kommunen?q=${encodeURIComponent(search.trim())}`
 return(
 <div className={styles.page}>
 <Nav/>
+
 <section className={styles.hero}>
+{/* Links: Titel */}
 <div className={styles.heroLeft}>
-<Link href="/karte">
-<div style={{width:'min(360px,80vw)',height:'min(360px,80vw)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-<img src="/communet_globe.png" alt="Communet — zur Karte" style={{width:'100%',height:'100%',objectFit:'contain',cursor:'pointer'}}/>
+<div className={styles.eyebrow}>{t('home_eyebrow')}</div>
+<h1 className={styles.title}>
+{t('home_title1')}<br/>
+{t('home_title2')}<br/>
+{t('home_title3')}
+</h1>
+<p className={styles.sub}>{t('home_sub')}</p>
 </div>
+
+{/* Mitte: Globus */}
+<div className={styles.heroCenter}>
+<Link href="/karte" className={styles.globeLink}>
+<img src="/communet_globe.png" alt="Zur Karte" className={styles.globe}/>
+<div className={styles.globeHint}>Zur Karte →</div>
 </Link>
 </div>
+
+{/* Rechts: Suche + CTA + Stats */}
 <div className={styles.heroRight}>
-<div className={styles.eyebrow}>{t('home_eyebrow')}</div>
-<h1 className={styles.title}>{t('home_title1')}<br/>{t('home_title2')}<br/>{t('home_title3')}</h1>
-<p className={styles.sub}>{t('home_sub')}</p>
 <form onSubmit={handleSearch} className={styles.searchForm}>
-<input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Suche nach Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
+<input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
 <button type="submit" className={styles.searchBtn}>🔍</button>
 </form>
 <div className={styles.actions}>
@@ -54,9 +65,18 @@ return(
 <Link href="/kommunen" className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
 </div>
 <div className={styles.statsRow}>
-<div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
-<div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
-<div className={styles.stat}><div className={styles.statN}>🌍</div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
+<div className={styles.stat}>
+<div className={styles.statN}>{totalCount}+</div>
+<div className={styles.statL}>{t('home_stat_communities')}</div>
+</div>
+<div className={styles.stat}>
+<div className={styles.statN}>{countryCount}+</div>
+<div className={styles.statL}>{t('home_stat_countries')}</div>
+</div>
+<div className={styles.stat}>
+<div className={styles.statN}>🌍</div>
+<div className={styles.statL}>{t('home_stat_offers')}</div>
+</div>
 </div>
 </div>
 </section>
@@ -93,8 +113,7 @@ return(
 {dbKommunen.slice(0,4).map(k=>(
 <Link href={`/profil/p/${k.id}`} key={k.id} className={styles.card}>
 <div className={styles.cardImg} style={{background:k.kommune_typ==='Kommune'?'#fff3e0':k.kommune_typ==='Kollektiv'?'#e8eaf6':'#e8f5ee'}}>
-{k.avatar_url
-?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+{k.avatar_url?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
 :<span style={{fontSize:32}}>{getTypIcon(k.kommune_typ||'Ökodorf')}</span>}
 </div>
 <div className={styles.cardBody}>
