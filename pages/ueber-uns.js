@@ -7,8 +7,11 @@ return(
 <Nav/>
 <div className={styles.hero}>
 <div className={styles.heroInner}>
+<Link href="/karte" className={styles.miniGlobeLink}>
+<img src="/communet_globe.png" alt="Zur Karte" className={styles.miniGlobe}/>
+</Link>
 <div className={styles.label}>Über uns</div>
-<h1 className={styles.title}>Eine Plattform. Kein Produkt.</h1>
+<h1 className={styles.title}>Eine Website. Hunderte Kommunen.</h1>
 </div>
 </div>
 <div className={styles.container}>
