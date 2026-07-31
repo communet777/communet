@@ -1,38 +1,76 @@
-import{useEffect,useState}from'react'
+import{useEffect,useState,useRef}from'react'
 import Link from'next/link'
+import{useRouter}from'next/router'
 import Nav from'../components/Nav'
+import BackToTop from'../components/BackToTop'
 import{useLang}from'../lib/LanguageContext'
 import{COMMUNITIES,getTypBadge,getStatusInfo,getTypIcon}from'../data/communities'
+import{supabase}from'../lib/supabase'
 import styles from'../styles/Home.module.css'
+
 export default function Home(){
-const[mounted,setMounted]=useState(false)
 const{t,lang}=useLang()
-useEffect(()=>setMounted(true),[])
-const aktive=COMMUNITIES.filter(k=>k.status==='aktiv').slice(0,4)
+const router=useRouter()
+const[dbKommunen,setDbKommunen]=useState([])
+const[search,setSearch]=useState('')
+const searchRef=useRef(null)
+
+useEffect(()=>{
+supabase.from('profiles').select('id,name,kommune_typ,land,avatar_url,bio')
+.eq('typ','kommune').eq('status','approved')
+.then(({data})=>{ if(data) setDbKommunen(data) })
+},[])
+
+const totalCount=COMMUNITIES.length+dbKommunen.length
+const countrySet=new Set(COMMUNITIES.map(k=>k.land))
+dbKommunen.forEach(k=>{ if(k.land) countrySet.add(k.land.split(',').slice(-1)[0].trim()) })
+const countryCount=countrySet.size
+
+function handleSearch(e){
+e.preventDefault()
+if(search.trim()) router.push(`/kommunen?q=${encodeURIComponent(search.trim())}`)
+}
+
 return(
 <div className={styles.page}>
 <Nav/>
 <section className={styles.hero}>
 <div className={styles.heroLeft}>
+<Link href="/karte">
 <div style={{width:'min(360px,80vw)',height:'min(360px,80vw)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-<img src="/communet_globe.png" alt="Communet" style={{width:'100%',height:'100%',objectFit:'contain'}}/>
+<img src="/communet_globe.png" alt="Communet — zur Karte" style={{width:'100%',height:'100%',objectFit:'contain',cursor:'pointer'}}/>
 </div>
+</Link>
 </div>
 <div className={styles.heroRight}>
 <div className={styles.eyebrow}>{t('home_eyebrow')}</div>
 <h1 className={styles.title}>{t('home_title1')}<br/>{t('home_title2')}<br/>{t('home_title3')}</h1>
 <p className={styles.sub}>{t('home_sub')}</p>
+
+<form onSubmit={handleSearch} className={styles.searchForm}>
+<input
+ref={searchRef}
+type="text"
+value={search}
+onChange={e=>setSearch(e.target.value)}
+placeholder="Suche nach Gemeinschaft, Ort oder Land..."
+className={styles.searchInput}
+/>
+<button type="submit" className={styles.searchBtn}>🔍</button>
+</form>
+
 <div className={styles.actions}>
 <Link href="/auth/login"className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
 <Link href="/kommunen"className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
 </div>
 <div className={styles.statsRow}>
-<div className={styles.stat}><div className={styles.statN}>{COMMUNITIES.length}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
-<div className={styles.stat}><div className={styles.statN}>30+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
+<div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
+<div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
 <div className={styles.stat}><div className={styles.statN}>🌍</div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
 </div>
 </div>
 </section>
+
 <section className={styles.visionSection}>
 <div className={styles.visionInner}>
 {lang==='de'?(
@@ -54,43 +92,39 @@ return(
 )}
 </div>
 </section>
+
+{dbKommunen.length>0&&(
 <section className={styles.section}>
 <div className={styles.sectionHeader}>
-<div><div className={styles.sectionLabel}>{t('home_section_active')}</div><h2 className={styles.sectionTitle}>{t('home_section_title')}</h2></div>
-<Link href="/kommunen"className={styles.sectionLink}>{t('home_see_all')}</Link>
+<div>
+<div className={styles.sectionLabel}>{t('home_section_active')}</div>
+<h2 className={styles.sectionTitle}>{t('home_section_title')}</h2>
+</div>
+<Link href="/kommunen" className={styles.sectionLink}>{t('home_see_all')}</Link>
 </div>
 <div className={styles.grid}>
-{aktive.length===0?COMMUNITIES.slice(0,4).map(k=>(
-<Link href={`/kommunen/${k.id}`}key={k.id}className={styles.card}>
-<div className={styles.cardImg}>{getTypIcon(k.typ)}</div>
+{dbKommunen.slice(0,4).map(k=>(
+<Link href={`/profil/p/${k.id}`}key={k.id}className={styles.card}>
+<div className={styles.cardImg}style={{background:k.kommune_typ==='Kommune'?'#fff3e0':k.kommune_typ==='Kollektiv'?'#e8eaf6':'#e8f5ee'}}>
+{k.avatar_url
+?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+:<span style={{fontSize:32}}>{getTypIcon(k.kommune_typ||'Ökodorf')}</span>
+}
+</div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-<span className={`badge ${getTypBadge(k.typ)}`}>{k.typ}</span>
-<span style={{fontSize:10,color:'#6b6b63',background:'#f0f0ee',padding:'2px 6px',borderRadius:10}}>⚫ {t('status_inactive')}</span>
+<span className={`badge ${getTypBadge(k.kommune_typ||'Ökodorf')}`}>{k.kommune_typ||'Ökodorf'}</span>
+<span style={{fontSize:10,color:'#2d6a4f',background:'#e8f5ee',padding:'2px 6px',borderRadius:10}}>🟢 Aktiv</span>
 </div>
 <div className={styles.cardName}>{k.name}</div>
-<div className={styles.cardLoc}>📍 {k.ort} · {k.land}</div>
-<div className={styles.cardFooter}><span>~{k.members}</span><span style={{color:'var(--muted)',fontSize:11}}>✉️ {t('communities_invite')}</span></div>
+<div className={styles.cardLoc}>📍 {k.land||'Ort unbekannt'}</div>
 </div>
 </Link>
-)):aktive.map(k=>{
-const status=getStatusInfo(k.status)
-return(
-<Link href={`/kommunen/${k.id}`}key={k.id}className={styles.card}>
-<div className={styles.cardImg}>{getTypIcon(k.typ)}</div>
-<div className={styles.cardBody}>
-<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-<span className={`badge ${getTypBadge(k.typ)}`}>{k.typ}</span>
-<span style={{fontSize:10,color:status.color,background:status.bg,padding:'2px 6px',borderRadius:10}}>{status.icon} {t('status_active')}</span>
-</div>
-<div className={styles.cardName}>{k.name}</div>
-<div className={styles.cardLoc}>📍 {k.ort} · {k.land}</div>
-<div className={styles.cardFooter}><span>~{k.members}</span><span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>{k.angebote} {t('nav_offers').toLowerCase()}</span></div>
-</div>
-</Link>
-)})}
+))}
 </div>
 </section>
+)}
+
 <section className={styles.howSection}>
 <div className={styles.sectionLabel}style={{textAlign:'center',marginBottom:8}}>{t('home_eyebrow')}</div>
 <h2 className={styles.sectionTitle}style={{textAlign:'center',marginBottom:32}}>{t('home_how_title')}</h2>
@@ -100,6 +134,7 @@ return(
 <div className={styles.howCard}><div className={styles.howIcon}>✉️</div><div className={styles.howTitle}>{t('home_how3_title')}</div><div className={styles.howText}>{t('home_how3_text')}</div></div>
 </div>
 </section>
+
 <section className={styles.statusSection}>
 <div className={styles.sectionLabel}style={{marginBottom:8}}>Status</div>
 <h2 className={styles.sectionTitle}style={{marginBottom:16}}>{t('home_status_title')}</h2>
@@ -109,6 +144,7 @@ return(
 <div className={styles.statusCard}><span className={styles.statusDot}>⚫</span><div><div className={styles.statusTitle}>{t('home_status_inactive_title')}</div><div className={styles.statusDesc}>{t('home_status_inactive_desc')}</div></div></div>
 </div>
 </section>
+
 <section className={styles.ctaSection}>
 <h2 className={styles.ctaTitle}>{t('home_cta_title')}</h2>
 <p className={styles.ctaSub}>{t('home_cta_sub')}</p>
@@ -117,6 +153,7 @@ return(
 <Link href="/auth/login"className={styles.ctaBtnS}>{t('home_cta_btn2')}</Link>
 </div>
 </section>
+
 <footer className={styles.footer}>
 <span className={styles.footerLogo}>communet · 2026</span>
 <div className={styles.footerLinks}>
@@ -125,6 +162,8 @@ return(
 <Link href="/datenschutz">{t('privacy')}</Link>
 </div>
 </footer>
+
+<BackToTop/>
 </div>
 )
 }
