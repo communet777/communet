@@ -35,38 +35,52 @@ const router=useRouter()
 const[search,setSearch]=useState('')
 const[filter,setFilter]=useState('alle')
 const[kontinent,setKontinent]=useState('alle')
+const[land,setLand]=useState('alle')
 const[nurAktive,setNurAktive]=useState(false)
 const[dbKommunen,setDbKommunen]=useState([])
 
 useEffect(()=>{
 const q=router.query.q
-if(q) setSearch(q)
+if(q)setSearch(q)
 },[router.query.q])
 
 useEffect(()=>{
 supabase.from('profiles').select('*').eq('typ','kommune').eq('status','approved')
-.then(({data})=>{ if(data) setDbKommunen(data.map(dbToCard)) })
+.then(({data})=>{if(data)setDbKommunen(data.map(dbToCard))})
 },[])
+
+function handleKontinent(k){
+setKontinent(k)
+setLand('alle')
+}
+
+const laender=kontinent!=='alle'?KONTINENTE[kontinent]:[]
 
 const allKommunen=[...dbKommunen,...COMMUNITIES]
 
 const filtered=allKommunen.filter(k=>{
 if(nurAktive&&k.status!=='aktiv')return false
-const matchTyp=filter==='alle'||k.typ===filter
-const matchKontinent=kontinent==='alle'||(KONTINENTE[kontinent]?.some(land=>k.land?.includes(land)))
+if(filter!=='alle'&&k.typ!==filter)return false
+if(kontinent!=='alle'){
+const inKontinent=KONTINENTE[kontinent]?.includes(k.land)
+if(!inKontinent)return false
+}
+if(land!=='alle'&&k.land!==land)return false
 const q=search.toLowerCase()
-if(!q)return matchTyp&&matchKontinent
+if(!q)return true
 const landEn=(LAND_EN[k.land]||'').toLowerCase()
 const desc=lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung
-const matchSearch=
+return(
 k.name.toLowerCase().includes(q)||
 (k.ort||'').toLowerCase().includes(q)||
 (k.land||'').toLowerCase().includes(q)||
 landEn.includes(q)||
 (desc||'').toLowerCase().includes(q)||
 (k.tags||[]).some(tag=>tag.toLowerCase().includes(q))
-return matchTyp&&matchKontinent&&matchSearch
+)
 })
+
+const bgColor=(typ)=>typ==='Kommune'?'#fff3e0':typ==='Kollektiv'?'#e8eaf6':typ==='Spirituelle Gemeinschaft'?'#f3e5f5':typ==='Wohnprojekt'?'#e0f2f1':'#e8f5ee'
 
 return(
 <div>
@@ -76,36 +90,50 @@ return(
 <p className={styles.sub}>{t('communities_sub')}</p>
 </div>
 <div className={styles.toolbar}>
+
+{/* Suche */}
 <div className={styles.searchWrap}>
 <span className={styles.searchIcon}>🔍</span>
-<input type="text"className={styles.search}
-placeholder={t('communities_search')}
-value={search}onChange={e=>setSearch(e.target.value)}/>
+<input type="text" className={styles.search} placeholder={t('communities_search')} value={search} onChange={e=>setSearch(e.target.value)}/>
 </div>
 
-{/* Typ-Filter */}
+{/* Typ */}
 <div className={styles.pills}>
-<button className={`${styles.pill}${filter==='alle'?' '+styles.active:''}`}onClick={()=>setFilter('alle')}>{t('communities_all')}</button>
+<button className={`${styles.pill}${filter==='alle'?' '+styles.active:''}`} onClick={()=>setFilter('alle')}>{t('communities_all')}</button>
 {TYPEN.map(typ=>(
-<button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
+<button key={typ} className={`${styles.pill}${filter===typ?' '+styles.active:''}`} onClick={()=>setFilter(typ)}>
 {getTypIcon(typ)} {typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}
 </button>
 ))}
 </div>
 
-{/* Kontinent-Filter */}
+{/* Kontinent */}
 <div className={styles.pills}>
-<button className={`${styles.pill}${kontinent==='alle'?' '+styles.active:''}`}onClick={()=>setKontinent('alle')}>Alle Kontinente</button>
+<button className={`${styles.pill}${kontinent==='alle'?' '+styles.active:''}`} onClick={()=>handleKontinent('alle')}>Alle Kontinente</button>
 {Object.keys(KONTINENTE).map(k=>(
-<button key={k}className={`${styles.pill}${kontinent===k?' '+styles.active:''}`}onClick={()=>setKontinent(k)}>{k}</button>
+<button key={k} className={`${styles.pill}${kontinent===k?' '+styles.active:''}`} onClick={()=>handleKontinent(k)}>{k}</button>
 ))}
 </div>
 
-{/* Status-Filter */}
-<div className={styles.pills}>
-<button className={`${styles.pill}${!nurAktive?' '+styles.activeStatus:''}`}onClick={()=>setNurAktive(false)}>Alle</button>
-<button className={`${styles.pill}${nurAktive?' '+styles.activeStatus:''}`}onClick={()=>setNurAktive(true)}>🟢 Nur aktive</button>
+{/* Länder-Dropdown wenn Kontinent gewählt */}
+{kontinent!=='alle'&&laender.length>0&&(
+<div className={styles.laenderWrap}>
+<span className={styles.laenderLabel}>Land:</span>
+<div className={styles.laenderPills}>
+<button className={`${styles.laenderPill}${land==='alle'?' '+styles.laenderActive:''}`} onClick={()=>setLand('alle')}>Alle</button>
+{laender.filter(l=>allKommunen.some(k=>k.land===l)).map(l=>(
+<button key={l} className={`${styles.laenderPill}${land===l?' '+styles.laenderActive:''}`} onClick={()=>setLand(l)}>{l}</button>
+))}
 </div>
+</div>
+)}
+
+{/* Status — eigene Zeile */}
+<div className={styles.statusRow}>
+<button className={`${styles.pill}${!nurAktive?' '+styles.active:''}`} onClick={()=>setNurAktive(false)}>Alle</button>
+<button className={`${styles.pill}${nurAktive?' '+styles.active:''}`} onClick={()=>setNurAktive(true)}>🟢 Nur aktive</button>
+</div>
+
 </div>
 
 <div className={styles.resultsBar}>{filtered.length}+ {t('communities_found')}</div>
@@ -116,24 +144,22 @@ const isInactive=k.status==='nicht-registriert'
 const isDb=!!k.dbId
 const displayLand=lang==='en'?(LAND_EN[k.land]||k.land):k.land
 const href=isDb?`/profil/p/${k.dbId}`:`/kommunen/${k.id}`
-const bgColor=k.typ==='Kommune'?'#fff3e0':k.typ==='Kollektiv'?'#e8eaf6':k.typ==='Spirituelle Gemeinschaft'?'#f3e5f5':k.typ==='Wohnprojekt'?'#e0f2f1':'#e8f5ee'
 return(
-<div key={k.id}style={{position:'relative'}}>
-<Link href={href}className={`${styles.card}${isInactive?' '+styles.cardInactive:''}`}>
-<div className={styles.cardImg}style={{background:bgColor,opacity:isInactive?0.5:1}}>
+<div key={k.id} style={{position:'relative'}}>
+<Link href={href} className={styles.card}>
+<div className={styles.cardImg} style={{background:bgColor(k.typ)}}>
 {k.avatar_url
 ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>
-:<span style={{fontSize:32,filter:isInactive?'grayscale(80%)':'none'}}>{getTypIcon(k.typ)}</span>
-}
+:<span style={{fontSize:32}}>{getTypIcon(k.typ)}</span>}
 </div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6,gap:4}}>
-<span className={`badge ${getTypBadge(k.typ)}`}style={{opacity:isInactive?0.6:1}}>{k.typ==='Spirituelle Gemeinschaft'?'Spirituell':k.typ}</span>
+<span className={`badge ${getTypBadge(k.typ)}`}>{k.typ==='Spirituelle Gemeinschaft'?'Spirituell':k.typ}</span>
 <span style={{fontSize:10,color:status.color,background:status.bg,padding:'2px 6px',borderRadius:10,whiteSpace:'nowrap',flexShrink:0}}>
 {isInactive?`⚫ ${t('status_inactive')}`:`🟢 ${t('status_active')}`}
 </span>
 </div>
-<div className={styles.cardName}style={{color:isInactive?'var(--muted)':'var(--text)'}}>{k.name}</div>
+<div className={styles.cardName}>{k.name}</div>
 <div className={styles.cardLoc}>📍 {k.ort}{k.ort&&k.land?' · ':''}{displayLand}</div>
 <div className={styles.cardFooter}>
 <span>👥 ~{k.members}</span>
