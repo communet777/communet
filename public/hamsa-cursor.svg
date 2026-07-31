@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="32" height="40">
+  <!-- Handflaeche -->
+  <path d="M8 22 Q6 30 8 36 Q10 40 16 40 Q22 40 24 36 Q26 30 24 22 L22 14 Q22 11 20 11 Q18 11 18 14 L18 20 L18 10 Q18 7 16 7 Q14 7 14 10 L14 20 L14 12 Q14 9 12 9 Q10 9 10 12 L10 20 L10 16 Q10 13 8 13 Q6 13 6 16 Z" fill="#c9a84c"/>
+  <!-- Daumen -->
+  <path d="M6 16 Q4 15 3 17 Q2 20 5 22 L8 22" fill="#c9a84c"/>
+  <!-- Auge in der Mitte -->
+  <ellipse cx="16" cy="28" rx="3" ry="2" fill="white"/>
+  <circle cx="16" cy="28" r="1.2" fill="#2d6a4f"/>
+  <circle cx="16.4" cy="27.6" r="0.4" fill="white"/>
+</svg>
