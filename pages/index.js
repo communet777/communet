@@ -112,12 +112,23 @@ return(
 )}
 
 <section className={styles.howSection}>
-<div className={styles.sectionLabel} style={{textAlign:'center',marginBottom:8,color:'#c9a84c'}}>{t('home_eyebrow')}</div>
-<h2 className={styles.sectionTitle} style={{textAlign:'center',marginBottom:32,color:'#fff'}}>{t('home_how_title')}</h2>
+<h2 className={styles.howTitle}>{t('home_how_title')}</h2>
 <div className={styles.howGrid}>
-<div className={styles.howCard}><div className={styles.howIcon}>👤</div><div className={styles.howTitle}>{t('home_how1_title')}</div><div className={styles.howText}>{t('home_how1_text')}</div></div>
-<div className={styles.howCard}><div className={styles.howIcon}>🗺️</div><div className={styles.howTitle}>{t('home_how2_title')}</div><div className={styles.howText}>{t('home_how2_text')}</div></div>
-<div className={styles.howCard}><div className={styles.howIcon}>✉️</div><div className={styles.howTitle}>{t('home_how3_title')}</div><div className={styles.howText}>{t('home_how3_text')}</div></div>
+<Link href="/auth/login" className={styles.howCard}>
+<div className={styles.howIcon}>👤</div>
+<div className={styles.howCardTitle}>{t('home_how1_title')}</div>
+<div className={styles.howText}>{t('home_how1_text')}</div>
+</Link>
+<Link href="/kommunen" className={styles.howCard}>
+<div className={styles.howIcon}>🗺️</div>
+<div className={styles.howCardTitle}>{t('home_how2_title')}</div>
+<div className={styles.howText}>{t('home_how2_text')}</div>
+</Link>
+<Link href="/angebote" className={styles.howCard}>
+<div className={styles.howIcon}>✉️</div>
+<div className={styles.howCardTitle}>{t('home_how3_title')}</div>
+<div className={styles.howText}>{t('home_how3_text')}</div>
+</Link>
 </div>
 </section>
 
