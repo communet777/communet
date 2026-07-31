@@ -1,4 +1,4 @@
-import{useEffect,useState,useRef}from'react'
+import{useEffect,useState}from'react'
 import Link from'next/link'
 import{useRouter}from'next/router'
 import Nav from'../components/Nav'
@@ -15,7 +15,7 @@ const[dbKommunen,setDbKommunen]=useState([])
 const[search,setSearch]=useState('')
 
 useEffect(()=>{
-supabase.from('profiles').select('id,name,kommune_typ,land,avatar_url,bio')
+supabase.from('profiles').select('id,name,kommune_typ,land,avatar_url')
 .eq('typ','kommune').eq('status','approved')
 .then(({data})=>{ if(data) setDbKommunen(data) })
 },[])
@@ -50,8 +50,8 @@ return(
 <button type="submit" className={styles.searchBtn}>🔍</button>
 </form>
 <div className={styles.actions}>
-<Link href="/auth/login"className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
-<Link href="/kommunen"className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
+<Link href="/auth/login" className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
+<Link href="/kommunen" className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
 </div>
 <div className={styles.statsRow}>
 <div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
@@ -69,7 +69,7 @@ return(
 <h2 className={styles.visionTitle}>Gemeinschaft neu gedacht</h2>
 <p className={styles.visionText}>Communet ist eine offene Plattform für alle, die anders leben wollen — oder es bereits tun.</p>
 <p className={styles.visionText}>Wir verbinden Kommunen, Ökodörfer und Kollektive weltweit mit Menschen, die Gemeinschaft suchen. Nicht als Produkt. Nicht als Algorithmus. Sondern als ehrliche, kostenlose Karte des alternativen Lebens.</p>
-<p className={styles.visionText}>Ob du eine Gemeinschaft suchst, gründen willst oder einfach wissen möchtest: Wo gibt es das schon? — Communet ist dein Ausgangspunkt.</p>
+<Link href="/ueber-uns" className={styles.visionLink}>Mehr über Communet →</Link>
 </>
 ):(
 <>
@@ -77,7 +77,7 @@ return(
 <h2 className={styles.visionTitle}>Community reimagined</h2>
 <p className={styles.visionText}>Communet is an open platform for everyone who wants to live differently — or already does.</p>
 <p className={styles.visionText}>We connect communes, ecovillages and collectives worldwide with people seeking community. Not as a product. Not as an algorithm. But as an honest, free map of alternative living.</p>
-<p className={styles.visionText}>Whether you're looking for a community, want to start one, or simply want to know: where does this already exist? — Communet is your starting point.</p>
+<Link href="/ueber-uns" className={styles.visionLink}>About Communet →</Link>
 </>
 )}
 </div>
@@ -91,8 +91,8 @@ return(
 </div>
 <div className={styles.grid}>
 {dbKommunen.slice(0,4).map(k=>(
-<Link href={`/profil/p/${k.id}`}key={k.id}className={styles.card}>
-<div className={styles.cardImg}style={{background:k.kommune_typ==='Kommune'?'#fff3e0':k.kommune_typ==='Kollektiv'?'#e8eaf6':'#e8f5ee'}}>
+<Link href={`/profil/p/${k.id}`} key={k.id} className={styles.card}>
+<div className={styles.cardImg} style={{background:k.kommune_typ==='Kommune'?'#fff3e0':k.kommune_typ==='Kollektiv'?'#e8eaf6':'#e8f5ee'}}>
 {k.avatar_url
 ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
 :<span style={{fontSize:32}}>{getTypIcon(k.kommune_typ||'Ökodorf')}</span>}
@@ -112,8 +112,8 @@ return(
 )}
 
 <section className={styles.howSection}>
-<div className={styles.sectionLabel}style={{textAlign:'center',marginBottom:8}}>{t('home_eyebrow')}</div>
-<h2 className={styles.sectionTitle}style={{textAlign:'center',marginBottom:32}}>{t('home_how_title')}</h2>
+<div className={styles.sectionLabel} style={{textAlign:'center',marginBottom:8,color:'#c9a84c'}}>{t('home_eyebrow')}</div>
+<h2 className={styles.sectionTitle} style={{textAlign:'center',marginBottom:32,color:'#fff'}}>{t('home_how_title')}</h2>
 <div className={styles.howGrid}>
 <div className={styles.howCard}><div className={styles.howIcon}>👤</div><div className={styles.howTitle}>{t('home_how1_title')}</div><div className={styles.howText}>{t('home_how1_text')}</div></div>
 <div className={styles.howCard}><div className={styles.howIcon}>🗺️</div><div className={styles.howTitle}>{t('home_how2_title')}</div><div className={styles.howText}>{t('home_how2_text')}</div></div>
@@ -125,8 +125,8 @@ return(
 <h2 className={styles.ctaTitle}>{t('home_cta_title')}</h2>
 <p className={styles.ctaSub}>{t('home_cta_sub')}</p>
 <div className={styles.ctaBtns}>
-<Link href="/auth/login"className={styles.ctaBtnP}>{t('home_cta_btn1')}</Link>
-<Link href="/auth/login"className={styles.ctaBtnS}>{t('home_cta_btn2')}</Link>
+<Link href="/auth/login" className={styles.ctaBtnP}>{t('home_cta_btn1')}</Link>
+<Link href="/auth/login" className={styles.ctaBtnS}>{t('home_cta_btn2')}</Link>
 </div>
 </section>
 
