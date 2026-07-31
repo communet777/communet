@@ -9,7 +9,7 @@ return(
 <div className={styles.heroInner}>
 <div className={styles.heroText}>
 <div className={styles.label}>Über uns</div>
-<h1 className={styles.title}>Eine Website. Viele Wege zu leben.</h1>
+<h1 className={styles.title}>Eine Website.<br/>Viele Wege zu leben.</h1>
 </div>
 <Link href="/karte" className={styles.miniGlobeLink}>
 <img src="/communet_globe.png" alt="Zur Karte" className={styles.miniGlobe}/>
