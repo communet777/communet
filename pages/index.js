@@ -35,35 +35,14 @@ return(
 <Nav/>
 
 <section className={styles.hero}>
-{/* Links: Titel */}
+{/* Links: Titel + Untertitel + Stats */}
 <div className={styles.heroLeft}>
-<div className={styles.eyebrow}>{t('home_eyebrow')}</div>
 <h1 className={styles.title}>
 {t('home_title1')}<br/>
 {t('home_title2')}<br/>
 {t('home_title3')}
 </h1>
 <p className={styles.sub}>{t('home_sub')}</p>
-</div>
-
-{/* Mitte: Globus */}
-<div className={styles.heroCenter}>
-<Link href="/karte" className={styles.globeLink}>
-<img src="/communet_globe.png" alt="Zur Karte" className={styles.globe}/>
-<div className={styles.globeHint}>Zur Karte →</div>
-</Link>
-</div>
-
-{/* Rechts: Suche + CTA + Stats */}
-<div className={styles.heroRight}>
-<form onSubmit={handleSearch} className={styles.searchForm}>
-<input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
-<button type="submit" className={styles.searchBtn}>🔍</button>
-</form>
-<div className={styles.actions}>
-<Link href="/auth/login" className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
-<Link href="/kommunen" className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
-</div>
 <div className={styles.statsRow}>
 <div className={styles.stat}>
 <div className={styles.statN}>{totalCount}+</div>
@@ -77,6 +56,26 @@ return(
 <div className={styles.statN}>🌍</div>
 <div className={styles.statL}>{t('home_stat_offers')}</div>
 </div>
+</div>
+</div>
+
+{/* Mitte: Globus */}
+<div className={styles.heroCenter}>
+<Link href="/karte" className={styles.globeLink}>
+<img src="/communet_globe.png" alt="Zur Karte" className={styles.globe}/>
+<div className={styles.globeHint}>Zur Karte →</div>
+</Link>
+</div>
+
+{/* Rechts: Suche + Buttons */}
+<div className={styles.heroRight}>
+<form onSubmit={handleSearch} className={styles.searchForm}>
+<input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
+<button type="submit" className={styles.searchBtn}>🔍</button>
+</form>
+<div className={styles.actions}>
+<Link href="/auth/login" className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
+<Link href="/kommunen" className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
 </div>
 </div>
 </section>
@@ -106,7 +105,7 @@ return(
 {dbKommunen.length>0&&(
 <section className={styles.section}>
 <div className={styles.sectionHeader}>
-<div><div className={styles.sectionLabel}>{t('home_section_active')}</div><h2 className={styles.sectionTitle}>{t('home_section_title')}</h2></div>
+<div><div className={styles.sectionLabel} style={{color:'#2d6a4f'}}>{t('home_section_active')}</div><h2 className={styles.sectionTitle}>{t('home_section_title')}</h2></div>
 <Link href="/kommunen" className={styles.sectionLink}>{t('home_see_all')}</Link>
 </div>
 <div className={styles.grid}>

@@ -5,37 +5,47 @@
 display:grid;
 grid-template-columns:1fr auto 1fr;
 align-items:center;
-min-height:600px;
+min-height:640px;
 background:#0a1628;
 padding:48px;
-gap:40px;
+gap:48px;
 }
 
-/* Links: Titel */
+/* Links: Titel + Stats */
 .heroLeft{
 display:flex;
 flex-direction:column;
 justify-content:center;
+gap:20px;
 }
-.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c9a84c;font-weight:500;margin-bottom:16px}
 .title{
 font-family:Georgia,serif;
-font-size:52px;
+font-size:56px;
 font-weight:400;
-line-height:1.15;
+line-height:1.12;
 color:#c9a84c;
 letter-spacing:.04em;
 text-transform:uppercase;
-margin-bottom:20px;
+margin:0;
 }
 .sub{
 font-size:15px;
 color:rgba(200,220,255,0.65);
 line-height:1.85;
-max-width:320px;
+max-width:300px;
+margin:0;
 }
+.statsRow{
+display:flex;
+gap:28px;
+padding-top:16px;
+border-top:.5px solid rgba(201,168,76,0.2);
+}
+.stat{}
+.statN{font-size:22px;font-weight:500;color:#c9a84c}
+.statL{font-size:11px;color:rgba(200,220,255,0.4);margin-top:2px;letter-spacing:.04em}
 
-/* Mitte: Globus */
+/* Mitte: Globus — groß */
 .heroCenter{
 display:flex;
 flex-direction:column;
@@ -47,25 +57,25 @@ display:block;
 position:relative;
 }
 .globe{
-width:380px;
-height:380px;
+width:460px;
+height:460px;
 object-fit:contain;
 display:block;
-filter:drop-shadow(0 0 40px rgba(201,168,76,0.25));
+filter:drop-shadow(0 0 48px rgba(201,168,76,0.3));
 transition:filter .3s;
 }
 .globeLink:hover .globe{
-filter:drop-shadow(0 0 60px rgba(201,168,76,0.45));
+filter:drop-shadow(0 0 72px rgba(201,168,76,0.55));
 }
 .globeHint{
 text-align:center;
 font-size:11px;
 color:rgba(201,168,76,0.5);
-margin-top:8px;
+margin-top:10px;
 letter-spacing:.08em;
 }
 
-/* Rechts: Suche + CTA + Stats */
+/* Rechts: Suche + Buttons */
 .heroRight{
 display:flex;
 flex-direction:column;
@@ -98,47 +108,37 @@ font-size:16px;
 .searchBtn:hover{background:rgba(201,168,76,0.3)}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 .btnPrimary{
-padding:10px 22px;
+padding:11px 22px;
 border-radius:22px;
 background:transparent;
 color:#c9a84c;
 border:.5px solid #c9a84c;
-font-size:12px;
+font-size:13px;
 letter-spacing:.06em;
 text-transform:uppercase;
 text-decoration:none;
-transition:background .15s;
 }
 .btnPrimary:hover{background:rgba(201,168,76,0.15)}
 .btnSecondary{
-padding:10px 22px;
+padding:11px 22px;
 border-radius:22px;
 background:transparent;
 color:rgba(200,220,255,0.6);
 border:.5px solid rgba(200,220,255,0.2);
-font-size:12px;
+font-size:13px;
 letter-spacing:.06em;
 text-decoration:none;
 }
 .btnSecondary:hover{border-color:rgba(200,220,255,0.5);color:#fff}
-.statsRow{
-display:flex;
-gap:24px;
-padding-top:16px;
-border-top:.5px solid rgba(201,168,76,0.2);
-}
-.stat{}
-.statN{font-size:20px;font-weight:500;color:#c9a84c}
-.statL{font-size:11px;color:rgba(200,220,255,0.4);margin-top:2px;letter-spacing:.04em}
 
 /* Vision */
 .visionSection{padding:64px 48px;background:#0a1628;text-align:center}
 .visionInner{max-width:680px;margin:0 auto}
+.sectionLabel{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#c9a84c;font-weight:500;margin-bottom:4px}
 .visionTitle{font-family:Georgia,serif;font-size:32px;font-weight:400;color:#c9a84c;margin:12px 0 24px;letter-spacing:.04em}
 .visionText{font-size:16px;color:rgba(200,220,255,0.75);line-height:1.9;margin-bottom:16px}
 .visionLink{display:inline-block;margin-top:8px;font-size:14px;color:#c9a84c;text-decoration:none;border-bottom:1px solid rgba(201,168,76,0.4);padding-bottom:2px}
 .visionLink:hover{border-color:#c9a84c}
-.sectionLabel{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#c9a84c;font-weight:500;margin-bottom:4px}
 
 /* Aktive Kommunen */
 .section{padding:48px;background:#f7f4ef}
@@ -183,20 +183,16 @@ border-top:.5px solid rgba(201,168,76,0.2);
 
 /* Mobile */
 @media(max-width:900px){
-.hero{
-grid-template-columns:1fr;
-padding:40px 24px;
-text-align:center;
-}
+.hero{grid-template-columns:1fr;padding:40px 24px;text-align:center;min-height:auto}
 .heroLeft{align-items:center}
 .sub{text-align:center;max-width:100%}
 .heroCenter{order:-1}
-.globe{width:260px;height:260px}
+.globe{width:280px;height:280px}
 .heroRight{align-items:center}
-.searchForm{width:100%;max-width:360px}
+.searchForm{width:100%;max-width:380px}
 .statsRow{justify-content:center}
+.title{font-size:40px}
 .section,.howSection,.ctaSection,.footer,.visionSection{padding-left:20px;padding-right:20px}
 .howGrid{grid-template-columns:1fr}
 .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
-.title{font-size:38px}
 }
