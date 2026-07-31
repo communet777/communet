@@ -39,7 +39,7 @@ Nicht als Produkt. Nicht als Algorithmus. Sondern als ehrliche Karte des alterna
 Communet wird von Jan Lucas Abram gegründet und entwickelt — mit Sitz in Bergisch Gladbach bei Köln. Das Projekt ist unabhängig, nicht kommerziell und wird aus Überzeugung gebaut.
 </p>
 <p className={styles.text}>
-Das Team wächst. Wenn du mithelfen möchtest — als Entwickler:in, Designer:in oder einfach als Mensch der die Idee teilt — meld dich gerne.
+Das Team wächst. Wenn du mithelfen möchtest — als Entwickler, Designer oder einfach als Mensch der die Idee teilt — meld dich gerne.
 </p>
 </section>
 
@@ -71,7 +71,7 @@ Das Team wächst. Wenn du mithelfen möchtest — als Entwickler:in, Designer:in
 
 <section className={styles.ctaSection}>
 <h2 className={styles.ctaTitle}>Mitmachen</h2>
-<p className={styles.ctaText}>Communet lebt von Menschen wie dir — ob als Nutzer:in, als Kommune oder als Unterstützer:in.</p>
+<p className={styles.ctaText}>Communet lebt von Menschen wie dir — ob als Nutzer, als Kommune oder als Unterstuetzer.</p>
 <div className={styles.ctaBtns}>
 <Link href="/auth/login" className={styles.btnPrimary}>Profil erstellen</Link>
 <Link href="/kommunen" className={styles.btnSecondary}>Kommunen entdecken</Link>
@@ -82,7 +82,7 @@ Das Team wächst. Wenn du mithelfen möchtest — als Entwickler:in, Designer:in
 <footer style={{padding:'20px 48px',borderTop:'.5px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
 <span style={{fontSize:13,color:'var(--muted)'}}>communet · 2026</span>
 <div style={{display:'flex',gap:20}}>
-<Link href="/datenschutz" style={{fontSize:12,color:'var(--muted)'}}>Datenschutz</Link>
+<Link href="/datenschutz" style={{fontSize:12,color:'var(--muted)',textDecoration:'none'}}>Datenschutz</Link>
 <a href="mailto:communet@outlook.de" style={{fontSize:12,color:'var(--muted)'}}>Kontakt</a>
 </div>
 </footer>
