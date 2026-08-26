@@ -2,6 +2,7 @@ import{useState,useEffect}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import{useLang}from'../lib/LanguageContext'
+import{useAuth}from'../lib/AuthContext'
 import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Karte.module.css'
@@ -25,9 +26,12 @@ function dbToMap(p) {
 
 export default function Karte(){
 const{t}=useLang()
+const{user}=useAuth()
 const[selected,setSelected]=useState(null)
 const[filter,setFilter]=useState('alle')
 const[dbKommunen,setDbKommunen]=useState([])
+const[showFarmShops,setShowFarmShops]=useState(false)
+const[farmShops,setFarmShops]=useState([])
 
 useEffect(()=>{
   supabase.from('profiles')
@@ -37,6 +41,14 @@ useEffect(()=>{
     .not('lat','is',null)
     .then(({data})=>{ if(data) setDbKommunen(data.map(dbToMap)) })
 },[])
+
+useEffect(()=>{
+  if(!user||!showFarmShops){ setFarmShops([]); return }
+  supabase.from('farm_shops')
+    .select('id,name,strasse,plz,ort,bundesland,lat,lon,website')
+    .not('lat','is',null)
+    .then(({data})=>{ if(data) setFarmShops(data) })
+},[user,showFarmShops])
 
 const allKommunen=[...dbKommunen,...COMMUNITIES]
 const filtered=allKommunen.filter(k=>filter==='alle'||k.typ===filter)
@@ -57,6 +69,16 @@ return(
 </button>
 ))}
 </div>
+<div className={styles.pills}>
+<button
+  className={`${styles.pill}${showFarmShops&&user?' '+styles.active:''}${!user?' '+styles.pillDisabled:''}`}
+  onClick={()=>user&&setShowFarmShops(v=>!v)}
+  disabled={!user}
+  title={user?'Bio-Hofläden ein-/ausblenden':'Mit Konto sichtbar'}
+>
+🧺 Bio-Hofläden{!user?' 🔒':''}
+</button>
+</div>
 <div className={styles.list}>
 {filtered.map(k=>(
 <div key={k.id}className={`${styles.listItem}${selected?.id===k.id?' '+styles.listActive:''}`}onClick={()=>setSelected(k)}>
@@ -71,7 +93,7 @@ return(
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={filtered}selected={selected}onSelect={setSelected}/>
+<MapComponent communities={filtered}selected={selected}onSelect={setSelected}farmShops={showFarmShops&&user?farmShops:[]}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>
