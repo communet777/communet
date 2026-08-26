@@ -7,6 +7,8 @@
 .pills{display:flex;gap:4px;padding:8px 12px;flex-wrap:wrap;border-bottom:.5px solid var(--border)}
 .pill{padding:4px 10px;border-radius:16px;font-size:11px;border:.5px solid var(--border);cursor:pointer;background:var(--surface);color:var(--muted)}
 .pill:hover,.active{background:var(--g);color:#fff;border-color:var(--g)}
+.pillDisabled{opacity:.5;cursor:not-allowed}
+.pillDisabled:hover{background:var(--surface);color:var(--muted);border-color:var(--border)}
 .list{flex:1;overflow-y:auto}
 .listItem{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:.5px solid var(--border)}
 .listItem:hover{background:var(--gl)}
