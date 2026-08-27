@@ -17,7 +17,7 @@ return(
 <Link href="/karte"className={`${styles.link}${router.pathname==='/karte'?' '+styles.active:''}`}>{t('nav_map')}</Link>
 <Link href="/kommunen"className={`${styles.link}${router.pathname.startsWith('/kommunen')?' '+styles.active:''}`}>{t('nav_communities')}</Link>
 <Link href="/angebote"className={`${styles.link}${router.pathname==='/angebote'?' '+styles.active:''}`}>{t('nav_offers')}</Link>
-<Link href="/versorgung"className={`${styles.link}${router.pathname==='/versorgung'?' '+styles.active:''}`}>🧺 {t('nav_supply')}</Link>
+<Link href="/versorgung"className={`${styles.link} ${styles.navSupply}${router.pathname==='/versorgung'?' '+styles.active:''}`}>🧺 {t('nav_supply')}</Link>
 <div className={styles.langSwitch}>
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={()=>setLang('de')}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={()=>setLang('en')}>EN</button>
@@ -36,7 +36,7 @@ return(
 <Link href="/karte"className={styles.mobileLink}>🗺️ {t('nav_map')}</Link>
 <Link href="/kommunen"className={styles.mobileLink}>🌍 {t('nav_communities')}</Link>
 <Link href="/angebote"className={styles.mobileLink}>✨ {t('nav_offers')}</Link>
-<Link href="/versorgung"className={styles.mobileLink}>🧺 {t('nav_supply')}</Link>
+<Link href="/versorgung"className={`${styles.mobileLink} ${styles.navSupply}`}>🧺 {t('nav_supply')}</Link>
 <div className={styles.mobileLang}>
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('de')}}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('en')}}>EN</button>
