@@ -8,6 +8,9 @@ import{supabase}from'../lib/supabase'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 
+const SEARCH_ZOOM=11 // Zoomstufe beim automatischen Reinzoomen auf einen eindeutigen Suchtreffer (0=raus, 18=max. rein)
+const DEFAULT_ZOOM=6
+
 function dbToMap(p) {
   return {
     id:'db_'+p.id,
@@ -28,6 +31,7 @@ export default function Karte(){
 const{t}=useLang()
 const{user}=useAuth()
 const[selected,setSelected]=useState(null)
+const[mapZoom,setMapZoom]=useState(DEFAULT_ZOOM)
 const[filter,setFilter]=useState('alle')
 const[search,setSearch]=useState('')
 const[dbKommunen,setDbKommunen]=useState([])
@@ -62,6 +66,24 @@ k.name.toLowerCase().includes(q)||
 (k.land||'').toLowerCase().includes(q)
 )
 })
+
+// Sobald die Suche auf genau einen Treffer eingrenzt, automatisch dorthin zoomen
+useEffect(()=>{
+if(!search.trim())return
+const q=search.trim().toLowerCase()
+const matches=allKommunen.filter(k=>filter==='alle'||k.typ===filter).filter(k=>
+k.name.toLowerCase().includes(q)||(k.ort||'').toLowerCase().includes(q)||(k.land||'').toLowerCase().includes(q)
+)
+if(matches.length===1){
+setSelected(matches[0])
+setMapZoom(SEARCH_ZOOM)
+}
+},[search])
+
+function selectFromList(k){
+setSelected(k)
+setMapZoom(DEFAULT_ZOOM)
+}
 
 return(
 <div className={styles.page}>
@@ -98,7 +120,7 @@ return(
 </div>
 <div className={styles.list}>
 {filtered.map(k=>(
-<div key={k.id}className={`${styles.listItem}${selected?.id===k.id?' '+styles.listActive:''}`}onClick={()=>setSelected(k)}>
+<div key={k.id}className={`${styles.listItem}${selected?.id===k.id?' '+styles.listActive:''}`}onClick={()=>selectFromList(k)}>
 <span className={styles.listIcon}>{getTypIcon(k.typ)}</span>
 <div className={styles.listBody}>
 <div className={styles.listName}>{k.name}</div>
@@ -110,7 +132,7 @@ return(
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={filtered}selected={selected}onSelect={setSelected}farmShops={showFarmShops&&user?farmShops:[]}/>
+<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={showFarmShops&&user?farmShops:[]}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>
