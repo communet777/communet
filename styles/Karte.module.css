@@ -4,11 +4,17 @@
 .sideHeader{padding:16px 16px 8px;border-bottom:.5px solid var(--border)}
 .title{font-family:Georgia,serif;font-size:20px;font-weight:400;margin-bottom:2px}
 .sub{font-size:12px;color:var(--muted)}
+.searchWrap{position:relative;padding:8px 12px;border-bottom:.5px solid var(--border)}
+.searchIcon{position:absolute;left:22px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none}
+.search{width:100%;padding:8px 10px 8px 30px;border-radius:8px;border:.5px solid var(--border);background:var(--surface);font-size:13px;color:var(--text)}
+.search::placeholder{color:var(--muted)}
 .pills{display:flex;gap:4px;padding:8px 12px;flex-wrap:wrap;border-bottom:.5px solid var(--border)}
 .pill{padding:4px 10px;border-radius:16px;font-size:11px;border:.5px solid var(--border);cursor:pointer;background:var(--surface);color:var(--muted)}
 .pill:hover,.active{background:var(--g);color:#fff;border-color:var(--g)}
 .pillDisabled{opacity:.5;cursor:not-allowed}
 .pillDisabled:hover{background:var(--surface);color:var(--muted);border-color:var(--border)}
+.memberPanel{background:rgba(184,137,42,.10);border:.5px solid rgba(184,137,42,.35);border-radius:10px;margin:8px 12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.memberLabel{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--gold)}
 .list{flex:1;overflow-y:auto}
 .listItem{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:.5px solid var(--border)}
 .listItem:hover{background:var(--gl)}
