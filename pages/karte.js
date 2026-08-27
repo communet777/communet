@@ -31,6 +31,7 @@ export default function Karte(){
 const{t}=useLang()
 const{user}=useAuth()
 const[selected,setSelected]=useState(null)
+const[selectedFarm,setSelectedFarm]=useState(null)
 const[mapZoom,setMapZoom]=useState(DEFAULT_ZOOM)
 const[filter,setFilter]=useState('alle')
 const[search,setSearch]=useState('')
@@ -50,7 +51,7 @@ useEffect(()=>{
 useEffect(()=>{
   if(!user||!showFarmShops){ setFarmShops([]); return }
   supabase.from('farm_shops')
-    .select('id,name,strasse,plz,ort,bundesland,lat,lon,website')
+    .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
     .not('lat','is',null)
     .then(({data})=>{ if(data) setFarmShops(data) })
 },[user,showFarmShops])
@@ -75,14 +76,20 @@ const matches=allKommunen.filter(k=>filter==='alle'||k.typ===filter).filter(k=>
 k.name.toLowerCase().includes(q)||(k.ort||'').toLowerCase().includes(q)||(k.land||'').toLowerCase().includes(q)
 )
 if(matches.length===1){
-setSelected(matches[0])
+selectFromList(matches[0])
 setMapZoom(SEARCH_ZOOM)
 }
 },[search])
 
 function selectFromList(k){
 setSelected(k)
+setSelectedFarm(null)
 setMapZoom(DEFAULT_ZOOM)
+}
+
+function selectFarm(f){
+setSelectedFarm(f)
+setSelected(null)
 }
 
 return(
@@ -132,7 +139,7 @@ return(
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={showFarmShops&&user?farmShops:[]}/>
+<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={showFarmShops&&user?farmShops:[]}selectedFarm={selectedFarm}onSelectFarm={selectFarm}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>
@@ -150,6 +157,17 @@ return(
 {selected.status==='aktiv'?`🟢 ${t('map_active')}`:`⚫ ${t('map_inactive')}`}
 </div>
 <a href={selected.dbId?`/profil/p/${selected.dbId}`:`/kommunen/${selected.id}`}className={styles.popupBtn}>{t('map_view_profile')}</a>
+</div>
+)}
+{selectedFarm&&(
+<div className={styles.popup}>
+<button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
+<div className={styles.popupIcon}>🧺</div>
+<div className={styles.popupName}>{selectedFarm.name}</div>
+<span className="badge badge-hof">{t('hof_badge')}</span>
+<div className={styles.popupLoc}>📍 {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
+{selectedFarm.bio_verband&&<div className={styles.popupDesc}>{t('hof_verband')}: {selectedFarm.bio_verband}</div>}
+<a href={`/hoflaeden/${selectedFarm.id}`}className={`${styles.popupBtn} ${styles.popupBtnFarm}`}>{t('map_view_profile')}</a>
 </div>
 )}
 </div>
