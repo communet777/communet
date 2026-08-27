@@ -17,7 +17,7 @@ const[selectedFarm,setSelectedFarm]=useState(null)
 useEffect(()=>{
   if(!user)return
   supabase.from('farm_shops')
-    .select('id,name,strasse,plz,ort,bundesland,lat,lon,website')
+    .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
     .not('lat','is',null)
     .then(({data})=>{ if(data) setFarmShops(data) })
 },[user])
@@ -60,13 +60,23 @@ return(
 <div className={styles.listName}>{f.name}</div>
 <div className={styles.listLoc}>{f.ort}{f.ort&&f.bundesland?' · ':''}{f.bundesland}</div>
 </div>
-<Link href={`/hoflaeden/${f.id}`}onClick={e=>e.stopPropagation()}style={{fontSize:16,color:'var(--muted)',flexShrink:0,padding:'0 2px'}}title="Details ansehen">→</Link>
 </div>
 ))}
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={farmShops}selectedFarm={selectedFarm}/>
+<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={farmShops}selectedFarm={selectedFarm}onSelectFarm={setSelectedFarm}/>
+{selectedFarm&&(
+<div className={styles.popup}>
+<button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
+<div className={styles.popupIcon}>🧺</div>
+<div className={styles.popupName}>{selectedFarm.name}</div>
+<span className="badge badge-hof">{t('hof_badge')}</span>
+<div className={styles.popupLoc}>📍 {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
+{selectedFarm.bio_verband&&<div className={styles.popupDesc}>{t('hof_verband')}: {selectedFarm.bio_verband}</div>}
+<a href={`/hoflaeden/${selectedFarm.id}`}className={`${styles.popupBtn} ${styles.popupBtnFarm}`}>{t('map_view_profile')}</a>
+</div>
+)}
 </div>
 </div>
 </div>
