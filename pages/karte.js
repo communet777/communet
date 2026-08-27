@@ -29,6 +29,7 @@ const{t}=useLang()
 const{user}=useAuth()
 const[selected,setSelected]=useState(null)
 const[filter,setFilter]=useState('alle')
+const[search,setSearch]=useState('')
 const[dbKommunen,setDbKommunen]=useState([])
 const[showFarmShops,setShowFarmShops]=useState(false)
 const[farmShops,setFarmShops]=useState([])
@@ -51,7 +52,16 @@ useEffect(()=>{
 },[user,showFarmShops])
 
 const allKommunen=[...dbKommunen,...COMMUNITIES]
-const filtered=allKommunen.filter(k=>filter==='alle'||k.typ===filter)
+const filtered=allKommunen.filter(k=>{
+if(filter!=='alle'&&k.typ!==filter)return false
+const q=search.trim().toLowerCase()
+if(!q)return true
+return(
+k.name.toLowerCase().includes(q)||
+(k.ort||'').toLowerCase().includes(q)||
+(k.land||'').toLowerCase().includes(q)
+)
+})
 
 return(
 <div className={styles.page}>
@@ -62,6 +72,10 @@ return(
 <h1 className={styles.title}>{t('map_title')}</h1>
 <p className={styles.sub}>{filtered.length} {t('map_communities')}</p>
 </div>
+<div className={styles.searchWrap}>
+<span className={styles.searchIcon}>🔍</span>
+<input type="text"className={styles.search}placeholder={t('communities_search')}value={search}onChange={e=>setSearch(e.target.value)}/>
+</div>
 <div className={styles.pills}>
 {['alle','Ökodorf','Kommune','Kollektiv','Spirituelle Gemeinschaft','Wohnprojekt'].map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
@@ -69,6 +83,8 @@ return(
 </button>
 ))}
 </div>
+<div className={styles.memberPanel}>
+<span className={styles.memberLabel}>🔒 Nur mit Konto sichtbar</span>
 <div className={styles.pills}>
 <button
   className={`${styles.pill}${showFarmShops&&user?' '+styles.active:''}${!user?' '+styles.pillDisabled:''}`}
@@ -78,6 +94,7 @@ return(
 >
 🧺 Bio-Hofläden{!user?' 🔒':''}
 </button>
+</div>
 </div>
 <div className={styles.list}>
 {filtered.map(k=>(
