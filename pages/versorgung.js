@@ -60,6 +60,7 @@ return(
 <div className={styles.listName}>{f.name}</div>
 <div className={styles.listLoc}>{f.ort}{f.ort&&f.bundesland?' · ':''}{f.bundesland}</div>
 </div>
+<Link href={`/hoflaeden/${f.id}`}onClick={e=>e.stopPropagation()}style={{fontSize:16,color:'var(--muted)',flexShrink:0,padding:'0 2px'}}title="Details ansehen">→</Link>
 </div>
 ))}
 </div>
