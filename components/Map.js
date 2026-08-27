@@ -1,7 +1,7 @@
 import{useEffect,useRef}from'react'
 import{getTypIcon}from'../data/communities'
 const TYPE_COLORS={"Ökodorf":"#2d6a4f","Kommune":"#e07820","Kollektiv":"#3f51b5","Spirituelle Gemeinschaft":"#8e24aa","Wohnprojekt":"#00897b","Sonstige":"#757575"}
-export default function Map({communities,selected,onSelect,farmShops=[]}){
+export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
 const markersRef=useRef({})
@@ -44,5 +44,11 @@ useEffect(()=>{
 if(!mapInstanceRef.current||!selected)return
 mapInstanceRef.current.flyTo([selected.lat,selected.lon],6,{duration:1})
 },[selected])
+useEffect(()=>{
+if(!mapInstanceRef.current||!selectedFarm)return
+mapInstanceRef.current.flyTo([selectedFarm.lat,selectedFarm.lon],10,{duration:1})
+const m=farmMarkersRef.current[selectedFarm.id]
+if(m)m.openPopup()
+},[selectedFarm])
 return<div ref={mapRef}style={{width:'100%',height:'100%',minHeight:'500px'}}/>
 }
