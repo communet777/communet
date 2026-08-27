@@ -45,9 +45,12 @@ return(
 <h1 className={styles.title}>{t('supply_title')}</h1>
 <p className={styles.sub}>{farmShops.length} {t('supply_farmshops')}</p>
 </div>
+<div className={styles.memberPanel}>
+<span className={styles.memberLabel}>🔒 Nur mit Konto sichtbar</span>
 <div className={styles.pills}>
 <button className={`${styles.pill} ${styles.active}`}>🧺 {t('supply_farmshops')}</button>
 <button className={`${styles.pill} ${styles.pillDisabled}`}disabled title={t('supply_water_soon')}>💧 {t('supply_water_soon')}</button>
+</div>
 </div>
 <div className={styles.list}>
 {farmShops.map(f=>(
