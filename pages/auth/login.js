@@ -4,8 +4,6 @@ import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/Auth.module.css'
 
-const INVITE_CODES = ['COMMUNET2025', 'BETA-EARTH', 'OEKODORF-1', 'COMMUNE-2', 'TAMERA-3', 'FINDHORN-4', 'SIEBEN-5', 'ZEGG-6', 'FESTIVAL-7', 'PORTUGAL-8']
-
 export default function Login() {
   const router = useRouter()
   const [mode, setMode] = useState('login')
@@ -14,6 +12,7 @@ export default function Login() {
   const [name, setName] = useState('')
   const [typ, setTyp] = useState('person')
   const [inviteCode, setInviteCode] = useState('')
+  const [showCode, setShowCode] = useState(false)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
 
@@ -26,15 +25,43 @@ export default function Login() {
     else router.push('/profil')
   }
 
+  async function handleWaitlist(e) {
+    e.preventDefault()
+    setStatus('loading')
+    setError('')
+    const { error } = await supabase.from('waitlist').insert({
+      email: email.trim(),
+      name: name.trim() || null,
+      quelle: 'website'
+    })
+    if (error) {
+      if (error.code === '23505') {
+        // Doppelte E-Mail ist kein Fehler fuer den Nutzer
+        setStatus('waitlisted')
+        return
+      }
+      setError('Das hat gerade nicht geklappt. Versuch es bitte nochmal.')
+      setStatus('idle')
+      return
+    }
+    setStatus('waitlisted')
+  }
+
   async function handleRegister(e) {
     e.preventDefault()
     setStatus('loading')
     setError('')
-    if (!INVITE_CODES.includes(inviteCode.toUpperCase())) {
-      setError('Ungültiger Invite-Code. Bitte bei communet@outlook.de anfragen.')
+
+    const code = inviteCode.trim()
+    const { data: valid, error: rpcError } = await supabase
+      .rpc('check_invite_code', { p_code: code })
+
+    if (rpcError || !valid) {
+      setError('Dieser Code ist nicht gültig oder wurde schon benutzt.')
       setStatus('idle')
       return
     }
+
     const profileStatus = typ === 'kommune' ? 'pending' : 'approved'
     const { data, error } = await supabase.auth.signUp({
       email, password,
@@ -50,6 +77,7 @@ export default function Login() {
       await supabase.from('profiles').upsert({
         id: data.user.id, name, typ, email, status: profileStatus
       })
+      await supabase.rpc('redeem_invite_code', { p_code: code, p_user: data.user.id })
     }
     setStatus('registered')
   }
@@ -58,14 +86,13 @@ export default function Login() {
     e.preventDefault()
     setStatus('loading')
     setError('')
-    // Prüfen ob E-Mail bereits registriert ist
     const { data: existing } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', email)
       .single()
     if (!existing) {
-      setError('Kein Account mit dieser E-Mail gefunden. Bitte zuerst registrieren.')
+      setError('Kein Account mit dieser E-Mail gefunden.')
       setStatus('idle')
       return
     }
@@ -77,14 +104,21 @@ export default function Login() {
     else setStatus('magic_sent')
   }
 
+  function switchMode(next) {
+    setMode(next)
+    setStatus('idle')
+    setError('')
+    setShowCode(false)
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.card}>
         <Link href="/" className={styles.logo}>communet</Link>
         <div className={styles.tabs}>
-          <button className={`${styles.tab} ${mode==='login'?styles.tabActive:''}`} onClick={()=>setMode('login')}>Anmelden</button>
-          <button className={`${styles.tab} ${mode==='register'?styles.tabActive:''}`} onClick={()=>setMode('register')}>Registrieren</button>
-          <button className={`${styles.tab} ${mode==='magic'?styles.tabActive:''}`} onClick={()=>setMode('magic')}>Magic Link</button>
+          <button className={`${styles.tab} ${mode==='login'?styles.tabActive:''}`} onClick={()=>switchMode('login')}>Anmelden</button>
+          <button className={`${styles.tab} ${mode==='mitmachen'?styles.tabActive:''}`} onClick={()=>switchMode('mitmachen')}>Mitmachen</button>
+          <button className={`${styles.tab} ${mode==='magic'?styles.tabActive:''}`} onClick={()=>switchMode('magic')}>Magic Link</button>
         </div>
 
         {mode === 'login' && (
@@ -107,8 +141,53 @@ export default function Login() {
           </form>
         )}
 
-        {mode === 'register' && status !== 'registered' && (
+        {/* ---------- Warteliste ---------- */}
+        {mode === 'mitmachen' && !showCode && status !== 'waitlisted' && (
+          <form onSubmit={handleWaitlist} className={styles.form}>
+            <p className={styles.magicInfo}>
+              Communet ist noch nicht offen. Wenn du Interesse hast, schreib dich auf
+              die Warteliste — wir melden uns, sobald es losgeht.
+            </p>
+            <div className={styles.field}>
+              <label>E-Mail</label>
+              <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="deine@email.de"/>
+            </div>
+            <div className={styles.field}>
+              <label>Name <span style={{fontWeight:400,color:'var(--muted)'}}>(optional)</span></label>
+              <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="Wie sollen wir dich ansprechen?"/>
+            </div>
+            {error && <p className={styles.error}>{error}</p>}
+            <button type="submit" className={styles.btn} disabled={status==='loading'}>
+              {status==='loading' ? 'Lädt...' : 'Auf die Warteliste'}
+            </button>
+
+            <div style={{textAlign:'center',marginTop:14,paddingTop:12,borderTop:'1px solid var(--border, #e5e5e5)'}}>
+              <button
+                type="button"
+                onClick={()=>{ setShowCode(true); setError('') }}
+                style={{background:'none',border:'none',padding:0,cursor:'pointer',fontSize:12,color:'var(--muted)',textDecoration:'underline'}}
+              >
+                Ich hab einen Early-Access-Code
+              </button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'mitmachen' && status === 'waitlisted' && (
+          <div className={styles.success}>
+            <div className={styles.successIcon}>🌱</div>
+            <h2>Du stehst auf der Liste</h2>
+            <p>Danke für dein Interesse. Wir melden uns, sobald Communet öffnet.</p>
+          </div>
+        )}
+
+        {/* ---------- Registrierung mit Early-Access-Code ---------- */}
+        {mode === 'mitmachen' && showCode && status !== 'registered' && (
           <form onSubmit={handleRegister} className={styles.form}>
+            <div className={styles.field}>
+              <label>Early-Access-Code</label>
+              <input type="text" required value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="Dein Code" autoFocus/>
+            </div>
             <div className={styles.typSelector}>
               <button type="button" className={`${styles.typBtn} ${typ==='person'?styles.typActive:''}`} onClick={()=>setTyp('person')}>👤 Person</button>
               <button type="button" className={`${styles.typBtn} ${typ==='kommune'?styles.typActive:''}`} onClick={()=>setTyp('kommune')}>🏡 Kommune</button>
@@ -125,19 +204,23 @@ export default function Login() {
               <label>Passwort</label>
               <input type="password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} placeholder="mind. 8 Zeichen"/>
             </div>
-            <div className={styles.field}>
-              <label>Invite-Code</label>
-              <input type="text" required value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="Dein Einladungscode"/>
-              <span className={styles.hint}>Noch keinen? Schreib an communet@outlook.de</span>
-            </div>
             {error && <p className={styles.error}>{error}</p>}
             <button type="submit" className={styles.btn} disabled={status==='loading'}>
               {status==='loading' ? 'Lädt...' : 'Konto erstellen'}
             </button>
+            <div style={{textAlign:'center',marginTop:10}}>
+              <button
+                type="button"
+                onClick={()=>{ setShowCode(false); setError('') }}
+                style={{background:'none',border:'none',padding:0,cursor:'pointer',fontSize:12,color:'var(--muted)',textDecoration:'underline'}}
+              >
+                Zurück zur Warteliste
+              </button>
+            </div>
           </form>
         )}
 
-        {mode === 'register' && status === 'registered' && (
+        {mode === 'mitmachen' && showCode && status === 'registered' && (
           <div className={styles.success}>
             <div className={styles.successIcon}>🎉</div>
             <h2>Willkommen bei Communet!</h2>
@@ -148,6 +231,7 @@ export default function Login() {
           </div>
         )}
 
+        {/* ---------- Magic Link ---------- */}
         {mode === 'magic' && status !== 'magic_sent' && (
           <form onSubmit={handleMagicLink} className={styles.form}>
             <p className={styles.magicInfo}>Kein Passwort nötig — wir schicken dir einen Login-Link per E-Mail.</p>
