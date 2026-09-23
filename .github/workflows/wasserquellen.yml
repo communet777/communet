@@ -1,0 +1,55 @@
+name: Wasserquellen importieren
+
+# Start: Änderung an scripts/wasserquellen/run.txt, manuell über "Run workflow", oder monatlich am 1. um 03:00 UTC
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/wasserquellen/run.txt']
+  workflow_dispatch:
+    inputs:
+      extracts:
+        description: 'Optional, z. B. "PT:europe/portugal,ES:europe/spain" (leer = PT, ES inkl. Kanaren, FR, DE)'
+        required: false
+        default: ''
+  schedule:
+    - cron: '0 3 1 * *'
+
+concurrency:
+  group: wasserquellen
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret prüfen
+        env:
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then echo "::error::Repository-Secret SUPABASE_SERVICE_ROLE_KEY fehlt"; exit 1; fi
+
+      - name: Arbeitsordner auf großer Platte anlegen
+        run: |
+          sudo mkdir -p /mnt/osm && sudo chown "$USER" /mnt/osm
+          df -h / /mnt
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Werkzeuge installieren
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq osmium-tool
+          pip install -q osmium requests
+
+      - name: Import
+        env:
+          SUPABASE_URL: https://dgffntczrhwujjtvbytj.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          WORKDIR: /mnt/osm
+          EXTRACTS: ${{ github.event.inputs.extracts }}
+        run: python scripts/wasserquellen/import_wasserquellen.py
