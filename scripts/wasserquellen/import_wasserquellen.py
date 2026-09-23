@@ -46,7 +46,10 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 WORK = os.environ.get("WORKDIR", "/tmp/osm")
 DRY = os.environ.get("DRY_RUN") == "1"
-HEAD = {"apikey": KEY, "Authorization": f"Bearer {KEY}", "Content-Type": "application/json"}
+HEAD = {"apikey": KEY, "Content-Type": "application/json"}
+# Alte Schlüssel (JWT, "eyJ...") zusätzlich als Bearer; neue Secret Keys ("sb_secret_...") nur im apikey-Header
+if KEY and not KEY.startswith("sb_"):
+    HEAD["Authorization"] = f"Bearer {KEY}"
 
 
 def log(msg: str) -> None:
