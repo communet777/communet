@@ -4,7 +4,6 @@ import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher,LAND_EN,getTypIcon}from'../../data/communities'
-import FavoriteBtn from'../../components/FavoriteBtn'
 import styles from'../../styles/KommuneProfil.module.css'
 
 const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
@@ -40,7 +39,6 @@ return(
 </div>
 </div>
 <div className={styles.actions}style={{display:'flex',alignItems:'center',gap:12}}>
-<FavoriteBtn communityId={String(k.id)}/>
 {isActive&&<><button className="btn-secondary">✉️ {t('profile_contact')}</button><button className="btn-primary">{t('profile_contact')}</button></>}
 {isSetup&&<div className={styles.setupNotice}>🟡 {t('profile_setup')}</div>}
 {isInactive&&<button className={styles.inviteBtn}>✉️ {t('profile_invite')}</button>}
