@@ -6,59 +6,98 @@ import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import styles from '../styles/Favoriten.module.css'
 
+// Bricht eine Abfrage nach ms Millisekunden mit Fehler ab, statt endlos zu warten
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Zeitüberschreitung bei ${label} (${ms / 1000} s)`)), ms)
+    ),
+  ])
+}
+
 export default function Favoriten() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [favorites, setFavorites] = useState([])
   const [fetching, setFetching] = useState(true)
+  const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/auth/login?next=/favoriten')
   }, [user, loading])
 
+  const userId = user?.id
+
   useEffect(() => {
-    if (!user) return
-    loadFavorites()
-  }, [user])
+    if (!userId) return
+    let cancelled = false
 
-  async function loadFavorites() {
-    setFetching(true)
-    // Favoriten laden
-    const { data: favs, error } = await supabase
-      .from('favorites')
-      .select('id, community_id, created_at')
-      .order('created_at', { ascending: false })
+    async function loadFavorites() {
+      setFetching(true)
+      setLoadError(null)
+      try {
+        const { data: favs, error } = await withTimeout(
+          supabase
+            .from('favorites')
+            .select('id, community_id, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false }),
+          10000,
+          'Favoriten'
+        )
+        if (error) throw error
 
-    if (error || !favs || favs.length === 0) {
-      setFavorites([])
-      setFetching(false)
-      return
+        if (!favs || favs.length === 0) {
+          if (!cancelled) setFavorites([])
+          return
+        }
+
+        const ids = favs.map(f => f.community_id)
+        const { data: profiles, error: profError } = await withTimeout(
+          supabase
+            .from('profiles')
+            .select('id, name, bio, land, avatar_url, kommune_typ, website, mitglieder')
+            .in('id', ids),
+          10000,
+          'Kommunen-Profilen'
+        )
+        if (profError) throw profError
+
+        const profileMap = {}
+        if (profiles) profiles.forEach(p => { profileMap[p.id] = p })
+
+        if (!cancelled) {
+          setFavorites(favs.map(f => ({ ...f, profile: profileMap[f.community_id] || null })))
+        }
+      } catch (e) {
+        console.error('Favoriten laden fehlgeschlagen:', e)
+        if (!cancelled) {
+          setLoadError(e?.message || String(e))
+          setFavorites([])
+        }
+      } finally {
+        if (!cancelled) setFetching(false)
+      }
     }
 
-    // Profil-Daten der favorisierten Kommunen laden
-    const ids = favs.map(f => f.community_id)
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, name, bio, land, adresse, avatar_url, lat, lon, kommune_typ, website, mitglieder')
-      .in('id', ids)
-
-    const profileMap = {}
-    if (profiles) profiles.forEach(p => { profileMap[p.id] = p })
-
-    setFavorites(favs.map(f => ({
-      ...f,
-      profile: profileMap[f.community_id] || null,
-    })))
-    setFetching(false)
-  }
+    loadFavorites()
+    return () => { cancelled = true }
+  }, [userId])
 
   async function handleRemove(communityId) {
+    const before = favorites
     // Optimistisch entfernen
     setFavorites(prev => prev.filter(f => f.community_id !== communityId))
-    await supabase.from('favorites')
+    const { error } = await supabase.from('favorites')
       .delete()
       .eq('community_id', communityId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
+    if (error) {
+      console.error('Favorit entfernen fehlgeschlagen:', error)
+      setFavorites(before)
+      setLoadError('Entfernen fehlgeschlagen: ' + error.message)
+    }
   }
 
   if (loading || !user) {
@@ -72,7 +111,7 @@ export default function Favoriten() {
         <div className={styles.header}>
           <h1 className={styles.title}>Meine Favoriten</h1>
           <p className={styles.sub}>
-            {fetching ? '…' : favorites.length === 0
+            {fetching ? '…' : loadError ? '' : favorites.length === 0
               ? 'Noch keine Kommunen gespeichert.'
               : `${favorites.length} ${favorites.length === 1 ? 'Kommune' : 'Kommunen'} gespeichert`}
           </p>
@@ -82,7 +121,14 @@ export default function Favoriten() {
           <div className={styles.loadingInner}><div className={styles.spinner} /></div>
         )}
 
-        {!fetching && favorites.length === 0 && (
+        {!fetching && loadError && (
+          <div className={styles.error}>
+            <strong>Favoriten konnten nicht geladen werden.</strong>
+            <div className={styles.errorMsg}>{loadError}</div>
+          </div>
+        )}
+
+        {!fetching && !loadError && favorites.length === 0 && (
           <div className={styles.empty}>
             <div className={styles.emptyHeart}>♡</div>
             <p className={styles.emptySub}>
@@ -127,7 +173,7 @@ function FavCard({ fav, onRemove }) {
             {p?.kommune_typ && <span>{p.kommune_typ}</span>}
             {p?.kommune_typ && p?.land && <span className={styles.dot}>·</span>}
             {p?.land && <span>{p.land}</span>}
-            {p?.mitglieder && <><span className={styles.dot}>·</span><span>👥 {p.mitglieder}</span></>}
+            {p?.mitglieder > 0 && <><span className={styles.dot}>·</span><span>👥 {p.mitglieder}</span></>}
           </div>
           {p?.bio && <p className={styles.cardBio}>{p.bio}</p>}
         </div>
