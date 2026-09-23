@@ -3,6 +3,7 @@ import{useRouter}from'next/router'
 import Link from'next/link'
 import Nav from'../../components/Nav'
 import BackToTop from'../../components/BackToTop'
+import FavoriteBtn from'../../components/FavoriteBtn'
 import{useLang}from'../../lib/LanguageContext'
 import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo,LAND_EN,getTypIcon}from'../../data/communities'
 import{supabase}from'../../lib/supabase'
@@ -146,6 +147,7 @@ const displayLand=lang==='en'?(LAND_EN[k.land]||k.land):k.land
 const href=isDb?`/profil/p/${k.dbId}`:`/kommunen/${k.id}`
 return(
 <div key={k.id} style={{position:'relative'}}>
+{isDb&&<div style={{position:'absolute',top:6,right:6,zIndex:2}}><FavoriteBtn communityId={k.dbId}/></div>}
 <Link href={href} className={styles.card}>
 <div className={styles.cardImg} style={{background:bgColor(k.typ)}}>
 {k.avatar_url

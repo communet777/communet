@@ -73,6 +73,7 @@ export default function Profil() {
             <div className={styles.divider}/>
             <Link href={isKommune ? '/profil/kommune' : '/profil/bearbeiten'} className={styles.btnPrimary}>Profil bearbeiten</Link>
             <div className={styles.actions}>
+              <Link href="/favoriten" className={styles.btnSecondary}>♥ Favoriten</Link>
               <Link href="/kommunen" className={styles.btnSecondary}>🌍 Kommunen</Link>
               <Link href="/karte" className={styles.btnSecondary}>🗺️ Karte</Link>
             </div>
