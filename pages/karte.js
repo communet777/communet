@@ -1,6 +1,8 @@
 import{useState,useEffect}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
+import WaterPopup from'../components/WaterPopup'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
@@ -38,6 +40,10 @@ const[search,setSearch]=useState('')
 const[dbKommunen,setDbKommunen]=useState([])
 const[showFarmShops,setShowFarmShops]=useState(false)
 const[farmShops,setFarmShops]=useState([])
+const[showWater,setShowWater]=useState(false)
+const[view,setView]=useState(null)
+const[selectedWater,setSelectedWater]=useState(null)
+const water=useWaterSources(!!user&&showWater,view)
 
 useEffect(()=>{
   supabase.from('profiles')
@@ -84,12 +90,20 @@ setMapZoom(SEARCH_ZOOM)
 function selectFromList(k){
 setSelected(k)
 setSelectedFarm(null)
+setSelectedWater(null)
 setMapZoom(DEFAULT_ZOOM)
 }
 
 function selectFarm(f){
 setSelectedFarm(f)
 setSelected(null)
+setSelectedWater(null)
+}
+
+function selectWater(w){
+setSelectedWater(w)
+setSelected(null)
+setSelectedFarm(null)
 }
 
 return(
@@ -123,7 +137,20 @@ return(
 >
 🧺 Bio-Hofläden{!user?' 🔒':''}
 </button>
+<button
+  className={`${styles.pill}${showWater&&user?' '+styles.active:''}${!user?' '+styles.pillDisabled:''}`}
+  onClick={()=>user&&setShowWater(v=>!v)}
+  disabled={!user}
+  title={user?'Wasserquellen ein-/ausblenden':'Mit Konto sichtbar'}
+>
+💧 Wasserquellen{!user?' 🔒':''}
+</button>
 </div>
+{showWater&&user&&(
+<div style={{fontSize:11,color:'var(--muted)'}}>
+{!view||view.zoom<WATER_MIN_ZOOM?'🔍 Zum Anzeigen weiter hineinzoomen':water.error?'⚠️ Konnten nicht geladen werden':`💧 ${water.items.length}${water.items.length>=WATER_LIMIT?'+':''} im Kartenausschnitt`}
+</div>
+)}
 </div>
 <div className={styles.list}>
 {filtered.map(k=>(
@@ -139,7 +166,7 @@ return(
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={showFarmShops&&user?farmShops:[]}selectedFarm={selectedFarm}onSelectFarm={selectFarm}/>
+<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={showFarmShops&&user?farmShops:[]}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?water.items:[]}onSelectWater={selectWater}onViewChange={setView}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>
@@ -170,6 +197,7 @@ return(
 <a href={`/hoflaeden/${selectedFarm.id}`}className={`${styles.popupBtn} ${styles.popupBtnFarm}`}>{t('map_view_profile')}</a>
 </div>
 )}
+{selectedWater&&<WaterPopup w={selectedWater}onClose={()=>setSelectedWater(null)}/>}
 </div>
 </div>
 </div>

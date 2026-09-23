@@ -2,9 +2,11 @@ import{useState,useEffect}from'react'
 import dynamic from'next/dynamic'
 import Link from'next/link'
 import Nav from'../components/Nav'
+import WaterPopup from'../components/WaterPopup'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS}from'../lib/water'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 
@@ -13,6 +15,13 @@ const{t}=useLang()
 const{user}=useAuth()
 const[farmShops,setFarmShops]=useState([])
 const[selectedFarm,setSelectedFarm]=useState(null)
+const[showFarm,setShowFarm]=useState(true)
+const[showWater,setShowWater]=useState(true)
+const[onlyRoad,setOnlyRoad]=useState(false)
+const[view,setView]=useState(null)
+const[selectedWater,setSelectedWater]=useState(null)
+const water=useWaterSources(!!user&&showWater,view)
+const visibleWater=onlyRoad?water.items.filter(w=>w.road_distance_m!=null):water.items
 
 useEffect(()=>{
   if(!user)return
@@ -21,6 +30,9 @@ useEffect(()=>{
     .not('lat','is',null)
     .then(({data})=>{ if(data) setFarmShops(data) })
 },[user])
+
+function selectFarm(f){ setSelectedFarm(f); setSelectedWater(null) }
+function selectWater(w){ setSelectedWater(w); setSelectedFarm(null) }
 
 if(!user){
 return(
@@ -36,6 +48,14 @@ return(
 )
 }
 
+let waterInfo=null
+if(showWater){
+  if(!view||view.zoom<WATER_MIN_ZOOM) waterInfo='🔍 Zum Anzeigen der Wasserquellen weiter in die Karte hineinzoomen'
+  else if(water.error) waterInfo='⚠️ Wasserquellen konnten nicht geladen werden'
+  else if(water.loading&&water.items.length===0) waterInfo='Wasserquellen werden geladen …'
+  else waterInfo=`💧 ${visibleWater.length}${water.items.length>=WATER_LIMIT?'+':''} Wasserquellen im Kartenausschnitt`
+}
+
 return(
 <div className={styles.page}>
 <Nav/>
@@ -48,13 +68,27 @@ return(
 <div className={styles.memberPanel}>
 <span className={styles.memberLabel}>🔒 Nur mit Konto sichtbar</span>
 <div className={styles.pills}>
-<button className={`${styles.pill} ${styles.active}`}>🧺 {t('supply_farmshops')}</button>
-<button className={`${styles.pill} ${styles.pillDisabled}`}disabled title={t('supply_water_soon')}>💧 {t('supply_water_soon')}</button>
+<button className={`${styles.pill}${showFarm?' '+styles.active:''}`}onClick={()=>setShowFarm(v=>!v)}>🧺 {t('supply_farmshops')}</button>
+<button className={`${styles.pill}${showWater?' '+styles.active:''}`}onClick={()=>setShowWater(v=>!v)}>💧 Wasserquellen</button>
 </div>
+{showWater&&(
+<>
+<label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--muted)',cursor:'pointer'}}>
+<input type="checkbox"checked={onlyRoad}onChange={e=>setOnlyRoad(e.target.checked)}/>
+Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
+</label>
+<div style={{display:'flex',flexWrap:'wrap',gap:10,fontSize:11,color:'var(--muted)'}}>
+{Object.entries(WATER_COLORS).map(([typ,c])=>(
+<span key={typ}style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:'50%',background:c,display:'inline-block'}}/>{typ==='Wasserquelle zur Versorgung'?'Wasserquelle':typ}</span>
+))}
+</div>
+<div style={{fontSize:12,color:'var(--text)'}}>{waterInfo}</div>
+</>
+)}
 </div>
 <div className={styles.list}>
-{farmShops.map(f=>(
-<div key={f.id}className={`${styles.listItem}${selectedFarm?.id===f.id?' '+styles.listActive:''}`}onClick={()=>setSelectedFarm(f)}>
+{showFarm&&farmShops.map(f=>(
+<div key={f.id}className={`${styles.listItem}${selectedFarm?.id===f.id?' '+styles.listActive:''}`}onClick={()=>selectFarm(f)}>
 <span className={styles.listIcon}>🧺</span>
 <div className={styles.listBody}>
 <div className={styles.listName}>{f.name}</div>
@@ -65,7 +99,7 @@ return(
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={farmShops}selectedFarm={selectedFarm}onSelectFarm={setSelectedFarm}/>
+<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={showFarm?farmShops:[]}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={setView}/>
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
@@ -77,6 +111,7 @@ return(
 <a href={`/hoflaeden/${selectedFarm.id}`}className={`${styles.popupBtn} ${styles.popupBtnFarm}`}>{t('map_view_profile')}</a>
 </div>
 )}
+{selectedWater&&<WaterPopup w={selectedWater}onClose={()=>setSelectedWater(null)}/>}
 </div>
 </div>
 </div>

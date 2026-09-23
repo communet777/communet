@@ -1,17 +1,29 @@
 import{useEffect,useRef}from'react'
 import{getTypIcon}from'../data/communities'
+import{WATER_COLORS}from'../lib/water'
 const TYPE_COLORS={"Ökodorf":"#2d6a4f","Kommune":"#e07820","Kollektiv":"#3f51b5","Spirituelle Gemeinschaft":"#8e24aa","Wohnprojekt":"#00897b","Sonstige":"#757575"}
-export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm}){
+export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
 const markersRef=useRef({})
 const farmMarkersRef=useRef({})
+const waterLayerRef=useRef(null)
+const canvasRef=useRef(null)
+// Aktuelle Callbacks merken, damit Leaflet-Ereignisse immer die neueste Version aufrufen
+const viewCbRef=useRef(onViewChange);viewCbRef.current=onViewChange
+const waterCbRef=useRef(onSelectWater);waterCbRef.current=onSelectWater
 useEffect(()=>{
 if(typeof window==='undefined'||mapInstanceRef.current)return
 const L=require('leaflet');require('leaflet/dist/leaflet.css')
 const map=L.map(mapRef.current,{center:[20,10],zoom:2,zoomControl:true})
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18}).addTo(map)
 mapInstanceRef.current=map
+// Wasserquellen werden auf einer Zeichenfläche (Canvas) gezeichnet, das bleibt auch bei 1000 Punkten flüssig
+canvasRef.current=L.canvas({padding:0.3})
+waterLayerRef.current=L.layerGroup().addTo(map)
+const emitView=()=>{const b=map.getBounds();viewCbRef.current&&viewCbRef.current({south:b.getSouth(),west:b.getWest(),north:b.getNorth(),east:b.getEast(),zoom:map.getZoom()})}
+map.on('moveend',emitView)
+emitView()
 },[])
 useEffect(()=>{
 if(!mapInstanceRef.current)return
@@ -38,6 +50,17 @@ farmMarkersRef.current[f.id]=marker
 })
 },[farmShops])
 useEffect(()=>{
+if(!mapInstanceRef.current||!waterLayerRef.current)return
+const L=require('leaflet')
+const g=waterLayerRef.current
+g.clearLayers()
+waterSources.forEach(w=>{
+L.circleMarker([w.lat,w.lon],{renderer:canvasRef.current,radius:6,color:'#fff',weight:1.5,fillColor:WATER_COLORS[w.typ]||'#2b7bb9',fillOpacity:0.95})
+.on('click',()=>waterCbRef.current&&waterCbRef.current(w))
+.addTo(g)
+})
+},[waterSources])
+useEffect(()=>{
 if(!mapInstanceRef.current||!selected)return
 mapInstanceRef.current.flyTo([selected.lat,selected.lon],selectedZoom,{duration:1})
 },[selected,selectedZoom])
@@ -47,3 +70,4 @@ mapInstanceRef.current.flyTo([selectedFarm.lat,selectedFarm.lon],10,{duration:1}
 },[selectedFarm])
 return<div ref={mapRef}style={{width:'100%',height:'100%',minHeight:'500px'}}/>
 }
+
