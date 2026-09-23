@@ -173,6 +173,9 @@ return(
 </div>
 </div>
 <div className={styles.mapWrap}>
+{user&&(showFarmShops||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
+<div className={styles.zoomHint}>🔍 Zum Anzeigen von {showFarmShops&&showWater?'Hofläden und Wasserquellen':showWater?'Wasserquellen':'Hofläden'} weiter hineinzoomen</div>
+)}
 <MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?water.items:[]}onSelectWater={selectWater}onViewChange={setView}/>
 {selected&&(
 <div className={styles.popup}>

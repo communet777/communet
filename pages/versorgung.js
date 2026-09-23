@@ -101,6 +101,9 @@ Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
 </div>
 </div>
 <div className={styles.mapWrap}>
+{user&&(showFarm||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
+<div className={styles.zoomHint}>🔍 Zum Anzeigen weiter hineinzoomen</div>
+)}
 <MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={setView}/>
 {selectedFarm&&(
 <div className={styles.popup}>
