@@ -2,7 +2,7 @@ import{useState,useEffect}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT}from'../lib/water'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,FARM_MIN_ZOOM,inView}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
@@ -44,6 +44,8 @@ const[showWater,setShowWater]=useState(false)
 const[view,setView]=useState(null)
 const[selectedWater,setSelectedWater]=useState(null)
 const water=useWaterSources(!!user&&showWater,view)
+const farmZoomOk=!!view&&view.zoom>=FARM_MIN_ZOOM
+const visibleFarms=showFarmShops&&user&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
 
 useEffect(()=>{
   supabase.from('profiles')
@@ -146,6 +148,11 @@ return(
 💧 Wasserquellen{!user?' 🔒':''}
 </button>
 </div>
+{showFarmShops&&user&&(
+<div style={{fontSize:11,color:'var(--muted)'}}>
+{farmZoomOk?`🧺 ${visibleFarms.length} Bio-Hofläden im Kartenausschnitt`:'🧺 Zum Anzeigen der Bio-Hofläden weiter hineinzoomen'}
+</div>
+)}
 {showWater&&user&&(
 <div style={{fontSize:11,color:'var(--muted)'}}>
 {!view||view.zoom<WATER_MIN_ZOOM?'🔍 Zum Anzeigen weiter hineinzoomen':water.error?'⚠️ Konnten nicht geladen werden':`💧 ${water.items.length}${water.items.length>=WATER_LIMIT?'+':''} im Kartenausschnitt`}
@@ -166,7 +173,10 @@ return(
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={showFarmShops&&user?farmShops:[]}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?water.items:[]}onSelectWater={selectWater}onViewChange={setView}/>
+{user&&(showFarmShops||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
+<div className={styles.zoomHint}>🔍 Zum Anzeigen von {showFarmShops&&showWater?'Hofläden und Wasserquellen':showWater?'Wasserquellen':'Hofläden'} weiter hineinzoomen</div>
+)}
+<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?water.items:[]}onSelectWater={selectWater}onViewChange={setView}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>

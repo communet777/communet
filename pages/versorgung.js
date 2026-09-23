@@ -6,7 +6,7 @@ import WaterPopup from'../components/WaterPopup'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS}from'../lib/water'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,FARM_MIN_ZOOM,inView}from'../lib/water'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 
@@ -22,6 +22,8 @@ const[view,setView]=useState(null)
 const[selectedWater,setSelectedWater]=useState(null)
 const water=useWaterSources(!!user&&showWater,view)
 const visibleWater=onlyRoad?water.items.filter(w=>w.road_distance_m!=null):water.items
+const farmZoomOk=!!view&&view.zoom>=FARM_MIN_ZOOM
+const visibleFarms=showFarm&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
 
 useEffect(()=>{
   if(!user)return
@@ -63,7 +65,7 @@ return(
 <div className={styles.sidebar}>
 <div className={styles.sideHeader}>
 <h1 className={styles.title}>{t('supply_title')}</h1>
-<p className={styles.sub}>{farmShops.length} {t('supply_farmshops')}</p>
+<p className={styles.sub}>{showFarm?(farmZoomOk?`🧺 ${visibleFarms.length} ${t('supply_farmshops')} im Kartenausschnitt`:'🔍 Zum Anzeigen der Bio-Hofläden und Wasserquellen in die Karte hineinzoomen'):`${farmShops.length} ${t('supply_farmshops')}`}</p>
 </div>
 <div className={styles.memberPanel}>
 <span className={styles.memberLabel}>🔒 Nur mit Konto sichtbar</span>
@@ -87,7 +89,7 @@ Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
 )}
 </div>
 <div className={styles.list}>
-{showFarm&&farmShops.map(f=>(
+{visibleFarms.map(f=>(
 <div key={f.id}className={`${styles.listItem}${selectedFarm?.id===f.id?' '+styles.listActive:''}`}onClick={()=>selectFarm(f)}>
 <span className={styles.listIcon}>🧺</span>
 <div className={styles.listBody}>
@@ -99,7 +101,10 @@ Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
 </div>
 </div>
 <div className={styles.mapWrap}>
-<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={showFarm?farmShops:[]}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={setView}/>
+{user&&(showFarm||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
+<div className={styles.zoomHint}>🔍 Zum Anzeigen weiter hineinzoomen</div>
+)}
+<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={setView}/>
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
