@@ -89,19 +89,46 @@ def upsert(rows):
             raise RuntimeError("Upload endgültig fehlgeschlagen")
 
 
+PAGE_SIZE = 100  # größere Werte (z.B. 10000) werden vom Server ignoriert/gekappt
+
+def fetch_all_items(dep: str):
+    """Holt alle Betriebe eines Departements, seitenweise (nb=100 je Seite).
+    Bricht ab, sobald eine Seite keine neuen IDs mehr bringt (Schutz gegen
+    Endlosschleife, falls die Pagination serverseitig doch nicht greift)."""
+    items = []
+    seen_ids = set()
+    nb_total = None
+    page = 1
+    while True:
+        r = requests.get(BASE, params={"departements": dep, "nb": PAGE_SIZE, "page": page},
+                          headers={"accept": "application/json"}, timeout=60)
+        r.raise_for_status()
+        data = r.json()
+        if nb_total is None:
+            try:
+                nb_total = int(data.get("nbTotal", 0))
+            except (TypeError, ValueError):
+                nb_total = 0
+        page_items = data.get("items", [])
+        new_ids = [it.get("id") for it in page_items if it.get("id") not in seen_ids]
+        if not page_items or not new_ids:
+            break
+        for it in page_items:
+            iid = it.get("id")
+            if iid not in seen_ids:
+                seen_ids.add(iid)
+                items.append(it)
+        page += 1
+        if page > 200:  # Sicherheitsnetz, ~20000 Betriebe pro Departement wären ohnehin unrealistisch
+            break
+        time.sleep(0.15)
+    return items, (nb_total or len(items))
+
+
 def process_departement(dep: str) -> dict:
-    r = requests.get(BASE, params={"departements": dep, "nb": 10000},
-                      headers={"accept": "application/json"}, timeout=60)
-    r.raise_for_status()
-    data = r.json()
-    items = data.get("items", [])
-    nb_total = data.get("nbTotal", len(items))
-    try:
-        nb_total = int(nb_total)
-    except (TypeError, ValueError):
-        nb_total = len(items)
+    items, nb_total = fetch_all_items(dep)
     if len(items) < nb_total:
-        log(f"[{dep}] WARNUNG: nur {len(items)} von {nb_total} geladen (Seitengröße reicht nicht)")
+        log(f"[{dep}] WARNUNG: nur {len(items)} von {nb_total} geladen (Pagination greift nicht vollständig)")
 
     rows = []
     for op in items:
