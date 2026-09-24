@@ -1,3 +1,4 @@
 Startet den Bio-Hofläden-Import für Frankreich (Agence Bio). Änderung an dieser Datei löst einen neuen Lauf aus.
 
 Letzter Start: 2026-09-24 – Erstimport, alle französischen Departements
+Lauf 2: mit Traceback-Logging zur Fehlersuche
