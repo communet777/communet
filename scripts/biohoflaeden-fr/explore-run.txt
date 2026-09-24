@@ -1,1 +1,2 @@
 Testabruf Agence Bio, Departement 34 (Hérault). Änderung an dieser Datei startet den Testlauf.
+Lauf 2: Pagination + Hofladen-Beispiel.
