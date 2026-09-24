@@ -65,14 +65,21 @@ def log(msg: str) -> None:
 
 
 def classify(tags: dict) -> str:
+    """Vier Kategorien:
+    - Thermalquelle: geologisch heiße Quelle (natural=hot_spring) — unabhängig vom Namen
+    - Heilquelle: Mineral-/Legendenquelle (Sauerbrunnen, Säuerling, "Heilquelle" im Namen o.ä.), NICHT heiß
+    - Trinkwasserquelle: offiziell als drinking_water=yes getaggt
+    - Wasserquelle zur Versorgung: alles andere (= "nicht verifiziert")
+    """
     import re
+    if tags.get("natural") == "hot_spring":
+        return "Thermalquelle"
     name = (tags.get("name") or "").lower()
     st = (tags.get("spring:type") or tags.get("spring") or "").lower()
-    if (tags.get("natural") == "hot_spring"
-            or re.search(r"mineral|thermal|hot|carbon|sulph|sulf|heil", st)
+    if (re.search(r"mineral|carbon|sulph|sulf|heil", st)
             or tags.get("drinking_water:mineral") == "yes"
-            or re.search(r"heilquell|mineralquell|sauerbrunn|säuerling|thermal|termal|terma|fuente agria|"
-                         r"agua agria|source thermale|source min[ée]rale|caldas", name)):
+            or re.search(r"heilquell|mineralquell|sauerbrunn|säuerling|fuente agria|"
+                         r"agua agria|source min[ée]rale|caldas", name)):
         return "Heilquelle"
     if tags.get("drinking_water") == "yes":
         return "Trinkwasserquelle"
@@ -136,7 +143,6 @@ class RoadMatcher(osmium.SimpleHandler):
             blat, blon = pts[i + 1]
             c0y, c0x = cell(min(alat, blat), min(alon, blon))
             c1y, c1x = cell(max(alat, blat), max(alon, blon))
-            # Zellen der Strecke durchgehen; nur weiter, wenn eine davon in der Nähe einer Quelle liegt
             hit = False
             for cy in range(c0y, c1y + 1):
                 for cx in range(c0x, c1x + 1):
@@ -244,6 +250,7 @@ def process(region: str, path: str) -> dict:
             "road_type": road[1] if road else None,
             "track_distance_m": round(track) if track is not None else None,
             "drinking_water": tags.get("drinking_water"),
+            "access": tags.get("access"),
             "region": region,
             "tags": tags,
             "imported_at": now,
