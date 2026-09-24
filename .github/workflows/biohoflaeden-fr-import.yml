@@ -1,0 +1,26 @@
+name: Bio-Hofläden FR importieren
+
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/biohoflaeden-fr/run.txt']
+  workflow_dispatch: {}
+
+concurrency:
+  group: biohoflaeden-fr
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q requests
+      - name: Import
+        env:
+          SUPABASE_URL: https://dgffntczrhwujjtvbytj.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/biohoflaeden-fr/import_agencebio.py
