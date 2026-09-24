@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: biohoflaeden-fr
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   import:
