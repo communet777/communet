@@ -1,0 +1,28 @@
+name: Bio-Hofläden FR erkunden (Testabruf)
+
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/biohoflaeden-fr/explore-run.txt']
+  workflow_dispatch:
+    inputs:
+      dep:
+        description: 'Departement-Nummer, z. B. 34'
+        required: false
+        default: '34'
+
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q requests
+      - name: Testabruf
+        env:
+          SUPABASE_URL: https://dgffntczrhwujjtvbytj.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DEP: ${{ github.event.inputs.dep || '34' }}
+        run: python scripts/biohoflaeden-fr/explore.py
