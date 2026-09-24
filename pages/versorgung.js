@@ -6,7 +6,7 @@ import WaterPopup from'../components/WaterPopup'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,FARM_MIN_ZOOM,inView}from'../lib/water'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView}from'../lib/water'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 
@@ -18,10 +18,12 @@ const[selectedFarm,setSelectedFarm]=useState(null)
 const[showFarm,setShowFarm]=useState(true)
 const[showWater,setShowWater]=useState(true)
 const[onlyRoad,setOnlyRoad]=useState(false)
+const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const[view,setView]=useState(null)
 const[selectedWater,setSelectedWater]=useState(null)
 const water=useWaterSources(!!user&&showWater,view)
-const visibleWater=onlyRoad?water.items.filter(w=>w.road_distance_m!=null):water.items
+let visibleWater=water.items.filter(w=>activeCats.includes(w.typ))
+if(onlyRoad)visibleWater=visibleWater.filter(w=>w.road_distance_m!=null)
 const farmZoomOk=!!view&&view.zoom>=FARM_MIN_ZOOM
 const visibleFarms=showFarm&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
 
@@ -75,15 +77,21 @@ return(
 </div>
 {showWater&&(
 <>
+<div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+{WATER_CATEGORIES.map(c=>{
+const on=activeCats.includes(c.key)
+return(
+<button key={c.key}type="button"onClick={()=>setActiveCats(prev=>on?prev.filter(k=>k!==c.key):[...prev,c.key])}
+style={{display:'flex',alignItems:'center',gap:4,padding:'4px 10px',borderRadius:14,fontSize:11,cursor:'pointer',
+border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER_COLORS[c.key]+'1f':'var(--surface)',color:on?WATER_COLORS[c.key]:'var(--muted)'}}>
+{c.icon} {c.label}
+</button>
+)})}
+</div>
 <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--muted)',cursor:'pointer'}}>
 <input type="checkbox"checked={onlyRoad}onChange={e=>setOnlyRoad(e.target.checked)}/>
 Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
 </label>
-<div style={{display:'flex',flexWrap:'wrap',gap:10,fontSize:11,color:'var(--muted)'}}>
-{Object.entries(WATER_COLORS).map(([typ,c])=>(
-<span key={typ}style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:'50%',background:c,display:'inline-block'}}/>{typ==='Wasserquelle zur Versorgung'?'Wasserquelle':typ}</span>
-))}
-</div>
 <div style={{fontSize:12,color:'var(--text)'}}>{waterInfo}</div>
 </>
 )}

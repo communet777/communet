@@ -2,7 +2,7 @@ import{useState,useEffect}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,FARM_MIN_ZOOM,inView}from'../lib/water'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
@@ -43,7 +43,9 @@ const[farmShops,setFarmShops]=useState([])
 const[showWater,setShowWater]=useState(false)
 const[view,setView]=useState(null)
 const[selectedWater,setSelectedWater]=useState(null)
+const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const water=useWaterSources(!!user&&showWater,view)
+const visibleWaterKarte=water.items.filter(w=>activeCats.includes(w.typ))
 const farmZoomOk=!!view&&view.zoom>=FARM_MIN_ZOOM
 const visibleFarms=showFarmShops&&user&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
 
@@ -154,9 +156,22 @@ return(
 </div>
 )}
 {showWater&&user&&(
-<div style={{fontSize:11,color:'var(--muted)'}}>
-{!view||view.zoom<WATER_MIN_ZOOM?'🔍 Zum Anzeigen weiter hineinzoomen':water.error?'⚠️ Konnten nicht geladen werden':`💧 ${water.items.length}${water.items.length>=WATER_LIMIT?'+':''} im Kartenausschnitt`}
+<>
+<div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+{WATER_CATEGORIES.map(c=>{
+const on=activeCats.includes(c.key)
+return(
+<button key={c.key}type="button"onClick={()=>setActiveCats(prev=>on?prev.filter(k=>k!==c.key):[...prev,c.key])}
+style={{display:'flex',alignItems:'center',gap:3,padding:'3px 8px',borderRadius:12,fontSize:10,cursor:'pointer',
+border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER_COLORS[c.key]+'1f':'var(--surface)',color:on?WATER_COLORS[c.key]:'var(--muted)'}}>
+{c.icon} {c.label}
+</button>
+)})}
 </div>
+<div style={{fontSize:11,color:'var(--muted)'}}>
+{!view||view.zoom<WATER_MIN_ZOOM?'🔍 Zum Anzeigen weiter hineinzoomen':water.error?'⚠️ Konnten nicht geladen werden':`💧 ${visibleWaterKarte.length}${water.items.length>=WATER_LIMIT?'+':''} im Kartenausschnitt`}
+</div>
+</>
 )}
 </div>
 <div className={styles.list}>
@@ -176,7 +191,7 @@ return(
 {user&&(showFarmShops||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
 <div className={styles.zoomHint}>🔍 Zum Anzeigen von {showFarmShops&&showWater?'Hofläden und Wasserquellen':showWater?'Wasserquellen':'Hofläden'} weiter hineinzoomen</div>
 )}
-<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?water.items:[]}onSelectWater={selectWater}onViewChange={setView}/>
+<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?visibleWaterKarte:[]}onSelectWater={selectWater}onViewChange={setView}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>
