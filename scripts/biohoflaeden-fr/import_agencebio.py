@@ -45,17 +45,17 @@ def log(msg: str) -> None:
 
 
 def is_farm_shop(op: dict) -> bool:
-    act_names = {a.get("nom") for a in op.get("activites", [])}
+    act_names = {str(a.get("nom")) for a in (op.get("activites") or [])}
     if "Production" not in act_names:
         return False
-    cat_names = {c.get("nom") for c in op.get("categories", [])}
+    cat_names = {str(c.get("nom")) for c in (op.get("categories") or [])}
     va = op.get("venteAnnuaire") or {}
     direct = ("Vente aux consommateurs" in cat_names) or bool(va.get("venteParticuliers"))
     if not direct:
         return False
-    for prod in op.get("productions", []):
-        for etat in prod.get("etatProductions", []):
-            if etat.get("etatProduction") == "AB":
+    for prod in (op.get("productions") or []):
+        for etat in (prod.get("etatProductions") or []):
+            if str(etat.get("etatProduction")) == "AB":
                 return True
     return False
 
@@ -111,10 +111,11 @@ def process_departement(dep: str) -> dict:
             "numero_bio": str(op.get("numeroBio")),
             "siret": op.get("siret"),
             "name": op.get("denominationcourante") or op.get("raisonSociale"),
-            "categories": [c.get("nom") for c in op.get("categories", [])],
-            "productions_etat": sorted({e.get("etatProduction")
+            "categories": [str(c.get("nom")) for c in op.get("categories", []) if c.get("nom") is not None],
+            "productions_etat": sorted({str(e.get("etatProduction"))
                                          for p in op.get("productions", [])
-                                         for e in p.get("etatProductions", [])}),
+                                         for e in p.get("etatProductions", [])
+                                         if e.get("etatProduction") is not None}),
             "organisme_certificateur": cert.get("organisme"),
             "adresse": addr.get("lieu"),
             "code_postal": addr.get("codePostal"),
