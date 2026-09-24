@@ -10,7 +10,8 @@ Kriterium (analog zu den deutschen Bio-Hofläden — nur zertifiziert, Direktver
   - Mindestens eine Produktion mit Status "AB" (voll zertifiziert bio, keine
     reine Umstellungsware C1/C2/C3)
 
-Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1 (Test)
+Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1 (Test),
+TEST_DEP=<Departement> (nur dieses eine Departement laufen lassen)
 """
 import json
 import os
@@ -131,21 +132,26 @@ def process_departement(dep: str) -> dict:
 
 
 def main():
+    import traceback
     if not DRY and (not SUPABASE_URL or not KEY):
         print("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen", file=sys.stderr)
         sys.exit(1)
-    log(f"Start FR Bio-Hofläden-Import: {len(DEPARTEMENTS)} Departements")
+    deps = DEPARTEMENTS
+    if os.environ.get("TEST_DEP"):
+        deps = [os.environ["TEST_DEP"]]
+    log(f"Start FR Bio-Hofläden-Import: {len(deps)} Departements")
     total_saved = 0
     failed = []
-    for dep in DEPARTEMENTS:
+    for dep in deps:
         for attempt in range(3):
             try:
                 total_saved += process_departement(dep)["saved"]
                 break
             except Exception as e:
+                tb = traceback.format_exc()
                 if attempt == 2:
                     failed.append(dep)
-                    log(f"[{dep}] FEHLER endgültig: {e}")
+                    log(f"[{dep}] FEHLER endgültig: {e}\n{tb[-1500:]}")
                 else:
                     time.sleep(3)
         time.sleep(0.3)  # nicht überlasten
