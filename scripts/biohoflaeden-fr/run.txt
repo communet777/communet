@@ -1,4 +1,4 @@
 Startet den Bio-Hofläden-Import für Frankreich (Agence Bio). Änderung an dieser Datei löst einen neuen Lauf aus.
 
 Letzter Start: 2026-09-24 – Erstimport, alle französischen Departements
-Lauf 4: Fix nbTotal robust in int umwandeln
+Lauf 5: echte Pagination (alle Betriebe je Departement, nicht nur die ersten 20)
