@@ -96,6 +96,10 @@ def process_departement(dep: str) -> dict:
     data = r.json()
     items = data.get("items", [])
     nb_total = data.get("nbTotal", len(items))
+    try:
+        nb_total = int(nb_total)
+    except (TypeError, ValueError):
+        nb_total = len(items)
     if len(items) < nb_total:
         log(f"[{dep}] WARNUNG: nur {len(items)} von {nb_total} geladen (Seitengröße reicht nicht)")
 
