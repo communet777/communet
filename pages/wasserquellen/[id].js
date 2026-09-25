@@ -76,13 +76,8 @@ const showWikiImg=!!w.wiki_image_url&&!imgFailed
 return(
 <div>
 <Nav/>
-<div className={styles.banner}style={{position:'relative',background:showWikiImg?'#0000':undefined}}>
-{showWikiImg&&(
-// eslint-disable-next-line @next/next/no-img-element
-<img src={w.wiki_image_url}alt=""onError={()=>setImgFailed(true)}
-style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}/>
-)}
-{!showWikiImg&&<div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>}
+<div className={styles.banner}>
+<div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>
 </div>
 <div className={styles.profileHeader}>
 <div>
@@ -137,6 +132,13 @@ style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'
 </div>
 </div>
 <div className={styles.sidebar}>
+{showWikiImg&&(
+<div className={styles.sideCard}style={{padding:0,overflow:'hidden'}}>
+{/* eslint-disable-next-line @next/next/no-img-element */}
+<img src={w.wiki_image_url}alt=""onError={()=>setImgFailed(true)}
+style={{display:'block',width:'100%',height:140,objectFit:'cover'}}/>
+</div>
+)}
 <div className={styles.sideCard}>
 <a href={route}target="_blank"rel="noopener noreferrer"className={styles.inviteBtn}style={{width:'100%',textAlign:'center',display:'block',background:color}}>🧭 Route planen</a>
 <a href={osm}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:8,fontSize:12,color:'var(--g)'}}>Quelle öffnen ↗</a>
