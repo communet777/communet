@@ -2,7 +2,7 @@ import{useState,useEffect}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView}from'../lib/water'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
@@ -42,6 +42,8 @@ const[showFarmShops,setShowFarmShops]=useState(false)
 const[farmShops,setFarmShops]=useState([])
 const[showWater,setShowWater]=useState(false)
 const[view,setView]=useState(null)
+const[initialView]=useState(()=>loadMapView('communet-map-karte'))
+function handleViewChange(v){setView(v);saveMapView('communet-map-karte',v)}
 const[selectedWater,setSelectedWater]=useState(null)
 const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const water=useWaterSources(!!user&&showWater,view)
@@ -191,7 +193,7 @@ border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER
 {user&&(showFarmShops||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
 <div className={styles.zoomHint}>🔍 Zum Anzeigen von {showFarmShops&&showWater?'Hofläden und Wasserquellen':showWater?'Wasserquellen':'Hofläden'} weiter hineinzoomen</div>
 )}
-<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?visibleWaterKarte:[]}onSelectWater={selectWater}onViewChange={setView}/>
+<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?visibleWaterKarte:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>

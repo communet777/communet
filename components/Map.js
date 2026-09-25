@@ -2,7 +2,7 @@ import{useEffect,useRef}from'react'
 import{getTypIcon}from'../data/communities'
 import{WATER_COLORS}from'../lib/water'
 const TYPE_COLORS={"Ökodorf":"#2d6a4f","Kommune":"#e07820","Kollektiv":"#3f51b5","Spirituelle Gemeinschaft":"#8e24aa","Wohnprojekt":"#00897b","Sonstige":"#757575"}
-export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange}){
+export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
 const markersRef=useRef({})
@@ -15,7 +15,7 @@ const waterCbRef=useRef(onSelectWater);waterCbRef.current=onSelectWater
 useEffect(()=>{
 if(typeof window==='undefined'||mapInstanceRef.current)return
 const L=require('leaflet');require('leaflet/dist/leaflet.css')
-const map=L.map(mapRef.current,{center:[20,10],zoom:2,zoomControl:true})
+const map=L.map(mapRef.current,{center:initialView?[initialView.lat,initialView.lon]:[20,10],zoom:initialView?initialView.zoom:2,zoomControl:true})
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18}).addTo(map)
 mapInstanceRef.current=map
 // Wasserquellen werden auf einer Zeichenfläche (Canvas) gezeichnet, das bleibt auch bei 1000 Punkten flüssig
