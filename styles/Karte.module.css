@@ -1,4 +1,6 @@
 .page{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.page :global(.leaflet-container),.page :global(.leaflet-marker-icon),.page :global(.leaflet-interactive){-webkit-tap-highlight-color:transparent!important}
+.page :global(.leaflet-marker-icon):focus,.page :global(.leaflet-interactive):focus{outline:none!important}
 .layout{display:grid;grid-template-columns:320px 1fr;flex:1;overflow:hidden}
 .sidebar{border-right:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--sand)}
 .sideHeader{padding:16px 16px 8px;border-bottom:.5px solid var(--border)}

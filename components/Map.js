@@ -32,7 +32,7 @@ Object.values(markersRef.current).forEach(m=>mapInstanceRef.current.removeLayer(
 markersRef.current={}
 communities.forEach(k=>{
 const color=TYPE_COLORS[k.typ]||'#757575'
-const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;opacity:${k.status==='aktiv'?1:0.55}">${getTypIcon(k.typ)}</div>`,iconSize:[28,28],iconAnchor:[14,14]})
+const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;opacity:${k.status==='aktiv'?1:0.55};-webkit-tap-highlight-color:transparent;outline:none">${getTypIcon(k.typ)}</div>`,iconSize:[28,28],iconAnchor:[14,14]})
 const marker=L.marker([k.lat,k.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelect(k))
 markersRef.current[k.id]=marker
 })
@@ -44,7 +44,7 @@ Object.values(farmMarkersRef.current).forEach(m=>mapInstanceRef.current.removeLa
 farmMarkersRef.current={}
 farmShops.forEach(f=>{
 if(f.lat==null||f.lon==null)return
-const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:#c17817;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer">🧺</div>`,iconSize:[24,24],iconAnchor:[12,12]})
+const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:#c17817;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none">🧺</div>`,iconSize:[24,24],iconAnchor:[12,12]})
 const marker=L.marker([f.lat,f.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelectFarm&&onSelectFarm(f))
 farmMarkersRef.current[f.id]=marker
 })
@@ -68,6 +68,6 @@ useEffect(()=>{
 if(!mapInstanceRef.current||!selectedFarm)return
 mapInstanceRef.current.flyTo([selectedFarm.lat,selectedFarm.lon],10,{duration:1})
 },[selectedFarm])
-return<div ref={mapRef}style={{width:'100%',height:'100%',minHeight:'500px'}}/>
+return<div ref={mapRef}style={{width:'100%',height:'100%',minHeight:'500px',WebkitTapHighlightColor:'transparent'}}/>
 }
 
