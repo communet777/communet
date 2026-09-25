@@ -3,24 +3,22 @@
 Wikipedia-Anreicherung für Wasserquellen.
 
 Für Quellen mit einem OSM-Tag wikipedia="<lang>:<Titel>" oder wikidata="Q..." wird
-über die offizielle Wikimedia-REST-API (page/summary) Artikel-URL, Vorschaubild und
+über die offizielle Wikimedia-REST-API (page/summary) Artikel-URL, Bild und
 Kurzbeschreibung geladen und in water_sources gespeichert.
   - wikipedia-Tag direkt nutzbar (Sprache + Titel bereits bekannt)
   - wikidata-Tag: über die Wikidata-API die "sitelinks" auflösen (bevorzugt die
     Sprache passend zur Region, sonst Deutsch, sonst Englisch, sonst irgendein Wiki)
-  - Das von der REST-API gelieferte Vorschaubild ist standardmäßig sehr klein
-    (330px) und wirkt auf einem breiten Detailseiten-Banner verpixelt. Die
-    Bild-URL wird deshalb auf IMAGE_WIDTH angehoben. Wichtig: ist das Original
-    kleiner als die angeforderte Breite, liefert Wikimedias Thumbnail-Server
-    teils einen Fehler statt automatisch zu skalieren — daher bewusst ein
-    moderater Wert (800px) statt z.B. 1200px, und zusätzlich fängt das
-    Frontend einen fehlgeschlagenen Bildaufruf über onError ab.
+  - Bild: die REST-API liefert sowohl ein kleines "thumbnail" (330px, wirkt auf dem
+    breiten Detailseiten-Banner verpixelt) als auch "originalimage" (die echte
+    Originaldatei in voller Auflösung). Wir speichern die Originaldatei — die
+    existiert immer in ihrer tatsächlichen Größe, anders als ein angefordertes
+    Thumbnail einer bestimmten Breite, das bei kleineren Originalen fehlschlagen
+    kann. Das Frontend skaliert die Originaldatei selbst passend herunter.
 
 Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1
 """
 import json
 import os
-import re
 import sys
 import time
 import urllib.parse
@@ -37,7 +35,6 @@ if KEY and not KEY.startswith("sb_"):
 UA = "Communet-Wasserquellen-WikiEnrich/1.0 (+https://communet.net; communet@outlook.de)"
 REGION_LANG = {"PT": "pt", "ES": "es", "FR": "fr", "DE": "de"}
 FALLBACK_LANGS = ["de", "en", "fr", "es", "pt"]
-IMAGE_WIDTH = 800
 
 
 def log(msg: str) -> None:
@@ -75,14 +72,6 @@ def fetch_candidates():
     return rows
 
 
-def upsize_thumbnail(url: str) -> str:
-    """Ersetzt die Breitenangabe in einer Wikimedia-Thumbnail-URL (z.B. .../330px-Foo.jpg)
-    durch IMAGE_WIDTH."""
-    if not url:
-        return url
-    return re.sub(r"/(\d+)px-", f"/{IMAGE_WIDTH}px-", url, count=1)
-
-
 def summary(lang: str, title: str):
     url = f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(title)}"
     r = requests.get(url, headers={"User-Agent": UA, "Accept": "application/json"}, timeout=20)
@@ -91,10 +80,11 @@ def summary(lang: str, title: str):
     d = r.json()
     if d.get("type") == "disambiguation":
         return None
+    image = (d.get("originalimage") or {}).get("source") or (d.get("thumbnail") or {}).get("source")
     return {
         "wiki_url": (d.get("content_urls", {}).get("desktop", {}) or {}).get("page"),
         "wiki_title": d.get("title"),
-        "wiki_image_url": upsize_thumbnail((d.get("thumbnail") or {}).get("source")),
+        "wiki_image_url": image,
         "wiki_extract": (d.get("extract") or "")[:500],
     }
 
