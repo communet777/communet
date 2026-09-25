@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import styles from '../styles/Karte.module.css'
 import { WATER_COLORS, bestDistance, roadLabel } from '../lib/water'
 
@@ -6,7 +7,6 @@ export default function WaterPopup({ w, onClose }) {
   const dw = w.drinking_water
   const dist = bestDistance(w)
   const route = `https://www.google.com/maps/dir/?api=1&destination=${w.lat},${w.lon}`
-  const osm = `https://www.openstreetmap.org/${w.osm_id}`
   return (
     <div className={styles.popup}>
       <button className={styles.popupClose} onClick={onClose}>✕</button>
@@ -32,7 +32,7 @@ export default function WaterPopup({ w, onClose }) {
           : '❔ Trinkbarkeit ungeprüft, vor dem Trinken abkochen oder filtern'}
       </div>
       <a href={route} target="_blank" rel="noopener noreferrer" className={styles.popupBtn} style={{ background: color }}>🧭 Route planen</a>
-      <a href={osm} target="_blank" rel="noopener noreferrer" style={{ textAlign: 'center', fontSize: 11, color: 'var(--muted)' }}>Auf OpenStreetMap ansehen</a>
+      <Link href={`/wasserquellen/${encodeURIComponent(w.osm_id)}`} style={{ textAlign: 'center', fontSize: 12, color: 'var(--g)', marginTop: 2 }}>Quelle öffnen →</Link>
     </div>
   )
 }
