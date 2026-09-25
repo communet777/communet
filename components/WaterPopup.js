@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import styles from '../styles/Karte.module.css'
-import { WATER_COLORS, bestDistance, roadLabel } from '../lib/water'
+import { WATER_COLORS, bestDistance, roadLabel, formatCoords } from '../lib/water'
 
 export default function WaterPopup({ w, onClose }) {
   const color = WATER_COLORS[w.typ] || '#2b7bb9'
@@ -10,9 +10,13 @@ export default function WaterPopup({ w, onClose }) {
   return (
     <div className={styles.popup}>
       <button className={styles.popupClose} onClick={onClose}>✕</button>
-      <div className={styles.popupIcon}>{w.typ === 'Thermalquelle' ? '♨️' : '💧'}</div>
+      {w.wiki_image_url
+        ? <img src={w.wiki_image_url} alt="" style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 8 }} />
+        : <div className={styles.popupIcon}>{w.typ === 'Thermalquelle' ? '♨️' : '💧'}</div>
+      }
       <div className={styles.popupName}>{w.name || w.typ}</div>
       <span className="badge" style={{ background: color + '1f', color, alignSelf: 'flex-start' }}>{w.typ}</span>
+      <div className={styles.popupLoc}>📍 {formatCoords(w.lat, w.lon)}</div>
       <div className={styles.popupLoc}>
         🛣️ {dist
           ? (dist.viaTrack
@@ -33,6 +37,9 @@ export default function WaterPopup({ w, onClose }) {
       </div>
       <a href={route} target="_blank" rel="noopener noreferrer" className={styles.popupBtn} style={{ background: color }}>🧭 Route planen</a>
       <Link href={`/wasserquellen/${encodeURIComponent(w.osm_id)}`} style={{ textAlign: 'center', fontSize: 12, color: 'var(--g)', marginTop: 2 }}>Quelle öffnen →</Link>
+      {w.wiki_url && (
+        <a href={w.wiki_url} target="_blank" rel="noopener noreferrer" style={{ textAlign: 'center', fontSize: 11, color: 'var(--muted)' }}>Wikipedia ↗</a>
+      )}
     </div>
   )
 }

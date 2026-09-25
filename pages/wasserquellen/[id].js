@@ -5,7 +5,7 @@ import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
 import{useAuth}from'../../lib/AuthContext'
 import{supabase}from'../../lib/supabase'
-import{WATER_COLORS,bestDistance,roadLabel}from'../../lib/water'
+import{WATER_COLORS,bestDistance,roadLabel,formatCoords,reverseGeocode}from'../../lib/water'
 import styles from'../../styles/KommuneProfil.module.css'
 import supplyStyles from'../../styles/Karte.module.css'
 const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
@@ -16,12 +16,20 @@ const{user}=useAuth()
 const{id}=router.query // osm_id, z.B. "node%2F123456" -> wird unten decodiert
 const[w,setW]=useState(null)
 const[loading,setLoading]=useState(true)
+const[address,setAddress]=useState(null)
+const[addressLoading,setAddressLoading]=useState(false)
 
 useEffect(()=>{
 if(!user||!id)return
 supabase.from('water_sources').select('*').eq('osm_id',decodeURIComponent(id)).single()
 .then(({data})=>{ setW(data); setLoading(false) })
 },[user,id])
+
+useEffect(()=>{
+if(!w||!w.lat||!w.lon)return
+setAddressLoading(true)
+reverseGeocode(w.lat,w.lon).then(setAddress).catch(()=>setAddress(null)).finally(()=>setAddressLoading(false))
+},[w])
 
 if(!user){
 return(
@@ -60,12 +68,13 @@ const dist=bestDistance(w)
 const route=`https://www.google.com/maps/dir/?api=1&destination=${w.lat},${w.lon}`
 const osm=`https://www.openstreetmap.org/${w.osm_id}`
 const dw=w.drinking_water
+const hasWikiImg=!!w.wiki_image_url
 
 return(
 <div>
 <Nav/>
-<div className={styles.banner}>
-<div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>
+<div className={styles.banner}style={hasWikiImg?{backgroundImage:`url(${w.wiki_image_url})`,backgroundSize:'cover',backgroundPosition:'center'}:{}}>
+{!hasWikiImg&&<div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>}
 </div>
 <div className={styles.profileHeader}>
 <div>
@@ -98,6 +107,21 @@ return(
 {dw==='yes'?'✅ Als Trinkwasser gekennzeichnet.'
 :dw==='no'?'⚠️ Laut OpenStreetMap kein Trinkwasser.'
 :'❔ Trinkbarkeit ungeprüft — vor dem Trinken abkochen oder filtern.'}
+</p>
+</div>
+{w.wiki_url&&(
+<div className={styles.section}>
+<div className={styles.sectionTitle}>Wikipedia</div>
+{w.wiki_extract&&<p className={styles.desc}>{w.wiki_extract}</p>}
+<a href={w.wiki_url}target="_blank"rel="noopener noreferrer"style={{fontSize:13,color:'var(--g)'}}>{w.wiki_title||'Artikel lesen'} ↗</a>
+</div>
+)}
+<div className={styles.section}>
+<div className={styles.sectionTitle}>Lage</div>
+<p className={styles.desc}>
+{addressLoading?'Adresse wird ermittelt…':address||'Adresse nicht ermittelbar'}
+<br/>
+<span style={{fontSize:12,color:'var(--muted)'}}>{formatCoords(w.lat,w.lon)}</span>
 </p>
 </div>
 <div className={styles.section}>
