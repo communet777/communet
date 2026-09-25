@@ -18,6 +18,7 @@ const[w,setW]=useState(null)
 const[loading,setLoading]=useState(true)
 const[address,setAddress]=useState(null)
 const[addressLoading,setAddressLoading]=useState(false)
+const[imgFailed,setImgFailed]=useState(false)
 
 useEffect(()=>{
 if(!user||!id)return
@@ -30,6 +31,8 @@ if(!w||!w.lat||!w.lon)return
 setAddressLoading(true)
 reverseGeocode(w.lat,w.lon).then(setAddress).catch(()=>setAddress(null)).finally(()=>setAddressLoading(false))
 },[w])
+
+useEffect(()=>{ setImgFailed(false) },[w?.wiki_image_url])
 
 if(!user){
 return(
@@ -68,13 +71,18 @@ const dist=bestDistance(w)
 const route=`https://www.google.com/maps/dir/?api=1&destination=${w.lat},${w.lon}`
 const osm=`https://www.openstreetmap.org/${w.osm_id}`
 const dw=w.drinking_water
-const hasWikiImg=!!w.wiki_image_url
+const showWikiImg=!!w.wiki_image_url&&!imgFailed
 
 return(
 <div>
 <Nav/>
-<div className={styles.banner}style={hasWikiImg?{backgroundImage:`url(${w.wiki_image_url})`,backgroundSize:'cover',backgroundPosition:'center'}:{}}>
-{!hasWikiImg&&<div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>}
+<div className={styles.banner}style={{position:'relative',background:showWikiImg?'#0000':undefined}}>
+{showWikiImg&&(
+// eslint-disable-next-line @next/next/no-img-element
+<img src={w.wiki_image_url}alt=""onError={()=>setImgFailed(true)}
+style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}/>
+)}
+{!showWikiImg&&<div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>}
 </div>
 <div className={styles.profileHeader}>
 <div>

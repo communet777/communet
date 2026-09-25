@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import styles from '../styles/Karte.module.css'
 import { WATER_COLORS, bestDistance, roadLabel, formatCoords } from '../lib/water'
@@ -7,11 +8,14 @@ export default function WaterPopup({ w, onClose }) {
   const dw = w.drinking_water
   const dist = bestDistance(w)
   const route = `https://www.google.com/maps/dir/?api=1&destination=${w.lat},${w.lon}`
+  const [imgFailed, setImgFailed] = useState(false)
+  useEffect(() => { setImgFailed(false) }, [w.wiki_image_url])
+  const showWikiImg = !!w.wiki_image_url && !imgFailed
   return (
     <div className={styles.popup}>
       <button className={styles.popupClose} onClick={onClose}>✕</button>
-      {w.wiki_image_url
-        ? <img src={w.wiki_image_url} alt="" style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 8 }} />
+      {showWikiImg
+        ? <img src={w.wiki_image_url} alt="" onError={() => setImgFailed(true)} style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 8 }} />
         : <div className={styles.popupIcon}>{w.typ === 'Thermalquelle' ? '♨️' : '💧'}</div>
       }
       <div className={styles.popupName}>{w.name || w.typ}</div>
