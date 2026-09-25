@@ -78,6 +78,11 @@ return(
 <Nav/>
 <div className={styles.banner}>
 <div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>
+{showWikiImg&&(
+// eslint-disable-next-line @next/next/no-img-element
+<img src={w.wiki_image_url}alt=""onError={()=>setImgFailed(true)}
+style={{position:'absolute',bottom:-52,right:28,width:150,height:104,borderRadius:16,objectFit:'cover',border:'4px solid var(--sand)',boxShadow:'0 4px 16px rgba(0,0,0,0.12)'}}/>
+)}
 </div>
 <div className={styles.profileHeader}>
 <div>
@@ -114,9 +119,10 @@ return(
 </div>
 {w.wiki_url&&(
 <div className={styles.section}>
-<div className={styles.sectionTitle}>Wikipedia</div>
+<div className={styles.sectionTitle}>Hintergrund{w.wiki_title?`: ${w.wiki_title}`:''}</div>
+<p style={{fontSize:11,color:'var(--muted)',marginTop:-4,marginBottom:8}}>Wikipedia-Verknüpfung von OpenStreetMap — meist der Fluss oder Ort, nicht die Quelle selbst</p>
 {w.wiki_extract&&<p className={styles.desc}>{w.wiki_extract}</p>}
-<a href={w.wiki_url}target="_blank"rel="noopener noreferrer"style={{fontSize:13,color:'var(--g)'}}>{w.wiki_title||'Artikel lesen'} ↗</a>
+<a href={w.wiki_url}target="_blank"rel="noopener noreferrer"style={{fontSize:13,color:'var(--g)'}}>Artikel lesen ↗</a>
 </div>
 )}
 <div className={styles.section}>
@@ -132,13 +138,6 @@ return(
 </div>
 </div>
 <div className={styles.sidebar}>
-{showWikiImg&&(
-<div className={styles.sideCard}style={{padding:0,overflow:'hidden'}}>
-{/* eslint-disable-next-line @next/next/no-img-element */}
-<img src={w.wiki_image_url}alt=""onError={()=>setImgFailed(true)}
-style={{display:'block',width:'100%',height:140,objectFit:'cover'}}/>
-</div>
-)}
 <div className={styles.sideCard}>
 <a href={route}target="_blank"rel="noopener noreferrer"className={styles.inviteBtn}style={{width:'100%',textAlign:'center',display:'block',background:color}}>🧭 Route planen</a>
 <a href={osm}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:8,fontSize:12,color:'var(--g)'}}>Quelle öffnen ↗</a>
