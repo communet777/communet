@@ -6,7 +6,7 @@ import WaterPopup from'../components/WaterPopup'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView}from'../lib/water'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView}from'../lib/water'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 
@@ -20,6 +20,8 @@ const[showWater,setShowWater]=useState(true)
 const[onlyRoad,setOnlyRoad]=useState(false)
 const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const[view,setView]=useState(null)
+const[initialView]=useState(()=>loadMapView('communet-map-versorgung'))
+function handleViewChange(v){setView(v);saveMapView('communet-map-versorgung',v)}
 const[selectedWater,setSelectedWater]=useState(null)
 const water=useWaterSources(!!user&&showWater,view)
 let visibleWater=water.items.filter(w=>activeCats.includes(w.typ))
@@ -112,7 +114,7 @@ Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
 {user&&(showFarm||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
 <div className={styles.zoomHint}>🔍 Zum Anzeigen weiter hineinzoomen</div>
 )}
-<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={setView}/>
+<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}/>
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
