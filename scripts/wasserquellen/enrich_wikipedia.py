@@ -10,8 +10,11 @@ Kurzbeschreibung geladen und in water_sources gespeichert.
     Sprache passend zur Region, sonst Deutsch, sonst Englisch, sonst irgendein Wiki)
   - Das von der REST-API gelieferte Vorschaubild ist standardmäßig sehr klein
     (330px) und wirkt auf einem breiten Detailseiten-Banner verpixelt. Die
-    Bild-URL wird deshalb auf 1200px angehoben (Wikimedias Thumbnail-Server
-    erzeugt beliebige Breiten auf Anfrage, keine zusätzliche Abfrage nötig).
+    Bild-URL wird deshalb auf IMAGE_WIDTH angehoben. Wichtig: ist das Original
+    kleiner als die angeforderte Breite, liefert Wikimedias Thumbnail-Server
+    teils einen Fehler statt automatisch zu skalieren — daher bewusst ein
+    moderater Wert (800px) statt z.B. 1200px, und zusätzlich fängt das
+    Frontend einen fehlgeschlagenen Bildaufruf über onError ab.
 
 Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1
 """
@@ -34,7 +37,7 @@ if KEY and not KEY.startswith("sb_"):
 UA = "Communet-Wasserquellen-WikiEnrich/1.0 (+https://communet.net; communet@outlook.de)"
 REGION_LANG = {"PT": "pt", "ES": "es", "FR": "fr", "DE": "de"}
 FALLBACK_LANGS = ["de", "en", "fr", "es", "pt"]
-IMAGE_WIDTH = 1200
+IMAGE_WIDTH = 800
 
 
 def log(msg: str) -> None:
@@ -74,8 +77,7 @@ def fetch_candidates():
 
 def upsize_thumbnail(url: str) -> str:
     """Ersetzt die Breitenangabe in einer Wikimedia-Thumbnail-URL (z.B. .../330px-Foo.jpg)
-    durch IMAGE_WIDTH. Größer als das Original angefordert liefert der Server einfach
-    das Original zurück, kein Fehler."""
+    durch IMAGE_WIDTH."""
     if not url:
         return url
     return re.sub(r"/(\d+)px-", f"/{IMAGE_WIDTH}px-", url, count=1)
