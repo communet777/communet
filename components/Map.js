@@ -2,7 +2,7 @@ import{useEffect,useRef}from'react'
 import{getTypIcon}from'../data/communities'
 import{WATER_COLORS}from'../lib/water'
 const TYPE_COLORS={"Ökodorf":"#2d6a4f","Kommune":"#e07820","Kollektiv":"#3f51b5","Spirituelle Gemeinschaft":"#8e24aa","Wohnprojekt":"#00897b","Sonstige":"#757575"}
-export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null}){
+export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
 const markersRef=useRef({})
@@ -68,6 +68,10 @@ useEffect(()=>{
 if(!mapInstanceRef.current||!selectedFarm)return
 mapInstanceRef.current.flyTo([selectedFarm.lat,selectedFarm.lon],10,{duration:1})
 },[selectedFarm])
+useEffect(()=>{
+if(!mapInstanceRef.current||!flyTarget)return
+mapInstanceRef.current.flyTo([flyTarget.lat,flyTarget.lon],flyTarget.zoom||13,{duration:1})
+},[flyTarget])
 return<div ref={mapRef}style={{width:'100%',height:'100%',minHeight:'500px',WebkitTapHighlightColor:'transparent'}}/>
 }
 

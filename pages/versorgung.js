@@ -3,6 +3,7 @@ import dynamic from'next/dynamic'
 import Link from'next/link'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
+import PlaceSearch from'../components/PlaceSearch'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
@@ -23,6 +24,7 @@ const[view,setView]=useState(null)
 const[initialView]=useState(()=>loadMapView('communet-map-versorgung'))
 function handleViewChange(v){setView(v);saveMapView('communet-map-versorgung',v)}
 const[selectedWater,setSelectedWater]=useState(null)
+const[flyTarget,setFlyTarget]=useState(null)
 const water=useWaterSources(!!user&&showWater,view)
 let visibleWater=water.items.filter(w=>activeCats.includes(w.typ))
 if(onlyRoad)visibleWater=visibleWater.filter(w=>w.road_distance_m!=null)
@@ -69,6 +71,7 @@ return(
 <div className={styles.sidebar}>
 <div className={styles.sideHeader}>
 <h1 className={styles.title}>{t('supply_title')}</h1>
+<PlaceSearch onFound={r=>setFlyTarget({lat:r.lat,lon:r.lon,zoom:13})}/>
 <p className={styles.sub}>{showFarm?(farmZoomOk?`🧺 ${visibleFarms.length} ${t('supply_farmshops')} im Kartenausschnitt`:'🔍 Zum Anzeigen der Bio-Hofläden und Wasserquellen in die Karte hineinzoomen'):`${farmShops.length} ${t('supply_farmshops')}`}</p>
 </div>
 <div className={styles.memberPanel}>
@@ -114,7 +117,7 @@ Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
 {user&&(showFarm||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
 <div className={styles.zoomHint}>🔍 Zum Anzeigen weiter hineinzoomen</div>
 )}
-<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}/>
+<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}flyTarget={flyTarget}/>
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>

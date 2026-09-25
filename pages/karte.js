@@ -2,6 +2,7 @@ import{useState,useEffect}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
+import PlaceSearch from'../components/PlaceSearch'
 import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
@@ -45,6 +46,7 @@ const[view,setView]=useState(null)
 const[initialView]=useState(()=>loadMapView('communet-map-karte'))
 function handleViewChange(v){setView(v);saveMapView('communet-map-karte',v)}
 const[selectedWater,setSelectedWater]=useState(null)
+const[flyTarget,setFlyTarget]=useState(null)
 const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const water=useWaterSources(!!user&&showWater,view)
 const visibleWaterKarte=water.items.filter(w=>activeCats.includes(w.typ))
@@ -125,6 +127,7 @@ return(
 <span className={styles.searchIcon}>🔍</span>
 <input type="text"className={styles.search}placeholder={t('communities_search')}value={search}onChange={e=>setSearch(e.target.value)}/>
 </div>
+<PlaceSearch onFound={r=>setFlyTarget({lat:r.lat,lon:r.lon,zoom:13})}placeholder="Ort oder Adresse suchen (wie Google Maps) …"/>
 <div className={styles.pills}>
 {['alle','Ökodorf','Kommune','Kollektiv','Spirituelle Gemeinschaft','Wohnprojekt'].map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
@@ -193,7 +196,7 @@ border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER
 {user&&(showFarmShops||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
 <div className={styles.zoomHint}>🔍 Zum Anzeigen von {showFarmShops&&showWater?'Hofläden und Wasserquellen':showWater?'Wasserquellen':'Hofläden'} weiter hineinzoomen</div>
 )}
-<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?visibleWaterKarte:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}/>
+<MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?visibleWaterKarte:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}flyTarget={flyTarget}/>
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>
