@@ -15,7 +15,7 @@ const waterCbRef=useRef(onSelectWater);waterCbRef.current=onSelectWater
 useEffect(()=>{
 if(typeof window==='undefined'||mapInstanceRef.current)return
 const L=require('leaflet');require('leaflet/dist/leaflet.css')
-const map=L.map(mapRef.current,{center:initialView?[initialView.lat,initialView.lon]:[20,10],zoom:initialView?initialView.zoom:2,zoomControl:true})
+const map=L.map(mapRef.current,{center:initialView?[initialView.lat,initialView.lon]:[50,10],zoom:initialView?initialView.zoom:4,zoomControl:true})
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18}).addTo(map)
 mapInstanceRef.current=map
 // Wasserquellen werden auf einer Zeichenfläche (Canvas) gezeichnet, das bleibt auch bei 1000 Punkten flüssig
@@ -70,7 +70,12 @@ mapInstanceRef.current.flyTo([selectedFarm.lat,selectedFarm.lon],10,{duration:1}
 },[selectedFarm])
 useEffect(()=>{
 if(!mapInstanceRef.current||!flyTarget)return
+if(flyTarget.bbox){
+const[s,n,w,e]=flyTarget.bbox
+mapInstanceRef.current.flyToBounds([[s,w],[n,e]],{duration:1,padding:[24,24],maxZoom:16})
+}else{
 mapInstanceRef.current.flyTo([flyTarget.lat,flyTarget.lon],flyTarget.zoom||13,{duration:1})
+}
 },[flyTarget])
 return<div ref={mapRef}style={{width:'100%',height:'100%',minHeight:'500px',WebkitTapHighlightColor:'transparent'}}/>
 }

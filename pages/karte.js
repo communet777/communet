@@ -127,7 +127,7 @@ return(
 <span className={styles.searchIcon}>🔍</span>
 <input type="text"className={styles.search}placeholder={t('communities_search')}value={search}onChange={e=>setSearch(e.target.value)}/>
 </div>
-<PlaceSearch onFound={r=>setFlyTarget({lat:r.lat,lon:r.lon,zoom:13})}placeholder="Ort oder Adresse suchen (wie Google Maps) …"/>
+<PlaceSearch onFound={r=>setFlyTarget(r)}bias={view||(initialView?{south:initialView.lat-1,west:initialView.lon-1,north:initialView.lat+1,east:initialView.lon+1}:null)}placeholder="Ort oder Adresse suchen (wie Google Maps) …"/>
 <div className={styles.pills}>
 {['alle','Ökodorf','Kommune','Kollektiv','Spirituelle Gemeinschaft','Wohnprojekt'].map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>

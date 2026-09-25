@@ -71,7 +71,7 @@ return(
 <div className={styles.sidebar}>
 <div className={styles.sideHeader}>
 <h1 className={styles.title}>{t('supply_title')}</h1>
-<PlaceSearch onFound={r=>setFlyTarget({lat:r.lat,lon:r.lon,zoom:13})}/>
+<PlaceSearch onFound={r=>setFlyTarget(r)}bias={view||(initialView?{south:initialView.lat-1,west:initialView.lon-1,north:initialView.lat+1,east:initialView.lon+1}:null)}/>
 <p className={styles.sub}>{showFarm?(farmZoomOk?`🧺 ${visibleFarms.length} ${t('supply_farmshops')} im Kartenausschnitt`:'🔍 Zum Anzeigen der Bio-Hofläden und Wasserquellen in die Karte hineinzoomen'):`${farmShops.length} ${t('supply_farmshops')}`}</p>
 </div>
 <div className={styles.memberPanel}>
