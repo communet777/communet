@@ -8,11 +8,16 @@ Kurzbeschreibung geladen und in water_sources gespeichert.
   - wikipedia-Tag direkt nutzbar (Sprache + Titel bereits bekannt)
   - wikidata-Tag: über die Wikidata-API die "sitelinks" auflösen (bevorzugt die
     Sprache passend zur Region, sonst Deutsch, sonst Englisch, sonst irgendein Wiki)
+  - Das von der REST-API gelieferte Vorschaubild ist standardmäßig sehr klein
+    (330px) und wirkt auf einem breiten Detailseiten-Banner verpixelt. Die
+    Bild-URL wird deshalb auf 1200px angehoben (Wikimedias Thumbnail-Server
+    erzeugt beliebige Breiten auf Anfrage, keine zusätzliche Abfrage nötig).
 
 Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1
 """
 import json
 import os
+import re
 import sys
 import time
 import urllib.parse
@@ -29,6 +34,7 @@ if KEY and not KEY.startswith("sb_"):
 UA = "Communet-Wasserquellen-WikiEnrich/1.0 (+https://communet.net; communet@outlook.de)"
 REGION_LANG = {"PT": "pt", "ES": "es", "FR": "fr", "DE": "de"}
 FALLBACK_LANGS = ["de", "en", "fr", "es", "pt"]
+IMAGE_WIDTH = 1200
 
 
 def log(msg: str) -> None:
@@ -66,6 +72,15 @@ def fetch_candidates():
     return rows
 
 
+def upsize_thumbnail(url: str) -> str:
+    """Ersetzt die Breitenangabe in einer Wikimedia-Thumbnail-URL (z.B. .../330px-Foo.jpg)
+    durch IMAGE_WIDTH. Größer als das Original angefordert liefert der Server einfach
+    das Original zurück, kein Fehler."""
+    if not url:
+        return url
+    return re.sub(r"/(\d+)px-", f"/{IMAGE_WIDTH}px-", url, count=1)
+
+
 def summary(lang: str, title: str):
     url = f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(title)}"
     r = requests.get(url, headers={"User-Agent": UA, "Accept": "application/json"}, timeout=20)
@@ -77,7 +92,7 @@ def summary(lang: str, title: str):
     return {
         "wiki_url": (d.get("content_urls", {}).get("desktop", {}) or {}).get("page"),
         "wiki_title": d.get("title"),
-        "wiki_image_url": (d.get("thumbnail") or {}).get("source"),
+        "wiki_image_url": upsize_thumbnail((d.get("thumbnail") or {}).get("source")),
         "wiki_extract": (d.get("extract") or "")[:500],
     }
 
