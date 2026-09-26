@@ -1,4 +1,4 @@
-import{useState,useEffect}from'react'
+import{useState,useEffect,useRef}from'react'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
@@ -47,6 +47,8 @@ const[initialView]=useState(()=>loadMapView('communet-map-karte'))
 function handleViewChange(v){setView(v);saveMapView('communet-map-karte',v)}
 const[selectedWater,setSelectedWater]=useState(null)
 const[flyTarget,setFlyTarget]=useState(null)
+const[placeSearchOpen,setPlaceSearchOpen]=useState(false)
+const placeSearchRef=useRef(null)
 const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const water=useWaterSources(!!user&&showWater,view)
 const visibleWaterKarte=water.items.filter(w=>activeCats.includes(w.typ))
@@ -131,11 +133,19 @@ return(
 <h1 className={styles.title}>{t('map_title')}</h1>
 <p className={styles.sub}>{filtered.length} {t('map_communities')}</p>
 </div>
-<div className={styles.searchWrap}>
+<div className={styles.searchWrap}style={{position:'relative'}}>
 <span className={styles.searchIcon}>🔍</span>
-<input type="text"className={styles.search}placeholder={t('communities_search')}value={search}onChange={e=>setSearch(e.target.value)}/>
+<input type="text"className={styles.search}style={{paddingRight:34}}placeholder={t('communities_search')}value={search}onChange={e=>setSearch(e.target.value)}/>
+<button type="button"onClick={()=>setPlaceSearchOpen(v=>!v)}title="Ort oder Adresse suchen"
+style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',background:placeSearchOpen?'var(--g)':'none',border:'none',borderRadius:6,width:24,height:24,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:13,filter:placeSearchOpen?'none':'grayscale(1)',opacity:placeSearchOpen?1:.55}}>
+📍
+</button>
 </div>
-<PlaceSearch onFound={r=>setFlyTarget(r)}bias={view||(initialView?{south:initialView.lat-1,west:initialView.lon-1,north:initialView.lat+1,east:initialView.lon+1}:null)}placeholder="Ort oder Adresse suchen (wie Google Maps) …"/>
+{placeSearchOpen&&(
+<div ref={placeSearchRef}>
+<PlaceSearch onFound={r=>{setFlyTarget(r);setPlaceSearchOpen(false)}}bias={view||(initialView?{south:initialView.lat-1,west:initialView.lon-1,north:initialView.lat+1,east:initialView.lon+1}:null)}placeholder="Ort oder Adresse suchen (wie Google Maps) …"/>
+</div>
+)}
 <div className={styles.pills}>
 {['alle','Ökodorf','Kommune','Kollektiv','Spirituelle Gemeinschaft','Wohnprojekt'].map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
