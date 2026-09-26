@@ -47,17 +47,20 @@ def log(msg: str) -> None:
 
 
 def fetch_existing_numeros():
-    ids, offset = set(), 0
+    """Server deckelt eine einzelne Antwort ohnehin auf ca. 1000 Zeilen, unabhängig
+    von der angeforderten Range-Größe. Deshalb strikt in 1000er-Schritten weiterblättern
+    und erst aufhören, wenn wirklich nichts mehr zurückkommt (nicht schon bei <1000)."""
+    ids, offset, step = set(), 0, 1000
     while True:
         r = requests.get(f"{SUPABASE_URL}/rest/v1/farm_shops_fr",
-                          headers={**HEAD, "Range": f"{offset}-{offset + 9999}"},
+                          headers={**HEAD, "Range": f"{offset}-{offset + step - 1}"},
                           params={"select": "numero_bio"}, timeout=60)
         r.raise_for_status()
         batch = r.json()
-        ids.update(row["numero_bio"] for row in batch)
-        if len(batch) < 10000:
+        if not batch:
             break
-        offset += 10000
+        ids.update(row["numero_bio"] for row in batch)
+        offset += step
     return ids
 
 
