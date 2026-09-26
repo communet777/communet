@@ -4,7 +4,12 @@ on:
   push:
     branches: [main]
     paths: ['scripts/biohoflaeden-osm/run.txt']
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      only_country:
+        description: 'Nur ein Land testen (ES/PT), leer = beide'
+        required: false
+        default: ''
   schedule:
     - cron: '30 5 1 * *'
 
@@ -27,4 +32,5 @@ jobs:
         env:
           SUPABASE_URL: https://dgffntczrhwujjtvbytj.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ONLY_COUNTRY: ${{ github.event.inputs.only_country }}
         run: python scripts/biohoflaeden-osm/import_farm_shops_osm.py
