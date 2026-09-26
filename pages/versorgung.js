@@ -39,6 +39,7 @@ useEffect(()=>{
       .not('lat','is',null),
     supabase.from('farm_shops_fr')
       .select('numero_bio,name,adresse,code_postal,ville,departement,organisme_certificateur,lat,lon,site_web,raw')
+      .eq('location_precision','exact')
       .not('lat','is',null),
   ]).then(([de,fr])=>{
     const all=[...(de.data||[]), ...(fr.data||[]).map(normalizeFarmShopFr)]
