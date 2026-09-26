@@ -3,3 +3,4 @@ data.gouv.fr-CSV-Export (umgeht das 100er-API-Limit, aber nur Postleitzahl-
 genau). Änderung an dieser Datei löst einen neuen Lauf aus.
 
 Letzter Start: 2026-09-26 – Erstlauf
+Lauf 2: Fix für abgebrochene existing-Prüfung (1000er-Limit)
