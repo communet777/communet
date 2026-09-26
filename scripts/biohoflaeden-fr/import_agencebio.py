@@ -72,6 +72,16 @@ def best_address(op: dict):
     return addrs[0]
 
 
+def best_website(op: dict):
+    """Nimmt die erste aktive Website-URL, falls vorhanden — nicht das ganze
+    siteWebs-Objekt (das würde als kaputter JSON-Text in der Spalte landen)."""
+    for sw in (op.get("siteWebs") or []):
+        url = (sw or {}).get("url")
+        if url:
+            return url
+    return None
+
+
 def upsert(rows):
     if DRY or not rows:
         return
@@ -154,7 +164,7 @@ def process_departement(dep: str) -> dict:
             "departement": dep,
             "lat": addr.get("lat"),
             "lon": addr.get("long"),
-            "site_web": (op.get("siteWebs") or [None])[0],
+            "site_web": best_website(op),
             "raw": op,
             "imported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         })
