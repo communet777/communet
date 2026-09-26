@@ -93,8 +93,9 @@ def process_country(code: str, url: str) -> int:
     download(url, pbf)
     log(f"[{code}] Download fertig ({os.path.getsize(pbf) / 1e6:.0f} MB)")
 
-    log(f"[{code}] Filtere shop=farm (nur Punkte) …")
-    run(["osmium", "tags-filter", "-o", filtered, "--overwrite", pbf, "n/shop=farm"])
+    log(f"[{code}] Filtere shop=farm (Punkte UND Flächen — laut OSM-Wiki wird ein Hofladen\n"
+        f"        auch als Gebäude-Umriss kartiert, nicht nur als Punkt) …")
+    run(["osmium", "tags-filter", "-o", filtered, "--overwrite", pbf, "nwr/shop=farm"])
     log(f"[{code}] Gefilterte Datei: {os.path.getsize(filtered)} Bytes")
 
     log(f"[{code}] Exportiere als GeoJSON …")
@@ -106,11 +107,24 @@ def process_country(code: str, url: str) -> int:
     all_features = data.get("features", [])
     rows = []
     skipped_not_organic = 0
+    skipped_no_geom = 0
     for feat in all_features:
         geom = feat.get("geometry") or {}
-        if geom.get("type") != "Point":
+        gtype = geom.get("type")
+        if gtype == "Point":
+            lon, lat = geom["coordinates"][0], geom["coordinates"][1]
+        elif gtype == "Polygon":
+            # Einfacher Mittelpunkt des äußeren Rings reicht für einen Kartenpunkt völlig aus
+            ring = geom["coordinates"][0]
+            lon = sum(p[0] for p in ring) / len(ring)
+            lat = sum(p[1] for p in ring) / len(ring)
+        elif gtype == "MultiPolygon":
+            ring = geom["coordinates"][0][0]
+            lon = sum(p[0] for p in ring) / len(ring)
+            lat = sum(p[1] for p in ring) / len(ring)
+        else:
+            skipped_no_geom += 1
             continue
-        lon, lat = geom["coordinates"][0], geom["coordinates"][1]
         tags = feat.get("properties", {}) or {}
         osm_id = feat.get("id") or tags.get("@id")
         if not osm_id:
@@ -140,7 +154,8 @@ def process_country(code: str, url: str) -> int:
             "imported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         })
 
-    log(f"[{code}] {len(rows)} bio-zertifizierte Hofläden gefunden ({skipped_not_organic} ohne organic=yes/only übersprungen), speichere …")
+    log(f"[{code}] {len(rows)} bio-zertifizierte Hofläden gefunden "
+        f"({skipped_not_organic} ohne organic=yes/only, {skipped_no_geom} ohne verwertbare Geometrie übersprungen), speichere …")
     upsert(rows)
 
     for p in (pbf, filtered, geojson):
