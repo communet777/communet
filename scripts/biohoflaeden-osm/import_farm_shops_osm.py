@@ -5,16 +5,16 @@ Bio-Hofläden Spanien & Portugal über OpenStreetMap statt Behörden-Register.
 Grund: Beide Länder haben keine sauber abrufbare Behördendatenbank (Spanien:
 17 getrennte Regionalregister ohne Bulk-Export; Portugal: Daten nur als
 Power-BI-Dashboard, keine Liste zum Herunterladen). OSM-Tag shop=farm markiert
-Hofläden direkt am Erzeugerbetrieb — echte GPS-Koordinaten, aber NICHT amtlich
-bio-zertifiziert (nur was jemand selbst so eingetragen hat). Gleicher
-Genauigkeits-Kompromiss wie bei den 60.211 Postleitzahl-Einträgen aus
-Frankreich, hier aber mit echten Koordinaten statt Gemeinde-Mittelpunkt.
+Hofläden direkt am Erzeugerbetrieb, echte GPS-Koordinaten. Grundvoraussetzung
+wie bei DE und FR bleibt: nur bio (hier: organic=yes/only gesetzt) — ein
+shop=farm ohne dieses Tag ist irgendein Hofladen, keine Aussage zu Bio. Das
+ist immer noch Selbstauskunft der OSM-Community, keine amtliche Zertifizierung
+wie bei DE/FR, aber die engere Voraussetzung als "irgendein Hofladen".
 
 Quelle: Geofabrik (dieselbe wie beim Wasserquellen-Import), Filterung mit
 osmium (muss auf dem Runner installiert werden).
 
-Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1,
-ONLY_COUNTRY=ES|PT (nur ein Land, für schnellere Tests)
+Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1
 """
 import json
 import os
@@ -104,11 +104,8 @@ def process_country(code: str, url: str) -> int:
     with open(geojson) as f:
         data = json.load(f)
     all_features = data.get("features", [])
-    log(f"[{code}] Rohes GeoJSON: {len(all_features)} Features insgesamt")
-    if all_features:
-        log(f"[{code}] Beispiel-Feature: {json.dumps(all_features[0], ensure_ascii=False)[:800]}")
-
     rows = []
+    skipped_not_organic = 0
     for feat in all_features:
         geom = feat.get("geometry") or {}
         if geom.get("type") != "Point":
@@ -117,6 +114,11 @@ def process_country(code: str, url: str) -> int:
         tags = feat.get("properties", {}) or {}
         osm_id = feat.get("id") or tags.get("@id")
         if not osm_id:
+            continue
+        # Grundvoraussetzung: nur bio-zertifizierte Hofläden (wie bei DE und FR).
+        # Ein shop=farm ohne organic=yes/only ist irgendein Hofladen, nicht zwingend bio.
+        if tags.get("organic") not in ("yes", "only"):
+            skipped_not_organic += 1
             continue
         tags = {k: v for k, v in tags.items() if k != "@id"}  # nicht doppelt in raw ablegen
         rows.append({
@@ -138,7 +140,7 @@ def process_country(code: str, url: str) -> int:
             "imported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         })
 
-    log(f"[{code}] {len(rows)} Hofläden gefunden, speichere …")
+    log(f"[{code}] {len(rows)} bio-zertifizierte Hofläden gefunden ({skipped_not_organic} ohne organic=yes/only übersprungen), speichere …")
     upsert(rows)
 
     for p in (pbf, filtered, geojson):
