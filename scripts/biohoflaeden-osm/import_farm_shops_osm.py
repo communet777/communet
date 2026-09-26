@@ -98,7 +98,7 @@ def process_country(code: str, url: str) -> int:
     log(f"[{code}] Gefilterte Datei: {os.path.getsize(filtered)} Bytes")
 
     log(f"[{code}] Exportiere als GeoJSON …")
-    run(["osmium", "export", filtered, "-o", geojson, "--overwrite", "-f", "geojson"])
+    run(["osmium", "export", filtered, "-o", geojson, "--overwrite", "-f", "geojson", "--add-unique-id=type_id"])
     log(f"[{code}] GeoJSON-Dateigröße: {os.path.getsize(geojson)} Bytes")
 
     with open(geojson) as f:
@@ -118,6 +118,7 @@ def process_country(code: str, url: str) -> int:
         osm_id = feat.get("id") or tags.get("@id")
         if not osm_id:
             continue
+        tags = {k: v for k, v in tags.items() if k != "@id"}  # nicht doppelt in raw ablegen
         rows.append({
             "osm_id": str(osm_id),
             "country": code,
