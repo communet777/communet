@@ -13,7 +13,8 @@ Frankreich, hier aber mit echten Koordinaten statt Gemeinde-Mittelpunkt.
 Quelle: Geofabrik (dieselbe wie beim Wasserquellen-Import), Filterung mit
 osmium (muss auf dem Runner installiert werden).
 
-Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1
+Umgebungsvariablen: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DRY_RUN=1,
+ONLY_COUNTRY=ES|PT (nur ein Land, für schnellere Tests)
 """
 import json
 import os
@@ -94,15 +95,21 @@ def process_country(code: str, url: str) -> int:
 
     log(f"[{code}] Filtere shop=farm (nur Punkte) …")
     run(["osmium", "tags-filter", "-o", filtered, "--overwrite", pbf, "n/shop=farm"])
+    log(f"[{code}] Gefilterte Datei: {os.path.getsize(filtered)} Bytes")
 
     log(f"[{code}] Exportiere als GeoJSON …")
     run(["osmium", "export", filtered, "-o", geojson, "--overwrite", "-f", "geojson"])
+    log(f"[{code}] GeoJSON-Dateigröße: {os.path.getsize(geojson)} Bytes")
 
     with open(geojson) as f:
         data = json.load(f)
+    all_features = data.get("features", [])
+    log(f"[{code}] Rohes GeoJSON: {len(all_features)} Features insgesamt")
+    if all_features:
+        log(f"[{code}] Beispiel-Feature: {json.dumps(all_features[0], ensure_ascii=False)[:800]}")
 
     rows = []
-    for feat in data.get("features", []):
+    for feat in all_features:
         geom = feat.get("geometry") or {}
         if geom.get("type") != "Point":
             continue
@@ -146,10 +153,14 @@ def main():
     if not DRY and (not SUPABASE_URL or not KEY):
         print("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen", file=sys.stderr)
         sys.exit(1)
-    log(f"Start: Bio-Hofläden über OSM für {', '.join(COUNTRIES)}")
+    countries = COUNTRIES
+    only = os.environ.get("ONLY_COUNTRY")
+    if only:
+        countries = {only: COUNTRIES[only]}
+    log(f"Start: Bio-Hofläden über OSM für {', '.join(countries)}")
     total = 0
     failed = []
-    for code, url in COUNTRIES.items():
+    for code, url in countries.items():
         try:
             total += process_country(code, url)
         except Exception as e:
