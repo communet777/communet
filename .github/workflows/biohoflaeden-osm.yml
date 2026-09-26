@@ -1,0 +1,30 @@
+name: Bio-Hofläden ES/PT (OpenStreetMap)
+
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/biohoflaeden-osm/run.txt']
+  workflow_dispatch: {}
+  schedule:
+    - cron: '30 5 1 * *'
+
+concurrency:
+  group: biohoflaeden-osm
+  cancel-in-progress: true
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: osmium-tool installieren
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
+      - run: pip install -q requests
+      - name: Import
+        env:
+          SUPABASE_URL: https://dgffntczrhwujjtvbytj.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/biohoflaeden-osm/import_farm_shops_osm.py

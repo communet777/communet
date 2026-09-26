@@ -1,0 +1,4 @@
+Startet den Bio-Hofläden-Import für Spanien und Portugal über OpenStreetMap
+(shop=farm). Änderung an dieser Datei löst einen neuen Lauf aus.
+
+Letzter Start: 2026-09-26 – Erstimport
