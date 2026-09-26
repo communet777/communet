@@ -1,0 +1,4 @@
+Startet die Sortiment-Erkennung für französische Bio-Hofläden (Website-Abfrage).
+Änderung an dieser Datei löst einen neuen Lauf aus.
+
+Letzter Start: 2026-09-26 – Erstlauf, 338 Hofläden mit Website
