@@ -20,8 +20,22 @@ const[loading,setLoading]=useState(true)
 
 useEffect(()=>{
 if(!user||!id)return
+const isFr=typeof id==='string'&&id.startsWith('fr_')
+if(isFr){
+supabase.from('farm_shops_fr').select('*').eq('numero_bio',id.slice(3)).single()
+.then(({data})=>{
+setHof(data?{
+id,name:data.name,strasse:data.adresse,plz:data.code_postal,ort:data.ville,
+bundesland:data.departement,bio_verband:data.organisme_certificateur,
+lat:data.lat,lon:data.lon,website:data.site_web,
+telefon:data.raw?.telephone||null,email:data.raw?.email||null,
+}:null)
+setLoading(false)
+})
+}else{
 supabase.from('farm_shops').select('*').eq('id',id).single()
 .then(({data})=>{ setHof(data); setLoading(false) })
+}
 },[user,id])
 
 if(!user){

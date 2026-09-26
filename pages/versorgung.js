@@ -7,7 +7,7 @@ import PlaceSearch from'../components/PlaceSearch'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView}from'../lib/water'
+import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr}from'../lib/water'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 
@@ -33,10 +33,17 @@ const visibleFarms=showFarm&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
 
 useEffect(()=>{
   if(!user)return
-  supabase.from('farm_shops')
-    .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
-    .not('lat','is',null)
-    .then(({data})=>{ if(data) setFarmShops(data) })
+  Promise.all([
+    supabase.from('farm_shops')
+      .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
+      .not('lat','is',null),
+    supabase.from('farm_shops_fr')
+      .select('numero_bio,name,adresse,code_postal,ville,departement,organisme_certificateur,lat,lon,site_web,raw')
+      .not('lat','is',null),
+  ]).then(([de,fr])=>{
+    const all=[...(de.data||[]), ...(fr.data||[]).map(normalizeFarmShopFr)]
+    setFarmShops(all)
+  })
 },[user])
 
 function selectFarm(f){ setSelectedFarm(f); setSelectedWater(null) }
