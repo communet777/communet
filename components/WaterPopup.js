@@ -11,11 +11,18 @@ export default function WaterPopup({ w, onClose }) {
   const [imgFailed, setImgFailed] = useState(false)
   useEffect(() => { setImgFailed(false) }, [w.wiki_image_url])
   const showWikiImg = !!w.wiki_image_url && !imgFailed
+  const creditParts = [w.wiki_image_author, w.wiki_image_license].filter(Boolean)
+  const creditText = creditParts.length ? `Foto: ${creditParts.join(', ').slice(0, 80)} (Wikimedia)` : 'Foto: Wikimedia Commons'
   return (
     <div className={styles.popup}>
       <button className={styles.popupClose} onClick={onClose}>✕</button>
       {showWikiImg
-        ? <img src={w.wiki_image_url} alt="" onError={() => setImgFailed(true)} style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 8 }} />
+        ? <>
+            <a href={w.wiki_image_file_url || w.wiki_url} target="_blank" rel="noopener noreferrer" title={creditText}>
+              <img src={w.wiki_image_url} alt="" onError={() => setImgFailed(true)} style={{ display: 'block', width: '100%', height: 90, objectFit: 'cover', borderRadius: 8 }} />
+            </a>
+            <div className={styles.popupLoc}>📷 {creditText}</div>
+          </>
         : <div className={styles.popupIcon}>{w.typ === 'Thermalquelle' ? '♨️' : '💧'}</div>
       }
       <div className={styles.popupName}>{w.name || w.typ}</div>

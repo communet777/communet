@@ -123,6 +123,13 @@ style={{position:'absolute',bottom:-52,right:28,width:150,height:104,borderRadiu
 <p style={{fontSize:11,color:'var(--muted)',marginTop:-4,marginBottom:8}}>Wikipedia-Verknüpfung von OpenStreetMap — meist der Fluss oder Ort, nicht die Quelle selbst</p>
 {w.wiki_extract&&<p className={styles.desc}>{w.wiki_extract}</p>}
 <a href={w.wiki_url}target="_blank"rel="noopener noreferrer"style={{fontSize:13,color:'var(--g)'}}>Artikel lesen ↗</a>
+{w.wiki_image_url&&!imgFailed&&(
+<p style={{fontSize:11,color:'var(--muted)',marginTop:8}}>
+Foto: {w.wiki_image_author||'Urheber siehe Dateiseite'}
+{w.wiki_image_license&&<>{' · '}{w.wiki_image_license_url?<a href={w.wiki_image_license_url}target="_blank"rel="noopener noreferrer"style={{color:'var(--muted)'}}>{w.wiki_image_license}</a>:w.wiki_image_license}</>}
+{' · '}<a href={w.wiki_image_file_url||w.wiki_url}target="_blank"rel="noopener noreferrer"style={{color:'var(--muted)'}}>Wikimedia Commons ↗</a>
+</p>
+)}
 </div>
 )}
 <div className={styles.section}>
@@ -134,7 +141,7 @@ style={{position:'absolute',bottom:-52,right:28,width:150,height:104,borderRadiu
 </p>
 </div>
 <div className={styles.section}>
-<a href={osm}target="_blank"rel="noopener noreferrer"style={{fontSize:11,color:'var(--muted)'}}>Quelle: OpenStreetMap ↗</a>
+<a href={osm}target="_blank"rel="noopener noreferrer"style={{fontSize:11,color:'var(--muted)'}}>Daten: © OpenStreetMap-Mitwirkende (ODbL) ↗</a>
 </div>
 </div>
 <div className={styles.sidebar}>

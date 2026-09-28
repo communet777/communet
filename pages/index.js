@@ -161,6 +161,7 @@ return(
 <Link href="/ueber-uns">{t('about')}</Link>
 <Link href="/kontakt">{t('contact')}</Link>
 <Link href="/datenschutz">{t('privacy')}</Link>
+<Link href="/impressum">Impressum</Link>
 </div>
 </footer>
 <BackToTop/>
