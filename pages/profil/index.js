@@ -82,7 +82,10 @@ export default function Profil() {
         </aside>
 
         <main className={styles.feed}>
-          <h2 className={styles.feedTitle}>Dein Feed</h2>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:12,flexWrap:'wrap'}}>
+<h2 className={styles.feedTitle}>Dein Feed</h2>
+<Link href="/feed" style={{fontSize:12,color:'var(--g)'}}>Als eigene Seite öffnen →</Link>
+</div>
           {feedLoading && <div style={{color:'var(--muted)',fontSize:13,padding:24,textAlign:'center'}}>Lädt...</div>}
           {!feedLoading && feedOffers.length === 0 && (
             <div className={styles.feedPlaceholder}>

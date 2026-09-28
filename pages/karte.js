@@ -48,10 +48,11 @@ function handleViewChange(v){setView(v);saveMapView('communet-map-karte',v)}
 const[selectedWater,setSelectedWater]=useState(null)
 const[flyTarget,setFlyTarget]=useState(null)
 const[placeSearchOpen,setPlaceSearchOpen]=useState(false)
+const[showRestricted,setShowRestricted]=useState(false)
 const placeSearchRef=useRef(null)
 const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const water=useWaterSources(!!user&&showWater,view)
-const visibleWaterKarte=water.items.filter(w=>activeCats.includes(w.typ))
+const visibleWaterKarte=water.items.filter(w=>activeCats.includes(w.typ)&&(showRestricted||(w.access!=='private'&&w.access!=='no')))
 const farmZoomOk=!!view&&view.zoom>=FARM_MIN_ZOOM
 const visibleFarms=showFarmShops&&user&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
 
@@ -194,6 +195,10 @@ border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER
 </button>
 )})}
 </div>
+<label style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:'var(--muted)',cursor:'pointer'}}>
+<input type="checkbox"checked={showRestricted}onChange={e=>setShowRestricted(e.target.checked)}/>
+Auch als privat/gesperrt markierte Quellen zeigen
+</label>
 <div style={{fontSize:11,color:'var(--muted)'}}>
 {!view||view.zoom<WATER_MIN_ZOOM?'🔍 Zum Anzeigen weiter hineinzoomen':water.error?'⚠️ Konnten nicht geladen werden':`💧 ${visibleWaterKarte.length}${water.items.length>=WATER_LIMIT?'+':''} im Kartenausschnitt`}
 </div>

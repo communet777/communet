@@ -19,6 +19,7 @@ const[selectedFarm,setSelectedFarm]=useState(null)
 const[showFarm,setShowFarm]=useState(true)
 const[showWater,setShowWater]=useState(true)
 const[onlyRoad,setOnlyRoad]=useState(false)
+const[showRestricted,setShowRestricted]=useState(false)
 const[activeCats,setActiveCats]=useState(DEFAULT_WATER_CATEGORIES)
 const[view,setView]=useState(null)
 const[initialView]=useState(()=>loadMapView('communet-map-versorgung'))
@@ -28,6 +29,7 @@ const[flyTarget,setFlyTarget]=useState(null)
 const water=useWaterSources(!!user&&showWater,view)
 let visibleWater=water.items.filter(w=>activeCats.includes(w.typ))
 if(onlyRoad)visibleWater=visibleWater.filter(w=>w.road_distance_m!=null)
+if(!showRestricted)visibleWater=visibleWater.filter(w=>w.access!=='private'&&w.access!=='no')
 const farmZoomOk=!!view&&view.zoom>=FARM_MIN_ZOOM
 const visibleFarms=showFarm&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
 
@@ -107,6 +109,10 @@ border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER
 <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--muted)',cursor:'pointer'}}>
 <input type="checkbox"checked={onlyRoad}onChange={e=>setOnlyRoad(e.target.checked)}/>
 Nur an befahrbarer Straße (ohne reine Feldweg-Quellen)
+</label>
+<label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--muted)',cursor:'pointer'}}>
+<input type="checkbox"checked={showRestricted}onChange={e=>setShowRestricted(e.target.checked)}/>
+Auch als privat/gesperrt markierte Quellen zeigen
 </label>
 <div style={{fontSize:12,color:'var(--text)'}}>{waterInfo}</div>
 </>
