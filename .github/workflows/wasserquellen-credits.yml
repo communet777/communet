@@ -1,0 +1,27 @@
+name: Wasserquellen Bildnachweise (Wikimedia)
+
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/wasserquellen/credits-run.txt']
+  workflow_dispatch: {}
+  schedule:
+    - cron: '45 3 1 * *'
+
+concurrency:
+  group: wasserquellen-credits
+  cancel-in-progress: true
+
+jobs:
+  credits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q requests
+      - env:
+          SUPABASE_URL: https://dgffntczrhwujjtvbytj.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/wasserquellen/enrich_wiki_credits.py

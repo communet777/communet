@@ -1,0 +1,4 @@
+Startet die Abfrage der Bildnachweise (Urheber, Lizenz) für Wikipedia-Bilder der Wasserquellen.
+Änderung an dieser Datei löst einen neuen Lauf aus.
+
+Letzter Start: 2026-09-28 – Erstlauf
