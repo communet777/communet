@@ -6,6 +6,7 @@ import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{useAuth}from'../../lib/AuthContext'
 import{supabase}from'../../lib/supabase'
+import{normalizeFarmShopFr,normalizeFarmShopOsm}from'../../lib/water'
 import styles from'../../styles/KommuneProfil.module.css'
 import supplyStyles from'../../styles/Karte.module.css'
 const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
@@ -20,16 +21,17 @@ const[loading,setLoading]=useState(true)
 
 useEffect(()=>{
 if(!user||!id)return
+const isOsm=typeof id==='string'&&id.startsWith('osm_')
+if(isOsm){
+supabase.from('farm_shops_osm').select('*').eq('osm_id',id.slice(4)).single()
+.then(({data})=>{ setHof(data?normalizeFarmShopOsm(data):null); setLoading(false) })
+return
+}
 const isFr=typeof id==='string'&&id.startsWith('fr_')
 if(isFr){
 supabase.from('farm_shops_fr').select('*').eq('numero_bio',id.slice(3)).single()
 .then(({data})=>{
-setHof(data?{
-id,name:data.name,strasse:data.adresse,plz:data.code_postal,ort:data.ville,
-bundesland:data.departement,bio_verband:data.organisme_certificateur,
-lat:data.lat,lon:data.lon,website:data.site_web,
-telefon:data.raw?.telephone||null,email:data.raw?.email||null,
-}:null)
+setHof(data?normalizeFarmShopFr(data):null)
 setLoading(false)
 })
 }else{
@@ -103,6 +105,24 @@ return(
 {hof.email&&<a href={`mailto:${hof.email}`}style={{color:'var(--g)'}}>✉️ {hof.email}</a>}
 {hof.website&&<a href={hof.website}target="_blank"rel="noopener noreferrer"style={{color:'var(--g)'}}>🔗 {hof.website}</a>}
 </div>
+</div>
+}
+{hof.produits&&hof.produits.length>0&&
+<div className={styles.section}>
+<div className={styles.sectionTitle}>Sortiment</div>
+<p className={styles.desc}>{hof.produits.join(' · ')}</p>
+<p style={{fontSize:11,color:'var(--muted)',marginTop:-4}}>Automatisch aus der Website des Betriebs erkannt, ohne Gewähr</p>
+</div>
+}
+{hof.oeffnungszeiten&&
+<div className={styles.section}>
+<div className={styles.sectionTitle}>Öffnungszeiten</div>
+<p className={styles.desc}>{hof.oeffnungszeiten}</p>
+</div>
+}
+{hof.hinweis&&
+<div className={styles.section}>
+<p style={{fontSize:11,color:'var(--muted)'}}>ℹ️ {hof.hinweis}</p>
 </div>
 }
 {hof.quelle_url&&
