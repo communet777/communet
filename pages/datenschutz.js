@@ -41,6 +41,8 @@ return(
 <p style={P}>Im Falle von Verstößen gegen die DSGVO steht dir ein Beschwerderecht bei einer Aufsichtsbehörde zu, insbesondere in dem Mitgliedstaat deines gewöhnlichen Aufenthalts, deines Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes.</p>
 
 <h2 style={H2}>4. Deine Daten bei Communet</h2>
+<h3 style={H3}>Kontaktformular</h3>
+<p style={P}>Wenn du das Kontaktformular unter /kontakt nutzt, werden deine Angaben (Name, sofern angegeben, E-Mail-Adresse und Nachricht) bei uns in der Datenbank gespeichert, damit wir dein Anliegen bearbeiten können. Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b bzw. lit. f DSGVO (Bearbeitung deiner Anfrage). Die Daten verbleiben bei uns, bis dein Anliegen abgeschlossen ist oder du eine Löschung verlangst.</p>
 <h3 style={H3}>Registrierung und Nutzerkonto</h3>
 <p style={P}>Bei der Registrierung erhebst du E-Mail-Adresse, gewählten Namen sowie – bei Kommunen-Profilen – zusätzliche Angaben wie Ort, Beschreibung und Kontaktdaten, die du selbst einträgst. Die Verarbeitung erfolgt zur Bereitstellung deines Nutzerkontos (Art. 6 Abs. 1 lit. b DSGVO).</p>
 <h3 style={H3}>Server-Log-Dateien</h3>
