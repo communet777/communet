@@ -6,7 +6,8 @@ import PlaceSearch from'../components/PlaceSearch'
 import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
-import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
+import{getTypBadge,getTypIcon}from'../data/communities'
+import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
@@ -31,6 +32,7 @@ function dbToMap(p) {
 }
 
 export default function Karte(){
+const[COMMUNITIES]=useCatalog()
 const{t}=useLang()
 const{user}=useAuth()
 const[selected,setSelected]=useState(null)

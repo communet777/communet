@@ -2,7 +2,7 @@
 .loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
 .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--g); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.container { max-width: 680px; margin: 0 auto; padding: 48px 20px; }
+.container { max-width: 920px; margin: 0 auto; padding: 48px 20px; }
 .title { font-size: 26px; font-weight: 700; color: var(--text); margin: 0 0 32px; }
 .section { margin-bottom: 40px; }
 .sectionTitle { font-size: 16px; font-weight: 600; color: var(--text); margin: 0 0 16px; }
@@ -16,3 +16,79 @@
 .cardActions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
 .btnApprove { padding: 8px 16px; background: var(--g); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .btnReject { padding: 8px 16px; background: none; color: #c0392b; border: 1.5px solid #c0392b; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+
+/* Reiter */
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: -12px 0 28px; border-bottom: 1px solid var(--border); }
+.tab { padding: 10px 16px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-size: 14px; font-weight: 500; margin-bottom: -1px; }
+.tab:hover { color: var(--text); }
+.tabActive { color: var(--text); border-bottom-color: var(--gold); }
+
+/* Werkzeugleiste, Filter-Chips */
+.toolbar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.toolbar .input { flex: 1; min-width: 200px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.chip { padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-size: 12px; }
+.chip:hover { color: var(--text); }
+.chipActive { background: var(--g); border-color: var(--g); color: #fff; }
+
+/* Eingabefelder */
+.input, .textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; font-family: inherit; outline: none; }
+.textarea { resize: vertical; line-height: 1.5; }
+.input:focus, .textarea:focus { border-color: var(--g); }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--text); margin: 6px 0 18px; }
+.check input { margin-top: 4px; }
+.hint { font-size: 12px; color: var(--muted); margin: -4px 0 16px; line-height: 1.5; }
+.link { color: var(--g); text-decoration: underline; }
+.error { color: #c0392b; font-size: 13px; margin: 8px 0; }
+.notice { background: #e8f5ee; color: #2d6a4f; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; cursor: pointer; }
+
+/* Buttons */
+.btnPrimary { padding: 10px 18px; background: var(--g); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.btnPrimary:disabled, .btnPrimarySmall:disabled { opacity: .5; cursor: default; }
+.btnGhost { padding: 10px 18px; background: none; color: var(--text); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; }
+.btnDanger { padding: 10px 18px; background: none; color: #c0392b; border: 1px solid #c0392b; border-radius: 10px; font-size: 14px; }
+.btnPrimarySmall { padding: 6px 14px; background: var(--g); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.btnGhostSmall { padding: 6px 12px; background: none; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; white-space: nowrap; }
+.spacer { flex: 1; }
+
+/* Kommunen-Liste */
+.rows { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--card); }
+.row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: none; border: none; border-bottom: 1px solid var(--border); text-align: left; color: var(--text); width: 100%; }
+.row:last-child { border-bottom: none; }
+.row:hover { background: var(--gl); }
+.rowHidden { opacity: .55; }
+.rowIcon { font-size: 22px; width: 28px; text-align: center; flex-shrink: 0; }
+.rowMain { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rowName { font-size: 14px; font-weight: 600; }
+.rowMeta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rowBadges { display: flex; gap: 6px; flex-shrink: 0; }
+.rowArrow { color: var(--muted); font-size: 20px; }
+.badgeNew, .badgeEdited, .badgeHidden { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-left: 8px; }
+.rowBadges .badgeNew, .rowBadges .badgeEdited, .rowBadges .badgeHidden { margin-left: 0; }
+.badgeNew { background: #e8f5ee; color: #2d6a4f; }
+.badgeEdited { background: #fbf3dc; color: #8a6514; }
+.badgeHidden { background: #f0f0ee; color: #6b6b63; }
+
+/* Formular */
+.form { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+.back { background: none; border: none; color: var(--muted); font-size: 13px; padding: 0; margin-bottom: 12px; }
+.formTitle { font-size: 20px; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+.formActions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* Texte */
+.textRow { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px 6px; margin-bottom: 10px; }
+.textRowChanged { border-color: #e3c97a; }
+.textKey { font-size: 11px; font-family: ui-monospace, Menlo, monospace; color: var(--muted); margin-bottom: 8px; }
+.textActions { display: flex; gap: 8px; align-items: center; margin: -4px 0 10px; }
+
+/* Nachrichten */
+.cardUnread { border-color: var(--gold); }
+
+@media (max-width: 640px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .form { padding: 18px; }
+  .rowBadges { display: none; }
+}
