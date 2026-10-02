@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import { UI_ICONS } from '../lib/uiIcons'
 import styles from '../styles/FavoriteBtn.module.css'
 
 export default function FavoriteBtn({ communityId }) {
@@ -45,7 +46,7 @@ export default function FavoriteBtn({ communityId }) {
       disabled={loading}
       title={liked ? 'Aus Favoriten entfernen' : 'Favorisieren'}
     >
-      {liked ? '♥' : '♡'}
+      <img src={UI_ICONS.stern} alt="" width={18} height={18} style={{display:'block',filter:liked?undefined:'grayscale(1)',opacity:liked?1:.5}}/>
     </button>
   )
 }

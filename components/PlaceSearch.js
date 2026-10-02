@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Icon from './Icon'
 import { geocodeSearch } from '../lib/water'
 import styles from '../styles/Karte.module.css'
 
@@ -30,7 +31,7 @@ export default function PlaceSearch({ onFound, bias, placeholder = 'Ort oder Adr
 
   return (
     <form onSubmit={submit} className={styles.searchWrap}>
-      <span className={styles.searchIcon}>{loading ? '…' : '📍'}</span>
+      <span className={styles.searchIcon}>{loading ? '…' : <Icon name="standort"/>}</span>
       <input
         type="text"
         className={styles.search}

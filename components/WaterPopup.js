@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Icon from'./Icon'
 import Link from 'next/link'
 import styles from '../styles/Karte.module.css'
 import { WATER_COLORS, bestDistance, roadLabel, formatCoords } from '../lib/water'
@@ -29,7 +30,7 @@ export default function WaterPopup({ w, onClose }) {
       }
       <div className={styles.popupName}>{w.name || w.typ}</div>
       <span className="badge" style={{ background: color + '1f', color, alignSelf: 'flex-start' }}>{w.typ}</span>
-      <div className={styles.popupLoc}>📍 {formatCoords(w.lat, w.lon)}</div>
+      <div className={styles.popupLoc}><Icon name="standort"/> {formatCoords(w.lat, w.lon)}</div>
       <div className={styles.popupLoc}>
         🛣️ {dist
           ? (dist.viaTrack
