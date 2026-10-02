@@ -4,7 +4,9 @@ import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{useCatalog}from'../../lib/catalog'
-import{getTypBadge,getStatusInfo,getBesucher,LAND_EN,getTypIcon}from'../../data/communities'
+import{getTypBadge,getStatusInfo,getBesucher,LAND_EN}from'../../data/communities'
+import TypIcon from'../../components/TypIcon'
+import{getTypBg}from'../../lib/typColors'
 import styles from'../../styles/KommuneProfil.module.css'
 
 const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
@@ -27,7 +29,7 @@ return(
 <Nav/>
 <div className={styles.banner}style={{opacity:isInactive?0.7:1}}>
 <div className={styles.bannerPattern}/>
-<div className={styles.avatar}>{getTypIcon(k.typ)}</div>
+<div className={styles.avatar}style={{background:getTypBg(k.typ)}}><TypIcon typ={k.typ}size={60}/></div>
 <div className={styles.statusBadge}style={{background:status.bg,color:status.color}}>
 {isActive?`🟢 ${t('status_active')}`:isSetup?`🟡`:` ⚫ ${t('status_inactive')}`}
 </div>
