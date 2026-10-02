@@ -3,7 +3,9 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../../components/Nav'
 import { supabase } from '../../../lib/supabase'
-import { getTypIcon, getTypBadge } from '../../../data/communities'
+import { getTypBadge } from '../../../data/communities'
+import TypIcon from '../../../components/TypIcon'
+import { getTypBg } from '../../../lib/typColors'
 import FavoriteBtn from '../../../components/FavoriteBtn'
 import styles from '../../../styles/KommuneProfil.module.css'
 
@@ -34,10 +36,10 @@ export default function OeffentlichesKommuneProfil() {
       <Nav/>
       <div className={styles.banner}>
         <div className={styles.bannerPattern}/>
-        <div className={styles.avatar}>
+        <div className={styles.avatar} style={k.avatar_url ? undefined : { background: getTypBg(typ) }}>
           {k.avatar_url
             ? <img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}}/>
-            : getTypIcon(typ)
+            : <TypIcon typ={typ} size={60}/>
           }
         </div>
         <div className={styles.statusBadge} style={{background:'#e8f5ee',color:'#2d6a4f'}}>🟢 Auf Communet</div>

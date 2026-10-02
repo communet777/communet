@@ -4,7 +4,9 @@ import{useRouter}from'next/router'
 import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
 import{useLang}from'../lib/LanguageContext'
-import{getTypBadge,getTypIcon}from'../data/communities'
+import{getTypBadge}from'../data/communities'
+import TypIcon from'../components/TypIcon'
+import{getTypBg}from'../lib/typColors'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Home.module.css'
@@ -109,9 +111,9 @@ return(
 <div className={styles.grid}>
 {dbKommunen.slice(0,4).map(k=>(
 <Link href={`/profil/p/${k.id}`} key={k.id} className={styles.card}>
-<div className={styles.cardImg} style={{background:k.kommune_typ==='Kommune'?'#fff3e0':k.kommune_typ==='Kollektiv'?'#e8eaf6':'#e8f5ee'}}>
+<div className={styles.cardImg} style={{background:getTypBg(k.kommune_typ||'Ökodorf')}}>
 {k.avatar_url?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-:<span style={{fontSize:32}}>{getTypIcon(k.kommune_typ||'Ökodorf')}</span>}
+:<TypIcon typ={k.kommune_typ||'Ökodorf'}size={40}/>}
 </div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
