@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/Auth.module.css'
+import Icon from '../../components/Icon'
 
 export default function Login() {
   const router = useRouter()
@@ -167,8 +168,8 @@ export default function Login() {
                   <input type="text" required value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="Dein Code" autoFocus/>
                 </div>
                 <div className={styles.typSelector}>
-                  <button type="button" className={`${styles.typBtn} ${typ==='person'?styles.typActive:''}`} onClick={()=>setTyp('person')}>👤 Person</button>
-                  <button type="button" className={`${styles.typBtn} ${typ==='kommune'?styles.typActive:''}`} onClick={()=>setTyp('kommune')}>🏡 Kommune</button>
+                  <button type="button" className={`${styles.typBtn} ${typ==='person'?styles.typActive:''}`} onClick={()=>setTyp('person')}><Icon name="person"/> Person</button>
+                  <button type="button" className={`${styles.typBtn} ${typ==='kommune'?styles.typActive:''}`} onClick={()=>setTyp('kommune')}><Icon name="globus"/> Gemeinschaft</button>
                 </div>
                 <div className={styles.field}>
                   <label>{typ==='kommune' ? 'Name der Kommune' : 'Dein Name'}</label>
