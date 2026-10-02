@@ -1,3 +1,4 @@
+import TypIcon from '../../components/TypIcon'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -75,7 +76,7 @@ export default function AngebotDetail() {
             <div style={{width:52,height:52,borderRadius:'50%',overflow:'hidden',border:'2px solid var(--border)',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)',fontSize:24}}>
               {kommune.avatar_url
                 ? <img src={kommune.avatar_url} alt={kommune.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                : '🏡'
+                : <TypIcon typ={kommune.kommune_typ} size={30}/>
               }
             </div>
             <div style={{flex:1}}>
