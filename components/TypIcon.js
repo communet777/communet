@@ -5,7 +5,7 @@ import { getTypColor, ICON_SHADOW } from '../lib/typColors'
 // badge = Icon in einem Kreis in der Farbe des Typs (wie die Marker auf der Karte),
 // bg = eigene Kreisfarbe (z. B. für Bio-Hofläden).
 export default function TypIcon({ typ, src, size = 20, badge = false, bg }) {
-  const img = <img src={src || getTypIconUrl(typ)} alt="" width={size} height={size} style={{ display: 'block', width: size, height: size, filter: badge ? ICON_SHADOW : 'none' }} />
+  const img = <img src={src || getTypIconUrl(typ)} alt="" width={size} height={size} style={{ display: 'block', width: size, height: size, filter: badge ? ICON_SHADOW : undefined }} />
   if (!badge) return <span style={{ display: 'inline-flex', verticalAlign: '-0.15em' }}>{img}</span>
   const d = Math.round(size * 1.7)
   return (

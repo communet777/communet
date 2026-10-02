@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import styles from '../styles/Karte.module.css'
 import { WATER_COLORS, bestDistance, roadLabel, formatCoords } from '../lib/water'
+import TypIcon from './TypIcon'
+import { getWaterIcon } from '../lib/waterIcons'
 
 export default function WaterPopup({ w, onClose }) {
-  const color = WATER_COLORS[w.typ] || '#2b7bb9'
+  const color = WATER_COLORS[w.typ] || '#5a8898'
   const dw = w.drinking_water
   const dist = bestDistance(w)
   const route = `https://www.google.com/maps/dir/?api=1&destination=${w.lat},${w.lon}`
@@ -23,7 +25,7 @@ export default function WaterPopup({ w, onClose }) {
             </a>
             <div className={styles.popupLoc}>📷 {creditText}</div>
           </>
-        : <div className={styles.popupIcon}>{w.typ === 'Thermalquelle' ? '♨️' : '💧'}</div>
+        : <div className={styles.popupIcon}><TypIcon src={getWaterIcon(w.typ)} size={26} badge bg={color}/></div>
       }
       <div className={styles.popupName}>{w.name || w.typ}</div>
       <span className="badge" style={{ background: color + '1f', color, alignSelf: 'flex-start' }}>{w.typ}</span>
