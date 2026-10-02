@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
+import Icon from '../../components/Icon'
+import TypIcon from '../../components/TypIcon'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/ProfilBearbeiten.module.css'
@@ -167,7 +169,7 @@ export default function KommuneBearbeiten() {
           <form onSubmit={handleSave} className={styles.form}>
             <div className={styles.avatarSection}>
               <div className={styles.avatarWrap} onClick={()=>fileRef.current.click()}>
-                {profile.avatar_url?<img src={profile.avatar_url} alt="Avatar" className={styles.avatarImg}/>:<div className={styles.avatarPlaceholder}>🏡</div>}
+                {profile.avatar_url?<img src={profile.avatar_url} alt="Avatar" className={styles.avatarImg}/>:<div className={styles.avatarPlaceholder}><TypIcon typ={profile.kommune_typ} size={40}/></div>}
                 <div className={styles.avatarOverlay}>{uploading?'Lädt...':'📷 ändern'}</div>
               </div>
               <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} style={{display:'none'}}/>
@@ -224,7 +226,7 @@ export default function KommuneBearbeiten() {
                   {!o.datum&&o.von&&<span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
                 </div>
                 <div style={{fontSize:15,fontWeight:700,color:'var(--text)'}}>{o.titel}</div>
-                {o.ort&&<div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>📍 {o.ort}</div>}
+                {o.ort&&<div style={{fontSize:12,color:'var(--muted)',marginTop:2}}><Icon name="standort"/> {o.ort}</div>}
                 {o.beschreibung&&<p style={{fontSize:13,color:'var(--muted)',marginTop:6,lineHeight:1.5,margin:'6px 0 0'}}>{o.beschreibung}</p>}
                 <button onClick={()=>handleDeleteOffer(o.id)} style={{position:'absolute',top:12,right:12,background:'none',border:'none',color:'var(--muted)',fontSize:16,cursor:'pointer'}}>×</button>
               </div>

@@ -1,4 +1,5 @@
 import{useState,useEffect}from'react'
+import Icon from'../../components/Icon'
 import{useRouter}from'next/router'
 import Link from'next/link'
 import Nav from'../../components/Nav'
@@ -166,7 +167,7 @@ return(
 </span>
 </div>
 <div className={styles.cardName}>{k.name}</div>
-<div className={styles.cardLoc}>📍 {k.ort}{k.ort&&k.land?' · ':''}{displayLand}</div>
+<div className={styles.cardLoc}><Icon name="standort"/> {k.ort}{k.ort&&k.land?' · ':''}{displayLand}</div>
 <div className={styles.cardFooter}>
 <span>👥 ~{k.members}</span>
 {isDb&&<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>Auf Communet</span>}

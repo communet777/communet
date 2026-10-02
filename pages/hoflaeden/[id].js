@@ -1,15 +1,18 @@
 import{useRouter}from'next/router'
+import Icon from'../../components/Icon'
 import{useState,useEffect}from'react'
 import Link from'next/link'
 import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
+import TypIcon from'../../components/TypIcon'
+import{ICONS}from'../../lib/typIcons'
 import{useLang}from'../../lib/LanguageContext'
 import{useAuth}from'../../lib/AuthContext'
 import{supabase}from'../../lib/supabase'
 import{normalizeFarmShopFr,normalizeFarmShopOsm}from'../../lib/water'
 import styles from'../../styles/KommuneProfil.module.css'
 import supplyStyles from'../../styles/Karte.module.css'
-const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
+const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}><Icon name="karte" size={36}/></div>})
 
 export default function HofladenProfil(){
 const router=useRouter()
@@ -78,14 +81,14 @@ return(
 <div>
 <Nav/>
 <div className={styles.banner}>
-<div className={styles.avatar}>🧺</div>
+<div className={styles.avatar}><TypIcon src={ICONS.korb} size={64}/></div>
 </div>
 <div className={styles.profileHeader}>
 <div>
 <h1 className={styles.name}>{hof.name}</h1>
 <div className={styles.meta}>
 {hof.bio_verband&&<span className="badge">{hof.bio_verband}</span>}
-<span className={styles.loc}>📍 {hof.ort}{hof.ort&&hof.bundesland?' · ':''}{hof.bundesland}</span>
+<span className={styles.loc}><Icon name="standort"/> {hof.ort}{hof.ort&&hof.bundesland?' · ':''}{hof.bundesland}</span>
 </div>
 </div>
 <Link href="/versorgung"className={styles.inviteBtn}>{t('hof_back')}</Link>
@@ -133,10 +136,10 @@ return(
 </div>
 <div className={styles.sidebar}>
 <div className={styles.sideCard}>
-<div className={styles.sideTitle}>📍 {t('profile_location')}</div>
+<div className={styles.sideTitle}><Icon name="standort"/> {t('profile_location')}</div>
 {hof.lat&&hof.lon
 ?<MiniMap lat={hof.lat} lon={hof.lon} name={hof.name}/>
-:<div className={styles.mapPlaceholder}style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}>📍 {hof.ort}</div>
+:<div className={styles.mapPlaceholder}style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}><Icon name="standort"/> {hof.ort}</div>
 }
 <div style={{marginTop:8,fontSize:12,color:'var(--muted)'}}>{addr}</div>
 </div>

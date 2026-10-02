@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Icon from'../components/Icon'
 import Nav from '../components/Nav'
 import { useLang } from '../lib/LanguageContext'
 import { supabase } from '../lib/supabase'
@@ -31,7 +32,7 @@ export default function Kontakt(){
       <p className={styles.desc}>{t('contact_desc')}</p>
       <div className={styles.features}>
         <div className={styles.feature}>📧 {t('contact_f1')}</div>
-        <div className={styles.feature}>📍 {t('contact_f2')}</div>
+        <div className={styles.feature}><Icon name="standort"/> {t('contact_f2')}</div>
       </div>
       <a href="mailto:communet@outlook.de" className={styles.btn}>{t('contact_btn')}</a>
 

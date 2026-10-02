@@ -1,4 +1,5 @@
 import{useState,useEffect,useRef}from'react'
+import Icon from'../components/Icon'
 import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
@@ -14,7 +15,7 @@ import{FARM_COLOR}from'../lib/typColors'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Karte.module.css'
-const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
+const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}><Icon name="karte" size={48}/></div>})
 
 const SEARCH_ZOOM=11 // Zoomstufe beim automatischen Reinzoomen auf einen eindeutigen Suchtreffer (0=raus, 18=max. rein)
 const DEFAULT_ZOOM=6
@@ -148,7 +149,7 @@ return(
 <input type="text"className={styles.search}style={{paddingRight:34}}placeholder={t('communities_search')}value={search}onChange={e=>setSearch(e.target.value)}/>
 <button type="button"onClick={()=>setPlaceSearchOpen(v=>!v)}title="Ort oder Adresse suchen"
 style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',background:placeSearchOpen?'var(--g)':'none',border:'none',borderRadius:6,width:24,height:24,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:13,filter:placeSearchOpen?'none':'grayscale(1)',opacity:placeSearchOpen?1:.55}}>
-📍
+<Icon name="standort"/>
 </button>
 </div>
 {placeSearchOpen&&(
@@ -185,7 +186,7 @@ style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',back
 </div>
 {showFarmShops&&user&&(
 <div style={{fontSize:11,color:'var(--muted)'}}>
-{farmZoomOk?`🧺 ${visibleFarms.length} Bio-Hofläden im Kartenausschnitt`:'🧺 Zum Anzeigen der Bio-Hofläden weiter hineinzoomen'}
+{farmZoomOk?`${visibleFarms.length} Bio-Hofläden im Kartenausschnitt`:'Zum Anzeigen der Bio-Hofläden weiter hineinzoomen'}
 </div>
 )}
 {showWater&&user&&(
@@ -206,7 +207,7 @@ border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER
 Auch als privat/gesperrt markierte Quellen zeigen
 </label>
 <div style={{fontSize:11,color:'var(--muted)'}}>
-{!view||view.zoom<WATER_MIN_ZOOM?'🔍 Zum Anzeigen weiter hineinzoomen':water.error?'⚠️ Konnten nicht geladen werden':`💧 ${visibleWaterKarte.length}${water.items.length>=WATER_LIMIT?'+':''} im Kartenausschnitt`}
+{!view||view.zoom<WATER_MIN_ZOOM?'Zum Anzeigen weiter hineinzoomen':water.error?'Konnten nicht geladen werden':`${visibleWaterKarte.length}${water.items.length>=WATER_LIMIT?'+':''} im Kartenausschnitt`}
 </div>
 </>
 )}
@@ -240,7 +241,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 </div>
 <div className={styles.popupName}>{selected.name}</div>
 <span className={`badge ${getTypBadge(selected.typ)}`}>{selected.typ}</span>
-<div className={styles.popupLoc}>📍 {selected.ort}{selected.ort&&selected.land?' · ':''}{selected.land}</div>
+<div className={styles.popupLoc}><Icon name="standort"/> {selected.ort}{selected.ort&&selected.land?' · ':''}{selected.land}</div>
 <div className={styles.popupDesc}>{selected.beschreibung?.slice(0,100)}…</div>
 <div className={styles.popupStatus}style={{color:selected.status==='aktiv'?'var(--g)':'var(--muted)'}}>
 {selected.status==='aktiv'?`🟢 ${t('map_active')}`:`⚫ ${t('map_inactive')}`}
@@ -254,7 +255,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.popupIcon}><TypIcon src={ICONS.korb}size={26}badge bg={FARM_COLOR}/></div>
 <div className={styles.popupName}>{selectedFarm.name}</div>
 <span className="badge badge-hof">{t('hof_badge')}</span>
-<div className={styles.popupLoc}>📍 {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
+<div className={styles.popupLoc}><Icon name="standort"/> {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
 {selectedFarm.bio_verband&&<div className={styles.popupDesc}>{t('hof_verband')}: {selectedFarm.bio_verband}</div>}
 {selectedFarm.produits&&selectedFarm.produits.length>0&&<div className={styles.popupDesc}>🛒 {selectedFarm.produits.join(' · ')}</div>}
 {selectedFarm.hinweis&&<div className={styles.popupLoc}>ℹ️ {selectedFarm.hinweis}</div>}

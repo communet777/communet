@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Icon from'./Icon'
 import styles from '../styles/Profil.module.css'
 import TypIcon from './TypIcon'
 
@@ -14,7 +15,7 @@ export default function FeedCard({ o }) {
           {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
         </div>
         <div className={styles.feedCardTitle}>{o.titel}</div>
-        {o.ort && <div className={styles.feedCardOrt}>📍 {o.ort}</div>}
+        {o.ort && <div className={styles.feedCardOrt}><Icon name="standort"/> {o.ort}</div>}
         {o.beschreibung && <p className={styles.feedCardDesc}>{o.beschreibung.slice(0,120)}{o.beschreibung.length>120?'…':''}</p>}
       </div>
     </Link>

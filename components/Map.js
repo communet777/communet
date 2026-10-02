@@ -1,6 +1,7 @@
 import{useEffect,useRef}from'react'
 import{getTypIconUrl,ICONS}from'../lib/typIcons'
 import{WATER_COLORS}from'../lib/water'
+import{getWaterIcon}from'../lib/waterIcons'
 import{getTypColor,ICON_SHADOW,FARM_COLOR}from'../lib/typColors'
 export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
 const mapRef=useRef(null)
@@ -54,7 +55,8 @@ const L=require('leaflet')
 const g=waterLayerRef.current
 g.clearLayers()
 waterSources.forEach(w=>{
-L.circleMarker([w.lat,w.lon],{renderer:canvasRef.current,radius:6,color:'#c9a84c',weight:1.5,fillColor:WATER_COLORS[w.typ]||'#5a8898',fillOpacity:0.95})
+const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:${WATER_COLORS[w.typ]||'#5a8898'};border:2px solid #c9a84c;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${getWaterIcon(w.typ)}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[26,26],iconAnchor:[13,13]})
+L.marker([w.lat,w.lon],{icon})
 .on('click',()=>waterCbRef.current&&waterCbRef.current(w))
 .addTo(g)
 })

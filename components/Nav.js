@@ -1,4 +1,5 @@
 import TypIcon from'./TypIcon'
+import Icon from'./Icon'
 import{ICONS}from'../lib/typIcons'
 import Link from'next/link'
 import{useRouter}from'next/router'
@@ -25,7 +26,7 @@ return(
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={()=>setLang('en')}>EN</button>
 </div>
 {user
-?<Link href="/profil"className={`${styles.cta}${router.pathname.startsWith('/profil')?' '+styles.active:''}`}>👤 Profil</Link>
+?<Link href="/profil"className={`${styles.cta}${router.pathname.startsWith('/profil')?' '+styles.active:''}`}><Icon name="person"/> Profil</Link>
 :<Link href="/auth/login"className={styles.cta}>Anmelden</Link>
 }
 </div>
@@ -35,16 +36,16 @@ return(
 </nav>
 {open&&(
 <div className={styles.mobileMenu}onClick={()=>setOpen(false)}>
-<Link href="/karte"className={styles.mobileLink}>🗺️ {t('nav_map')}</Link>
-<Link href="/kommunen"className={styles.mobileLink}>🌍 {t('nav_communities')}</Link>
-<Link href="/angebote"className={styles.mobileLink}>✨ {t('nav_offers')}</Link>
+<Link href="/karte"className={styles.mobileLink}><Icon name="karte"/> {t('nav_map')}</Link>
+<Link href="/kommunen"className={styles.mobileLink}><Icon name="globus"/> {t('nav_communities')}</Link>
+<Link href="/angebote"className={styles.mobileLink}><Icon name="stern"/> {t('nav_offers')}</Link>
 <Link href="/versorgung"className={`${styles.mobileLink} ${styles.navSupply}`}><TypIcon src={ICONS.korb}size={15}/> {t('nav_supply')}</Link>
 <div className={styles.mobileLang}>
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('de')}}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('en')}}>EN</button>
 </div>
 {user
-?<Link href="/profil"className={styles.mobileCta}>👤 Profil</Link>
+?<Link href="/profil"className={styles.mobileCta}><Icon name="person"/> Profil</Link>
 :<Link href="/auth/login"className={styles.mobileCta}>Anmelden</Link>
 }
 </div>

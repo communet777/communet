@@ -1,4 +1,5 @@
 import{useState,useEffect,useRef}from'react'
+import Icon from'../components/Icon'
 import Link from'next/link'
 import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
@@ -36,7 +37,7 @@ return(
 </div>
 <div className={styles.cardTitle}>{o.titel}</div>
 {o.kommune_name&&<div className={styles.cardKommune}><TypIcon typ={o.kommune_typ}size={13}/> {o.kommune_name}</div>}
-{o.ort&&<div className={styles.cardOrt}>📍 {o.ort}</div>}
+{o.ort&&<div className={styles.cardOrt}><Icon name="standort"/> {o.ort}</div>}
 {o.beschreibung&&<p className={styles.cardDesc}>{o.beschreibung.slice(0,100)}{o.beschreibung.length>100?'…':''}</p>}
 </div>
 </Link>
@@ -53,7 +54,7 @@ function AngeboteGuest(){
 return(
 <div>
 <div className={styles.guestWrap}>
-<div className={styles.guestIcon}>✨</div>
+<div className={styles.guestIcon}><Icon name="stern" size={48}/></div>
 <h1 className={styles.guestTitle}>Angebote von Kommunen</h1>
 <p className={styles.guestDesc}>Kommunen bieten Workaway-Plätze, Besuche, Workshops und mehr an.<br/>Melde dich an um alle Angebote zu sehen und direkt Kontakt aufzunehmen.</p>
 <Link href="/auth/login"className={styles.btnPrimary}>Jetzt anmelden</Link>
@@ -67,7 +68,7 @@ return(
 <div className={styles.cardTop}><span className={styles.typBadge}>{o.typ}</span>{o.datum&&<span className={styles.dateBadge}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}</span>}</div>
 <div className={styles.cardTitle}>{o.titel}</div>
 <div className={styles.cardKommune}><TypIcon typ={o.kommune_typ||'Ökodorf'}size={13}/> {o.kommune_name}</div>
-<div className={styles.cardOrt}>📍 {o.ort}</div>
+<div className={styles.cardOrt}><Icon name="standort"/> {o.ort}</div>
 <p className={styles.cardDesc}>{o.beschreibung}</p>
 </div>
 ))}
@@ -170,14 +171,14 @@ return(
 )}
 </div>
 <div className={styles.radiusSlider}>
-<label style={{fontSize:12,color:'var(--muted)',whiteSpace:'nowrap'}}>📍 {radius===500?'Alle':radius+' km'}</label>
+<label style={{fontSize:12,color:'var(--muted)',whiteSpace:'nowrap'}}><Icon name="standort"/> {radius===500?'Alle':radius+' km'}</label>
 <input type="range" min="10" max="500" step="10" value={radius} onChange={e=>setRadius(Number(e.target.value))} style={{width:160,accentColor:'var(--g)'}}/>
 {userLoc&&<button onClick={()=>{setUserLoc(null);setLocSearch('');setRadius(500)}}style={{fontSize:11,color:'var(--muted)',background:'none',border:'none',cursor:'pointer'}}>zurücksetzen</button>}
 </div>
 </div>
 </div>
 {loading&&<div className={styles.loading}>Lädt...</div>}
-{!loading&&filtered.length===0&&<div className={styles.empty}><div style={{fontSize:40,marginBottom:12}}>🌱</div><p>Keine Angebote gefunden.</p></div>}
+{!loading&&filtered.length===0&&<div className={styles.empty}><div style={{marginBottom:12}}><Icon name="stern" size={40}/></div><p>Keine Angebote gefunden.</p></div>}
 <div className={styles.grid}>{filtered.map(o=><OfferCard key={o.id}o={o}href={`/angebote/${o.id}`}/>)}</div>
 <BackToTop/>
 </div>
@@ -229,7 +230,7 @@ return(
 </form>
 )}
 {offers.length===0&&!showForm&&(
-<div className={styles.empty}><div style={{fontSize:40,marginBottom:12}}>🌱</div><p>Noch keine Angebote.</p><button className={styles.btnPrimary}onClick={()=>setShowForm(true)}>Erstes Angebot erstellen</button></div>
+<div className={styles.empty}><div style={{marginBottom:12}}><Icon name="stern" size={40}/></div><p>Noch keine Angebote.</p><button className={styles.btnPrimary}onClick={()=>setShowForm(true)}>Erstes Angebot erstellen</button></div>
 )}
 <div className={styles.grid}>
 {offers.map(o=>(
