@@ -1,4 +1,5 @@
 import Link from'next/link'
+import Icon from'../../components/Icon'
 import{useRouter}from'next/router'
 import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
@@ -9,7 +10,7 @@ import TypIcon from'../../components/TypIcon'
 import{getTypBg}from'../../lib/typColors'
 import styles from'../../styles/KommuneProfil.module.css'
 
-const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
+const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}><Icon name="karte" size={36}/></div>})
 
 export default function KommuneProfil(){
 const[COMMUNITIES,catalogLoaded]=useCatalog()
@@ -39,7 +40,7 @@ return(
 <h1 className={styles.name}>{k.name}</h1>
 <div className={styles.meta}>
 <span className={`badge ${getTypBadge(k.typ)}`}>{k.typ}</span>
-<span className={styles.loc}>📍 {k.ort}{k.region?`, ${k.region}`:''} · {k.land}</span>
+<span className={styles.loc}><Icon name="standort"/> {k.ort}{k.region?`, ${k.region}`:''} · {k.land}</span>
 <span className={styles.founded}>{t('profile_since')} {k.jahr}</span>
 </div>
 </div>
@@ -114,10 +115,10 @@ return(
 
 {/* Mini-Karte */}
 <div className={styles.sideCard}>
-<div className={styles.sideTitle}>📍 {t('profile_location')}</div>
+<div className={styles.sideTitle}><Icon name="standort"/> {t('profile_location')}</div>
 {k.lat&&k.lon
 ?<MiniMap lat={k.lat} lon={k.lon} name={k.name}/>
-:<div className={styles.mapPlaceholder} style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}>📍 {k.ort}{k.region?`, ${k.region}`:''}</div>
+:<div className={styles.mapPlaceholder} style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}><Icon name="standort"/> {k.ort}{k.region?`, ${k.region}`:''}</div>
 }
 <div style={{marginTop:8,fontSize:12,color:'var(--muted)'}}>{k.ort}{k.region?`, ${k.region}`:''}<br/>{k.land}</div>
 </div>

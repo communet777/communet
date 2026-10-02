@@ -6,6 +6,7 @@ import BackToTop from'../components/BackToTop'
 import{useLang}from'../lib/LanguageContext'
 import{getTypBadge}from'../data/communities'
 import TypIcon from'../components/TypIcon'
+import Icon from'../components/Icon'
 import{getTypBg}from'../lib/typColors'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
@@ -50,7 +51,7 @@ return(
 <div className={styles.statsRow}>
 <div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
 <div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
-<div className={styles.stat}><div className={styles.statN}>🌍</div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
+<div className={styles.stat}><div className={styles.statN}><Icon name="globus" size={26}/></div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
 </div>
 </div>
 
@@ -67,7 +68,7 @@ return(
 <div className={styles.statsRowRight}>
 <div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
 <div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
-<div className={styles.stat}><div className={styles.statN}>🌍</div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
+<div className={styles.stat}><div className={styles.statN}><Icon name="globus" size={26}/></div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
 </div>
 <form onSubmit={handleSearch} className={styles.searchForm}>
 <input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
@@ -121,7 +122,7 @@ return(
 <span style={{fontSize:10,color:'#2d6a4f',background:'#e8f5ee',padding:'2px 6px',borderRadius:10}}>🟢 Aktiv</span>
 </div>
 <div className={styles.cardName}>{k.name}</div>
-<div className={styles.cardLoc}>📍 {k.land||'Ort unbekannt'}</div>
+<div className={styles.cardLoc}><Icon name="standort"/> {k.land||'Ort unbekannt'}</div>
 </div>
 </Link>
 ))}
@@ -133,12 +134,12 @@ return(
 <h2 className={styles.howTitle}>{t('home_how_title')}</h2>
 <div className={styles.howGrid}>
 <Link href="/auth/login" className={styles.howCard}>
-<div className={styles.howIcon}>👤</div>
+<div className={styles.howIcon}><Icon name="person" size={36}/></div>
 <div className={styles.howCardTitle}>{t('home_how1_title')}</div>
 <div className={styles.howText}>{t('home_how1_text')}</div>
 </Link>
 <Link href="/kommunen" className={styles.howCard}>
-<div className={styles.howIcon}>🗺️</div>
+<div className={styles.howIcon}><Icon name="karte" size={36}/></div>
 <div className={styles.howCardTitle}>{t('home_how2_title')}</div>
 <div className={styles.howText}>{t('home_how2_text')}</div>
 </Link>
