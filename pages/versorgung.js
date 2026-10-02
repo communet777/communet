@@ -1,4 +1,5 @@
 import{useState,useEffect}from'react'
+import Icon from'../components/Icon'
 import dynamic from'next/dynamic'
 import Link from'next/link'
 import Nav from'../components/Nav'
@@ -13,7 +14,7 @@ import{ICONS}from'../lib/typIcons'
 import{getWaterIcon}from'../lib/waterIcons'
 import{FARM_COLOR}from'../lib/typColors'
 import styles from'../styles/Karte.module.css'
-const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
+const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}><Icon name="karte" size={48}/></div>})
 
 export default function Versorgung(){
 const{t}=useLang()
@@ -75,10 +76,10 @@ return(
 
 let waterInfo=null
 if(showWater){
-  if(!view||view.zoom<WATER_MIN_ZOOM) waterInfo='🔍 Zum Anzeigen der Wasserquellen weiter in die Karte hineinzoomen'
-  else if(water.error) waterInfo='⚠️ Wasserquellen konnten nicht geladen werden'
+  if(!view||view.zoom<WATER_MIN_ZOOM) waterInfo='Zum Anzeigen der Wasserquellen weiter in die Karte hineinzoomen'
+  else if(water.error) waterInfo='Wasserquellen konnten nicht geladen werden'
   else if(water.loading&&water.items.length===0) waterInfo='Wasserquellen werden geladen …'
-  else waterInfo=`💧 ${visibleWater.length}${water.items.length>=WATER_LIMIT?'+':''} Wasserquellen im Kartenausschnitt`
+  else waterInfo=`${visibleWater.length}${water.items.length>=WATER_LIMIT?'+':''} Wasserquellen im Kartenausschnitt`
 }
 
 return(
@@ -89,7 +90,7 @@ return(
 <div className={styles.sideHeader}>
 <h1 className={styles.title}>{t('supply_title')}</h1>
 <PlaceSearch onFound={r=>setFlyTarget(r)}bias={view||(initialView?{south:initialView.lat-1,west:initialView.lon-1,north:initialView.lat+1,east:initialView.lon+1}:null)}/>
-<p className={styles.sub}>{showFarm?(farmZoomOk?`🧺 ${visibleFarms.length} ${t('supply_farmshops')} im Kartenausschnitt`:'🔍 Zum Anzeigen der Bio-Hofläden und Wasserquellen in die Karte hineinzoomen'):`${farmShops.length} ${t('supply_farmshops')}`}</p>
+<p className={styles.sub}>{showFarm?(farmZoomOk?`${visibleFarms.length} ${t('supply_farmshops')} im Kartenausschnitt`:'Zum Anzeigen der Bio-Hofläden und Wasserquellen in die Karte hineinzoomen'):`${farmShops.length} ${t('supply_farmshops')}`}</p>
 </div>
 <div className={styles.memberPanel}>
 <span className={styles.memberLabel}>🔒 Nur mit Konto sichtbar</span>
@@ -145,7 +146,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.popupIcon}><TypIcon src={ICONS.korb}size={26}badge bg={FARM_COLOR}/></div>
 <div className={styles.popupName}>{selectedFarm.name}</div>
 <span className="badge badge-hof">{t('hof_badge')}</span>
-<div className={styles.popupLoc}>📍 {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
+<div className={styles.popupLoc}><Icon name="standort"/> {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
 {selectedFarm.bio_verband&&<div className={styles.popupDesc}>{t('hof_verband')}: {selectedFarm.bio_verband}</div>}
 {selectedFarm.produits&&selectedFarm.produits.length>0&&<div className={styles.popupDesc}>🛒 {selectedFarm.produits.join(' · ')}</div>}
 {selectedFarm.hinweis&&<div className={styles.popupLoc}>ℹ️ {selectedFarm.hinweis}</div>}
