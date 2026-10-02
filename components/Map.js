@@ -1,7 +1,7 @@
 import{useEffect,useRef}from'react'
 import{getTypIconUrl,ICONS}from'../lib/typIcons'
 import{WATER_COLORS}from'../lib/water'
-import{getTypColor,ICON_SHADOW}from'../lib/typColors'
+import{getTypColor,ICON_SHADOW,FARM_COLOR}from'../lib/typColors'
 export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
@@ -43,7 +43,7 @@ Object.values(farmMarkersRef.current).forEach(m=>mapInstanceRef.current.removeLa
 farmMarkersRef.current={}
 farmShops.forEach(f=>{
 if(f.lat==null||f.lon==null)return
-const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:#4a3418;border:2px solid #c9a84c;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${ICONS.korb}" width="15" height="15" alt="" style="display:block;pointer-events:none"/></div>`,iconSize:[26,26],iconAnchor:[13,13]})
+const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:${FARM_COLOR};border:2px solid #c9a84c;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${ICONS.korb}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[26,26],iconAnchor:[13,13]})
 const marker=L.marker([f.lat,f.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelectFarm&&onSelectFarm(f))
 farmMarkersRef.current[f.id]=marker
 })
@@ -54,7 +54,7 @@ const L=require('leaflet')
 const g=waterLayerRef.current
 g.clearLayers()
 waterSources.forEach(w=>{
-L.circleMarker([w.lat,w.lon],{renderer:canvasRef.current,radius:6,color:'#f6f2e9',weight:1.5,fillColor:WATER_COLORS[w.typ]||'#4f7598',fillOpacity:0.95})
+L.circleMarker([w.lat,w.lon],{renderer:canvasRef.current,radius:6,color:'#c9a84c',weight:1.5,fillColor:WATER_COLORS[w.typ]||'#5a8898',fillOpacity:0.95})
 .on('click',()=>waterCbRef.current&&waterCbRef.current(w))
 .addTo(g)
 })

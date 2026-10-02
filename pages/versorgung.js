@@ -8,6 +8,10 @@ import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
 import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
+import TypIcon from'../components/TypIcon'
+import{ICONS}from'../lib/typIcons'
+import{getWaterIcon}from'../lib/waterIcons'
+import{FARM_COLOR}from'../lib/typColors'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}>🗺️</div>})
 
@@ -90,8 +94,8 @@ return(
 <div className={styles.memberPanel}>
 <span className={styles.memberLabel}>🔒 Nur mit Konto sichtbar</span>
 <div className={styles.pills}>
-<button className={`${styles.pill}${showFarm?' '+styles.active:''}`}onClick={()=>setShowFarm(v=>!v)}>🧺 {t('supply_farmshops')}</button>
-<button className={`${styles.pill}${showWater?' '+styles.active:''}`}onClick={()=>setShowWater(v=>!v)}>💧 Wasserquellen</button>
+<button className={`${styles.pill}${showFarm?' '+styles.active:''}`}onClick={()=>setShowFarm(v=>!v)}><TypIcon src={ICONS.korb}size={13}/> {t('supply_farmshops')}</button>
+<button className={`${styles.pill}${showWater?' '+styles.active:''}`}onClick={()=>setShowWater(v=>!v)}><TypIcon src={ICONS.tropfen}size={13}/> Wasserquellen</button>
 </div>
 {showWater&&(
 <>
@@ -102,7 +106,7 @@ return(
 <button key={c.key}type="button"onClick={()=>setActiveCats(prev=>on?prev.filter(k=>k!==c.key):[...prev,c.key])}
 style={{display:'flex',alignItems:'center',gap:4,padding:'4px 10px',borderRadius:14,fontSize:11,cursor:'pointer',
 border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER_COLORS[c.key]+'1f':'var(--surface)',color:on?WATER_COLORS[c.key]:'var(--muted)'}}>
-{c.icon} {c.label}
+<TypIcon src={getWaterIcon(c.key)}size={13}/> {c.label}
 </button>
 )})}
 </div>
@@ -121,7 +125,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.list}>
 {visibleFarms.map(f=>(
 <div key={f.id}className={`${styles.listItem}${selectedFarm?.id===f.id?' '+styles.listActive:''}`}onClick={()=>selectFarm(f)}>
-<span className={styles.listIcon}>🧺</span>
+<span className={styles.listIcon}><TypIcon src={ICONS.korb}size={16}badge bg={FARM_COLOR}/></span>
 <div className={styles.listBody}>
 <div className={styles.listName}>{f.name}</div>
 <div className={styles.listLoc}>{f.ort}{f.ort&&f.bundesland?' · ':''}{f.bundesland}</div>
@@ -138,7 +142,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
-<div className={styles.popupIcon}>🧺</div>
+<div className={styles.popupIcon}><TypIcon src={ICONS.korb}size={26}badge bg={FARM_COLOR}/></div>
 <div className={styles.popupName}>{selectedFarm.name}</div>
 <span className="badge badge-hof">{t('hof_badge')}</span>
 <div className={styles.popupLoc}>📍 {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>

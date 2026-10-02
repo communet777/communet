@@ -4,6 +4,7 @@ import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
+import TypIcon from'../components/TypIcon'
 import styles from'../styles/Angebote.module.css'
 
 const OFFER_TYPES=['Workaway','Besuch','Langzeitaufenthalt','Workshop','Volontariat','Veranstaltung','Sonstiges']
@@ -34,7 +35,7 @@ return(
 {!o.datum&&o.von&&<span className={styles.dateBadge}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
 </div>
 <div className={styles.cardTitle}>{o.titel}</div>
-{o.kommune_name&&<div className={styles.cardKommune}>🏡 {o.kommune_name}</div>}
+{o.kommune_name&&<div className={styles.cardKommune}><TypIcon typ={o.kommune_typ}size={13}/> {o.kommune_name}</div>}
 {o.ort&&<div className={styles.cardOrt}>📍 {o.ort}</div>}
 {o.beschreibung&&<p className={styles.cardDesc}>{o.beschreibung.slice(0,100)}{o.beschreibung.length>100?'…':''}</p>}
 </div>
@@ -65,7 +66,7 @@ return(
 <div key={o.id}className={styles.card}style={{opacity:0.65,filter:'blur(0.5px)',pointerEvents:'none'}}>
 <div className={styles.cardTop}><span className={styles.typBadge}>{o.typ}</span>{o.datum&&<span className={styles.dateBadge}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}</span>}</div>
 <div className={styles.cardTitle}>{o.titel}</div>
-<div className={styles.cardKommune}>🏡 {o.kommune_name}</div>
+<div className={styles.cardKommune}><TypIcon typ={o.kommune_typ||'Ökodorf'}size={13}/> {o.kommune_name}</div>
 <div className={styles.cardOrt}>📍 {o.ort}</div>
 <p className={styles.cardDesc}>{o.beschreibung}</p>
 </div>
@@ -95,9 +96,10 @@ const{data:offs}=await supabase.from('offers').select('*').order('created_at',{a
 if(offs){
 setOffers(offs)
 const ids=[...new Set(offs.map(o=>o.kommune_id))]
-const{data:profs}=await supabase.from('profiles').select('id,lat,lon').in('id',ids)
+const{data:profs}=await supabase.from('profiles').select('id,lat,lon,kommune_typ').in('id',ids)
 const m={}
 if(profs)profs.forEach(p=>{m[p.id]=p})
+setOffers(offs.map(o=>({...o,kommune_typ:m[o.kommune_id]?.kommune_typ})))
 setKommuneMap(m)
 }
 setLoading(false)
@@ -191,7 +193,7 @@ const[error,setError]=useState('')
 const[newOffer,setNewOffer]=useState({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:''})
 
 useEffect(()=>{
-supabase.from('profiles').select('name,land').eq('id',user.id).single().then(({data})=>setProfile(data))
+supabase.from('profiles').select('name,land,kommune_typ').eq('id',user.id).single().then(({data})=>setProfile(data))
 supabase.from('offers').select('*').eq('kommune_id',user.id).order('created_at',{ascending:false}).then(({data})=>{if(data)setOffers(data)})
 },[user])
 
@@ -232,7 +234,7 @@ return(
 <div className={styles.grid}>
 {offers.map(o=>(
 <div key={o.id}style={{position:'relative'}}>
-<OfferCard o={o}href={`/angebote/${o.id}`}/>
+<OfferCard o={{...o,kommune_typ:profile?.kommune_typ}}href={`/angebote/${o.id}`}/>
 <button className={styles.deleteBtn}style={{position:'absolute',top:12,right:12,zIndex:1}}onClick={()=>handleDelete(o.id)}>×</button>
 </div>
 ))}

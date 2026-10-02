@@ -9,6 +9,8 @@ import{useAuth}from'../lib/AuthContext'
 import{getTypBadge}from'../data/communities'
 import TypIcon from'../components/TypIcon'
 import{ICONS}from'../lib/typIcons'
+import{getWaterIcon}from'../lib/waterIcons'
+import{FARM_COLOR}from'../lib/typColors'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Karte.module.css'
@@ -195,7 +197,7 @@ return(
 <button key={c.key}type="button"onClick={()=>setActiveCats(prev=>on?prev.filter(k=>k!==c.key):[...prev,c.key])}
 style={{display:'flex',alignItems:'center',gap:3,padding:'3px 8px',borderRadius:12,fontSize:10,cursor:'pointer',
 border:`1px solid ${on?WATER_COLORS[c.key]:'var(--border)'}`,background:on?WATER_COLORS[c.key]+'1f':'var(--surface)',color:on?WATER_COLORS[c.key]:'var(--muted)'}}>
-{c.icon} {c.label}
+<TypIcon src={getWaterIcon(c.key)}size={12}/> {c.label}
 </button>
 )})}
 </div>
@@ -249,7 +251,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
-<div className={styles.popupIcon}><TypIcon src={ICONS.korb}size={26}badge/></div>
+<div className={styles.popupIcon}><TypIcon src={ICONS.korb}size={26}badge bg={FARM_COLOR}/></div>
 <div className={styles.popupName}>{selectedFarm.name}</div>
 <span className="badge badge-hof">{t('hof_badge')}</span>
 <div className={styles.popupLoc}>📍 {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>

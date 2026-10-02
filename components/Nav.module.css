@@ -6,6 +6,7 @@
 .navSupply{background:rgba(184,137,42,.14);border:.5px solid rgba(184,137,42,.4);color:var(--gold)}
 .navSupply:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
 .navSupply.active{background:var(--gold);color:#fff;border-color:var(--gold)}
+.navSupply:hover img,.navSupply.active img{filter:brightness(0) invert(1)}
 .cta{padding:7px 18px;border-radius:8px;font-size:13px;background:var(--g);color:#fff;font-weight:500;margin-left:6px;transition:opacity .15s}
 .cta:hover{opacity:.88}
 .langSwitch{display:flex;border:.5px solid var(--border);border-radius:8px;overflow:hidden;margin-left:4px}
