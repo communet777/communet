@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Icon from'../../../components/Icon'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../../components/Nav'
@@ -50,7 +51,7 @@ export default function OeffentlichesKommuneProfil() {
           <h1 className={styles.name}>{k.name}</h1>
           <div className={styles.meta}>
             <span className={`badge ${getTypBadge(typ)}`}>{typ}</span>
-            {k.land && <span className={styles.loc}>📍 {k.land}</span>}
+            {k.land && <span className={styles.loc}><Icon name="standort"/> {k.land}</span>}
             {k.gruendungsjahr && <span className={styles.founded}>Gegründet {k.gruendungsjahr}</span>}
           </div>
         </div>
@@ -87,7 +88,7 @@ export default function OeffentlichesKommuneProfil() {
                       {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
                     </div>
                     <div style={{fontSize:15,fontWeight:700,color:'var(--text)'}}>{o.titel}</div>
-                    {o.ort && <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>📍 {o.ort}</div>}
+                    {o.ort && <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}><Icon name="standort"/> {o.ort}</div>}
                     {o.beschreibung && <p style={{fontSize:13,color:'var(--muted)',marginTop:6,lineHeight:1.5,margin:'6px 0 0'}}>{o.beschreibung.slice(0,100)}{o.beschreibung.length>100?'…':''}</p>}
                   </div>
                 </Link>
@@ -98,7 +99,7 @@ export default function OeffentlichesKommuneProfil() {
 
         <div className={styles.sidebar}>
           <div className={styles.sideCard}>
-            <div className={styles.sideTitle}>♡ Folgen</div>
+            <div className={styles.sideTitle}><Icon name="stern"/> Folgen</div>
             <FavoriteBtn communityId={String(id)}/>
             {k.website && <a href={k.website} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:13,color:'var(--g)',marginTop:8}}>🔗 Zur Website</a>}
             {k.instagram && <a href={`https://instagram.com/${k.instagram}`} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:13,color:'var(--g)',marginTop:4}}>📸 @{k.instagram}</a>}

@@ -1,14 +1,17 @@
 import{useRouter}from'next/router'
+import Icon from'../../components/Icon'
 import{useState,useEffect}from'react'
 import Link from'next/link'
 import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
+import TypIcon from'../../components/TypIcon'
+import{getWaterIcon}from'../../lib/waterIcons'
 import{useAuth}from'../../lib/AuthContext'
 import{supabase}from'../../lib/supabase'
 import{WATER_COLORS,bestDistance,roadLabel,formatCoords,reverseGeocode}from'../../lib/water'
 import styles from'../../styles/KommuneProfil.module.css'
 import supplyStyles from'../../styles/Karte.module.css'
-const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
+const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}><Icon name="karte" size={36}/></div>})
 
 export default function WasserquellenProfil(){
 const router=useRouter()
@@ -77,7 +80,7 @@ return(
 <div>
 <Nav/>
 <div className={styles.banner}>
-<div className={styles.avatar}>{w.typ==='Thermalquelle'?'♨️':'💧'}</div>
+<div className={styles.avatar}><TypIcon src={getWaterIcon(w.typ)} size={64}/></div>
 {showWikiImg&&(
 // eslint-disable-next-line @next/next/no-img-element
 <img src={w.wiki_image_url}alt=""onError={()=>setImgFailed(true)}
@@ -89,7 +92,7 @@ style={{position:'absolute',bottom:-52,right:28,width:150,height:104,borderRadiu
 <h1 className={styles.name}>{w.name||w.typ}</h1>
 <div className={styles.meta}>
 <span className="badge"style={{background:color+'1f',color}}>{w.typ}</span>
-{w.region&&<span className={styles.loc}>📍 {w.region}</span>}
+{w.region&&<span className={styles.loc}><Icon name="standort"/> {w.region}</span>}
 </div>
 </div>
 <Link href="/versorgung"className={styles.inviteBtn}>Zurück zur Versorgung</Link>
@@ -150,10 +153,10 @@ Foto: {w.wiki_image_author||'Urheber siehe Dateiseite'}
 <a href={osm}target="_blank"rel="noopener noreferrer"style={{display:'block',textAlign:'center',marginTop:8,fontSize:12,color:'var(--g)'}}>Quelle öffnen ↗</a>
 </div>
 <div className={styles.sideCard}>
-<div className={styles.sideTitle}>📍 Lage</div>
+<div className={styles.sideTitle}><Icon name="standort"/> Lage</div>
 {w.lat&&w.lon
 ?<MiniMap lat={w.lat} lon={w.lon} name={w.name||w.typ}/>
-:<div className={styles.mapPlaceholder}style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}>📍</div>
+:<div className={styles.mapPlaceholder}style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}><Icon name="standort" size={22}/></div>
 }
 </div>
 </div>
