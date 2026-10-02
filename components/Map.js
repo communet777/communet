@@ -1,6 +1,7 @@
 import{useEffect,useRef}from'react'
 import{getTypIconUrl,ICONS}from'../lib/typIcons'
 import{WATER_COLORS}from'../lib/water'
+import{getTypColor,ICON_SHADOW}from'../lib/typColors'
 export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
@@ -30,7 +31,7 @@ const L=require('leaflet')
 Object.values(markersRef.current).forEach(m=>mapInstanceRef.current.removeLayer(m))
 markersRef.current={}
 communities.forEach(k=>{
-const icon=L.divIcon({className:'',html:`<div style="width:30px;height:30px;border-radius:50%;background:#123a2e;border:2px solid #c9a84c;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:${k.status==='aktiv'?1:0.75};-webkit-tap-highlight-color:transparent;outline:none"><img src="${getTypIconUrl(k.typ)}" width="20" height="20" alt="" style="display:block;pointer-events:none"/></div>`,iconSize:[30,30],iconAnchor:[15,15]})
+const icon=L.divIcon({className:'',html:`<div style="width:30px;height:30px;border-radius:50%;background:${getTypColor(k.typ)};border:2px solid #c9a84c;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:${k.status==='aktiv'?1:0.75};-webkit-tap-highlight-color:transparent;outline:none"><img src="${getTypIconUrl(k.typ)}" width="20" height="20" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[30,30],iconAnchor:[15,15]})
 const marker=L.marker([k.lat,k.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelect(k))
 markersRef.current[k.id]=marker
 })

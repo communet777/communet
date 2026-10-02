@@ -6,7 +6,9 @@ import BackToTop from'../../components/BackToTop'
 import FavoriteBtn from'../../components/FavoriteBtn'
 import{useLang}from'../../lib/LanguageContext'
 import{useCatalog}from'../../lib/catalog'
-import{TYPEN,getTypBadge,getStatusInfo,LAND_EN,getTypIcon}from'../../data/communities'
+import{TYPEN,getTypBadge,getStatusInfo,LAND_EN}from'../../data/communities'
+import TypIcon from'../../components/TypIcon'
+import{getTypBg}from'../../lib/typColors'
 import{supabase}from'../../lib/supabase'
 import styles from'../../styles/Kommunen.module.css'
 
@@ -83,7 +85,7 @@ landEn.includes(q)||
 )
 })
 
-const bgColor=(typ)=>typ==='Kommune'?'#fff3e0':typ==='Kollektiv'?'#e8eaf6':typ==='Spirituelle Gemeinschaft'?'#f3e5f5':typ==='Wohnprojekt'?'#e0f2f1':'#e8f5ee'
+const bgColor=getTypBg
 
 return(
 <div>
@@ -105,7 +107,7 @@ return(
 <button className={`${styles.pill}${filter==='alle'?' '+styles.active:''}`} onClick={()=>setFilter('alle')}>{t('communities_all')}</button>
 {TYPEN.map(typ=>(
 <button key={typ} className={`${styles.pill}${filter===typ?' '+styles.active:''}`} onClick={()=>setFilter(typ)}>
-{getTypIcon(typ)} {typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}
+<TypIcon typ={typ}size={14}/> {typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}
 </button>
 ))}
 </div>
@@ -154,7 +156,7 @@ return(
 <div className={styles.cardImg} style={{background:bgColor(k.typ)}}>
 {k.avatar_url
 ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>
-:<span style={{fontSize:32}}>{getTypIcon(k.typ)}</span>}
+:<TypIcon typ={k.typ}size={44}/>}
 </div>
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6,gap:4}}>
