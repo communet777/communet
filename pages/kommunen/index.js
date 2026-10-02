@@ -5,7 +5,8 @@ import Nav from'../../components/Nav'
 import BackToTop from'../../components/BackToTop'
 import FavoriteBtn from'../../components/FavoriteBtn'
 import{useLang}from'../../lib/LanguageContext'
-import{COMMUNITIES,TYPEN,getTypBadge,getStatusInfo,LAND_EN,getTypIcon}from'../../data/communities'
+import{useCatalog}from'../../lib/catalog'
+import{TYPEN,getTypBadge,getStatusInfo,LAND_EN,getTypIcon}from'../../data/communities'
 import{supabase}from'../../lib/supabase'
 import styles from'../../styles/Kommunen.module.css'
 
@@ -31,6 +32,7 @@ website:p.website||'',tags:[],avatar_url:p.avatar_url||null,dbId:p.id,
 }
 
 export default function Kommunen(){
+const[COMMUNITIES]=useCatalog()
 const{t,lang}=useLang()
 const router=useRouter()
 const[search,setSearch]=useState('')
