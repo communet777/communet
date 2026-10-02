@@ -14,3 +14,6 @@ button{font-family:inherit;cursor:pointer}
 .badge-wohn{background:#e0f2f1;color:#00695c}
 .badge-hof{background:#f5e6d3;color:#c17817}
 html{background:#123A2E}
+/* Karten: warmer, gedämpfter Kartenhintergrund passend zur Startseite (Forest Green/Gold). Gilt für alle Leaflet-Karten. */
+.leaflet-container{background:#cfc4a8!important}
+.leaflet-tile-pane{filter:sepia(.5) saturate(.65) brightness(.78) contrast(.95)}
