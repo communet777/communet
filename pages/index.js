@@ -4,11 +4,13 @@ import{useRouter}from'next/router'
 import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
 import{useLang}from'../lib/LanguageContext'
-import{COMMUNITIES,getTypBadge,getTypIcon}from'../data/communities'
+import{getTypBadge,getTypIcon}from'../data/communities'
+import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Home.module.css'
 
 export default function Home(){
+const[COMMUNITIES]=useCatalog()
 const{t,lang}=useLang()
 const router=useRouter()
 const[dbKommunen,setDbKommunen]=useState([])

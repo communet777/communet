@@ -3,16 +3,19 @@ import{useRouter}from'next/router'
 import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
-import{COMMUNITIES,getTypBadge,getStatusInfo,getBesucher,LAND_EN,getTypIcon}from'../../data/communities'
+import{useCatalog}from'../../lib/catalog'
+import{getTypBadge,getStatusInfo,getBesucher,LAND_EN,getTypIcon}from'../../data/communities'
 import styles from'../../styles/KommuneProfil.module.css'
 
 const MiniMap=dynamic(()=>import('../../components/MiniMap'),{ssr:false,loading:()=><div className={styles.mapPlaceholder}>🗺️</div>})
 
 export default function KommuneProfil(){
+const[COMMUNITIES,catalogLoaded]=useCatalog()
 const router=useRouter()
 const{t,lang}=useLang()
 const{id}=router.query
 const k=COMMUNITIES.find(c=>c.id===parseInt(id))
+if(!k&&(!catalogLoaded||!router.isReady))return<div><Nav/></div>
 if(!k)return<div><Nav/><div style={{padding:48,textAlign:'center',color:'var(--muted)'}}>— <Link href="/kommunen"style={{color:'var(--g)'}}>{t('profile_back')}</Link></div></div>
 const status=getStatusInfo(k.status)
 const besucher=getBesucher(k.besucher||'unbekannt')
