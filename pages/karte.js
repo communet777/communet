@@ -6,7 +6,9 @@ import PlaceSearch from'../components/PlaceSearch'
 import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
-import{getTypBadge,getTypIcon}from'../data/communities'
+import{getTypBadge}from'../data/communities'
+import TypIcon from'../components/TypIcon'
+import{ICONS}from'../lib/typIcons'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Karte.module.css'
@@ -155,7 +157,7 @@ style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',back
 <div className={styles.pills}>
 {['alle','Ökodorf','Kommune','Kollektiv','Spirituelle Gemeinschaft','Wohnprojekt'].map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
-{typ==='alle'?t('communities_all').split(' ')[0]:`${getTypIcon(typ)} ${typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}`}
+{typ==='alle'?t('communities_all').split(' ')[0]:<><TypIcon typ={typ}size={13}/> {typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}</>}
 </button>
 ))}
 </div>
@@ -168,7 +170,7 @@ style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',back
   disabled={!user}
   title={user?'Bio-Hofläden ein-/ausblenden':'Mit Konto sichtbar'}
 >
-🧺 Bio-Hofläden{!user?' 🔒':''}
+<TypIcon src={ICONS.korb}size={13}/> Bio-Hofläden{!user?' 🔒':''}
 </button>
 <button
   className={`${styles.pill}${showWater&&user?' '+styles.active:''}${!user?' '+styles.pillDisabled:''}`}
@@ -176,7 +178,7 @@ style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',back
   disabled={!user}
   title={user?'Wasserquellen ein-/ausblenden':'Mit Konto sichtbar'}
 >
-💧 Wasserquellen{!user?' 🔒':''}
+<TypIcon src={ICONS.tropfen}size={13}/> Wasserquellen{!user?' 🔒':''}
 </button>
 </div>
 {showFarmShops&&user&&(
@@ -210,7 +212,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.list}>
 {filtered.map(k=>(
 <div key={k.id}className={`${styles.listItem}${selected?.id===k.id?' '+styles.listActive:''}`}onClick={()=>selectFromList(k)}>
-<span className={styles.listIcon}>{getTypIcon(k.typ)}</span>
+<span className={styles.listIcon}><TypIcon typ={k.typ}size={16}badge/></span>
 <div className={styles.listBody}>
 <div className={styles.listName}>{k.name}</div>
 <div className={styles.listLoc}>{k.ort}{k.ort&&k.land?' · ':''}{k.land}</div>
@@ -231,7 +233,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.popupIcon}>
   {selected.avatar_url
     ?<img src={selected.avatar_url} alt={selected.name} style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}}/>
-    :getTypIcon(selected.typ)
+    :<TypIcon typ={selected.typ}size={26}badge/>
   }
 </div>
 <div className={styles.popupName}>{selected.name}</div>
@@ -247,7 +249,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
-<div className={styles.popupIcon}>🧺</div>
+<div className={styles.popupIcon}><TypIcon src={ICONS.korb}size={26}badge/></div>
 <div className={styles.popupName}>{selectedFarm.name}</div>
 <span className="badge badge-hof">{t('hof_badge')}</span>
 <div className={styles.popupLoc}>📍 {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
