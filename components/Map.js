@@ -1,7 +1,6 @@
 import{useEffect,useRef}from'react'
-import{getTypIcon}from'../data/communities'
+import{getTypIconUrl,ICONS}from'../lib/typIcons'
 import{WATER_COLORS}from'../lib/water'
-const TYPE_COLORS={"Ökodorf":"#3e6b4f","Kommune":"#c99a2e","Kollektiv":"#b5653a","Spirituelle Gemeinschaft":"#7a5c8a","Wohnprojekt":"#3f7f7a","Sonstige":"#8a8270"}
 export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
@@ -31,8 +30,7 @@ const L=require('leaflet')
 Object.values(markersRef.current).forEach(m=>mapInstanceRef.current.removeLayer(m))
 markersRef.current={}
 communities.forEach(k=>{
-const color=TYPE_COLORS[k.typ]||'#8a8270'
-const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid #f6f2e9;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;opacity:${k.status==='aktiv'?1:0.55};-webkit-tap-highlight-color:transparent;outline:none">${getTypIcon(k.typ)}</div>`,iconSize:[28,28],iconAnchor:[14,14]})
+const icon=L.divIcon({className:'',html:`<div style="width:30px;height:30px;border-radius:50%;background:#123a2e;border:2px solid #c9a84c;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:${k.status==='aktiv'?1:0.6};-webkit-tap-highlight-color:transparent;outline:none"><img src="${getTypIconUrl(k.typ)}" width="18" height="18" alt="" style="display:block;pointer-events:none"/></div>`,iconSize:[30,30],iconAnchor:[15,15]})
 const marker=L.marker([k.lat,k.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelect(k))
 markersRef.current[k.id]=marker
 })
@@ -44,7 +42,7 @@ Object.values(farmMarkersRef.current).forEach(m=>mapInstanceRef.current.removeLa
 farmMarkersRef.current={}
 farmShops.forEach(f=>{
 if(f.lat==null||f.lon==null)return
-const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:#a8692b;border:2px solid #f6f2e9;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none">🧺</div>`,iconSize:[24,24],iconAnchor:[12,12]})
+const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:#4a3418;border:2px solid #c9a84c;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${ICONS.korb}" width="15" height="15" alt="" style="display:block;pointer-events:none"/></div>`,iconSize:[26,26],iconAnchor:[13,13]})
 const marker=L.marker([f.lat,f.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelectFarm&&onSelectFarm(f))
 farmMarkersRef.current[f.id]=marker
 })
