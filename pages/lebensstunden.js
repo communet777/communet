@@ -1,4 +1,5 @@
 import Nav from'../components/Nav'
+import Icon from'../components/Icon'
 import{useLang}from'../lib/LanguageContext'
 import styles from'../styles/ComingSoon.module.css'
 export default function Lebensstunden(){
@@ -11,7 +12,7 @@ return(<div><Nav/><div className={styles.page}style={{maxWidth:580}}>
 <div className={styles.features}>
 <div className={styles.feature}>⚖️ {t('lh_f1')}</div>
 <div className={styles.feature}>🔄 {t('lh_f2')}</div>
-<div className={styles.feature}>🌍 {t('lh_f3')}</div>
+<div className={styles.feature}><Icon name="globus"/> {t('lh_f3')}</div>
 <div className={styles.feature}>🚀 {t('lh_f4')}</div>
 </div>
 </div></div>)

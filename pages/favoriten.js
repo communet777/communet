@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../components/Nav'
+import Icon from '../components/Icon'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import styles from '../styles/Favoriten.module.css'
@@ -130,12 +131,12 @@ export default function Favoriten() {
 
         {!fetching && !loadError && favorites.length === 0 && (
           <div className={styles.empty}>
-            <div className={styles.emptyHeart}>♡</div>
+            <div className={styles.emptyHeart}><Icon name="stern" size={44}/></div>
             <p className={styles.emptySub}>
-              Klick auf ♡ auf einer Kommunen-Seite, um sie hier zu speichern.
+              Klick auf den Stern auf einer Gemeinschafts-Seite, um sie hier zu speichern.
             </p>
             <Link href="/kommunen" className={styles.btnPrimary}>
-              Kommunen entdecken
+              Gemeinschaften entdecken
             </Link>
           </div>
         )}
@@ -184,7 +185,7 @@ function FavCard({ fav, onRemove }) {
         title="Aus Favoriten entfernen"
         aria-label={`${name} aus Favoriten entfernen`}
       >
-        ♥
+        <Icon name="stern" size={18}/>
       </button>
     </li>
   )

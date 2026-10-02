@@ -1,4 +1,5 @@
 import Nav from'../components/Nav'
+import Icon from'../components/Icon'
 import Link from'next/link'
 import styles from'../styles/UeberUns.module.css'
 export default function UeberUns(){
@@ -66,7 +67,7 @@ Das Team wächst. Wenn du mithelfen möchtest — als Entwickler, Designer oder 
 <p className={styles.principleText}>Wir verkaufen keine Aufmerksamkeit. Keine Anzeigen, keine gesponserten Inhalte, kein Tracking.</p>
 </div>
 <div className={styles.principle}>
-<div className={styles.principleIcon}>🌍</div>
+<div className={styles.principleIcon}><Icon name="globus" size={28}/></div>
 <div className={styles.principleTitle}>Weltweit</div>
 <p className={styles.principleText}>Alternative Gemeinschaften gibt es auf jedem Kontinent. Communet bildet alle ab — nicht nur die bekanntesten.</p>
 </div>
@@ -78,7 +79,7 @@ Das Team wächst. Wenn du mithelfen möchtest — als Entwickler, Designer oder 
 <p className={styles.ctaText}>Communet lebt von Menschen wie dir — ob als Nutzer, als Kommune oder als Unterstuetzer.</p>
 <div className={styles.ctaBtns}>
 <Link href="/auth/login" className={styles.btnPrimary}>Profil erstellen</Link>
-<Link href="/kommunen" className={styles.btnSecondary}>Kommunen entdecken</Link>
+<Link href="/kommunen" className={styles.btnSecondary}>Gemeinschaften entdecken</Link>
 <a href="mailto:communet@outlook.de" className={styles.btnSecondary}>Kontakt aufnehmen</a>
 </div>
 </section>

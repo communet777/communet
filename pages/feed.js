@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../components/Nav'
+import Icon from '../components/Icon'
 import FeedCard from '../components/FeedCard'
 import { useAuth } from '../lib/AuthContext'
 import { loadFeedOffers } from '../lib/feed'
@@ -31,17 +32,17 @@ export default function Feed() {
         <main className={styles.feed}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:12,flexWrap:'wrap'}}>
             <h1 className={styles.feedTitle}>Dein Feed</h1>
-            <Link href="/favoriten" style={{fontSize:12,color:'var(--g)'}}>♥ Meine Favoriten</Link>
+            <Link href="/favoriten" style={{fontSize:12,color:'var(--g)'}}><Icon name="stern"/> Meine Favoriten</Link>
           </div>
           {feedLoading && <div style={{color:'var(--muted)',fontSize:13,padding:24,textAlign:'center'}}>Lädt...</div>}
           {!feedLoading && offers.length === 0 && (
             <div className={styles.feedPlaceholder}>
-              <div className={styles.feedIcon}>🌏</div>
+              <div className={styles.feedIcon}><Icon name="globus" size={44}/></div>
               <p className={styles.feedSub}>
                 Hier erscheinen Angebote von Kommunen, denen du folgst.<br/>
-                Klick auf ♡ auf einer Kommunen-Seite, um ihr zu folgen.
+                Klick auf den Stern auf einer Gemeinschafts-Seite, um ihr zu folgen.
               </p>
-              <Link href="/kommunen" className={styles.btnPrimary} style={{display:'inline-block',marginTop:16}}>Kommunen entdecken</Link>
+              <Link href="/kommunen" className={styles.btnPrimary} style={{display:'inline-block',marginTop:16}}>Gemeinschaften entdecken</Link>
             </div>
           )}
           {offers.map(o => <FeedCard key={o.id} o={o}/>)}
