@@ -21,14 +21,14 @@ return(
 <Link href="/kommunen"className={`${styles.link}${router.pathname.startsWith('/kommunen')?' '+styles.active:''}`}>{t('nav_communities')}</Link>
 <Link href="/angebote"className={`${styles.link}${router.pathname==='/angebote'?' '+styles.active:''}`}>{t('nav_offers')}</Link>
 <Link href="/versorgung"className={`${styles.link} ${styles.navSupply}${router.pathname==='/versorgung'?' '+styles.active:''}`}><TypIcon src={ICONS.korb}size={15}/> {t('nav_supply')}</Link>
-<div className={styles.langSwitch}>
-<button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={()=>setLang('de')}>DE</button>
-<button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={()=>setLang('en')}>EN</button>
-</div>
 {user
 ?<Link href="/profil"className={`${styles.cta}${router.pathname.startsWith('/profil')?' '+styles.active:''}`}><Icon name="person"/> Profil</Link>
 :<Link href="/auth/login"className={styles.cta}>Anmelden</Link>
 }
+<div className={styles.langSwitch}>
+<button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={()=>setLang('de')}>DE</button>
+<button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={()=>setLang('en')}>EN</button>
+</div>
 </div>
 <button className={styles.hamburger}onClick={()=>setOpen(o=>!o)}aria-label="Menu">
 {open?'✕':'☰'}
