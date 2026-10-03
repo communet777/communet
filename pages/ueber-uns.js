@@ -80,7 +80,7 @@ Das Team wächst. Wenn du mithelfen möchtest — als Entwickler, Designer oder 
 <div className={styles.ctaBtns}>
 <Link href="/auth/login" className={styles.btnPrimary}>Profil erstellen</Link>
 <Link href="/kommunen" className={styles.btnSecondary}>Gemeinschaften entdecken</Link>
-<a href="mailto:communet@outlook.de" className={styles.btnSecondary}>Kontakt aufnehmen</a>
+<a href="mailto:team@communet.net" className={styles.btnSecondary}>Kontakt aufnehmen</a>
 </div>
 </section>
 </div>
@@ -88,7 +88,7 @@ Das Team wächst. Wenn du mithelfen möchtest — als Entwickler, Designer oder 
 <span style={{fontSize:13,color:'var(--muted)'}}>communet · 2026</span>
 <div style={{display:'flex',gap:20}}>
 <Link href="/datenschutz" style={{fontSize:12,color:'var(--muted)',textDecoration:'none'}}>Datenschutz</Link>
-<a href="mailto:communet@outlook.de" style={{fontSize:12,color:'var(--muted)'}}>Kontakt</a>
+<a href="mailto:team@communet.net" style={{fontSize:12,color:'var(--muted)'}}>Kontakt</a>
 </div>
 </footer>
 </div>

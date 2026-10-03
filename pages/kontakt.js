@@ -34,7 +34,7 @@ export default function Kontakt(){
         <div className={styles.feature}>📧 {t('contact_f1')}</div>
         <div className={styles.feature}><Icon name="standort"/> {t('contact_f2')}</div>
       </div>
-      <a href="mailto:communet@outlook.de" className={styles.btn}>{t('contact_btn')}</a>
+      <a href="mailto:team@communet.net" className={styles.btn}>{t('contact_btn')}</a>
 
       <div style={{width:'100%',maxWidth:400,marginTop:32,textAlign:'left'}}>
         <div style={{textAlign:'center',fontSize:13,color:'var(--muted)',margin:'0 0 16px'}}>{t('contact_form_title')}</div>
