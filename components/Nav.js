@@ -15,7 +15,7 @@ const[open,setOpen]=useState(false)
 return(
 <>
 <nav className={styles.nav}>
-<Link href="/"className={styles.logo}>communet</Link>
+<Link href="/"className={styles.logo}aria-label="Communet Startseite"><Icon name="globus"size={32}/><span className={styles.logoText}><span className={styles.logoName}>COMMUNET</span><span className={styles.logoClaim}>CONNECT · LIVE · CREATE</span></span></Link>
 <div className={styles.links}>
 <Link href="/karte"className={`${styles.link}${router.pathname==='/karte'?' '+styles.active:''}`}>{t('nav_map')}</Link>
 <Link href="/kommunen"className={`${styles.link}${router.pathname.startsWith('/kommunen')?' '+styles.active:''}`}>{t('nav_communities')}</Link>
