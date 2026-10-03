@@ -112,7 +112,14 @@ return(
 <Link href="/kommunen" className={styles.textLink}>{de?'Alle Gemeinschaften ansehen':'Browse all communities'} →</Link>
 </div>
 <div className={styles.spotImage}>
+<figure className={styles.polaroid}>
+<span className={styles.tapeLeft} aria-hidden="true"/>
+<span className={styles.tapeRight} aria-hidden="true"/>
+<div className={styles.photo}>
 <img src={`${FOTO}/gemeinschaft-abend.jpg`} alt={de?'Menschen einer Gemeinschaft sitzen bei Sonnenuntergang zusammen':'Members of a community sitting together at sunset'} className={styles.spotImg} loading="lazy"/>
+</div>
+<figcaption className={styles.polaroidCaption}>{de?'Gemeinsamer Abend':'An evening together'}</figcaption>
+</figure>
 </div>
 </section>
 
