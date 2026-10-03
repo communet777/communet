@@ -30,7 +30,7 @@ return(
 
 <h2 style={H2}>3. Allgemeine Hinweise und Pflichtinformationen</h2>
 <h3 style={H3}>Hinweis zur verantwortlichen Stelle</h3>
-<p style={P}>Jan Lucas Abram<br/>Jan-Wellemstraße 22<br/>51429 Bergisch Gladbach<br/>E-Mail: <a href="mailto:communet@outlook.de" style={{color:'var(--g)'}}>communet@outlook.de</a></p>
+<p style={P}>Jan Lucas Abram<br/>Jan-Wellemstraße 22<br/>51429 Bergisch Gladbach<br/>E-Mail: <a href="mailto:team@communet.net" style={{color:'var(--g)'}}>team@communet.net</a></p>
 <h3 style={H3}>Speicherdauer</h3>
 <p style={P}>Soweit innerhalb dieser Datenschutzerklärung keine speziellere Speicherdauer genannt wurde, verbleiben deine personenbezogenen Daten bei uns, bis der Zweck für die Datenverarbeitung entfällt oder du eine Löschung deines Kontos beantragst. Gesetzliche Aufbewahrungsfristen bleiben unberührt.</p>
 <h3 style={H3}>Empfänger von personenbezogenen Daten</h3>
