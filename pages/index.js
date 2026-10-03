@@ -12,9 +12,31 @@ import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Home.module.css'
 
+// Gepinselte Goldlinie aus Annas Design-System (unter Überschriften)
+function GoldLine({width=160}){
+return(
+<svg className={styles.goldLine} width={width} height="14" viewBox="0 0 180 14" aria-hidden="true">
+<path d="M3 9 C40 4, 95 11, 177 6" stroke="currentColor" strokeWidth="6" strokeLinecap="round" fill="none"/>
+</svg>
+)
+}
+
+// Fotos liegen unter /public/fotos
+const FOTO='/fotos'
+
+// Arten von Gemeinschaften (Typ-Icons wie auf der Karte)
+const ARTEN=[
+{typ:'Ökodorf',de:['Ökodörfer','Ökologisch leben, oft auf dem Land'],en:['Ecovillages','Ecological living, often rural']},
+{typ:'Kommune',de:['Kommunen','Gemeinsame Kasse und gemeinsamer Alltag'],en:['Communes','Shared income and daily life']},
+{typ:'Kollektiv',de:['Kollektive','Gemeinsam arbeiten und entscheiden'],en:['Collectives','Working and deciding together']},
+{typ:'Spirituelle Gemeinschaft',de:['Spirituelle Gemeinschaften','Mit gemeinsamer Praxis'],en:['Spiritual communities','With a shared practice']},
+{typ:'Wohnprojekt',de:['Wohnprojekte','Gemeinsam wohnen, oft in der Stadt'],en:['Co-housing','Living together, often in cities']},
+]
+
 export default function Home(){
 const[COMMUNITIES]=useCatalog()
-const{t,lang}=useLang()
+const{lang}=useLang()
+const de=lang==='de'
 const router=useRouter()
 const[dbKommunen,setDbKommunen]=useState([])
 const[search,setSearch]=useState('')
@@ -32,142 +54,147 @@ const countryCount=countrySet.size
 
 function handleSearch(e){
 e.preventDefault()
-if(search.trim()) router.push(`/kommunen?q=${encodeURIComponent(search.trim())}`)
+router.push(search.trim()?`/kommunen?q=${encodeURIComponent(search.trim())}`:'/karte')
 }
 
 return(
 <div className={styles.page}>
 <Nav/>
 
+{/* 1 · Hero: Weltkugel im Mittelpunkt */}
 <section className={styles.hero}>
-{/* Links: Titel + Untertitel + Stats */}
-<div className={styles.heroLeft}>
-<h1 className={styles.title}>
-{t('home_title1')}<br/>
-{t('home_title2')}<br/>
-{t('home_title3')}
-</h1>
-<p className={styles.sub}>{t('home_sub')}</p>
-<div className={styles.statsRow}>
-<div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
-<div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
-<div className={styles.stat}><div className={styles.statN}><Icon name="globus" size={26}/></div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
-</div>
-</div>
-
-{/* Mitte: Globus */}
-<div className={styles.heroCenter}>
-<Link href="/karte" className={styles.globeLink}>
-<img src="/communet_globe.png" alt="Zur Karte" className={styles.globe}/>
-<div className={styles.globeHint}>Zur Karte →</div>
-</Link>
-</div>
-
-{/* Rechts: Stats oben, dann Suche + Buttons */}
-<div className={styles.heroRight}>
-<div className={styles.statsRowRight}>
-<div className={styles.stat}><div className={styles.statN}>{totalCount}+</div><div className={styles.statL}>{t('home_stat_communities')}</div></div>
-<div className={styles.stat}><div className={styles.statN}>{countryCount}+</div><div className={styles.statL}>{t('home_stat_countries')}</div></div>
-<div className={styles.stat}><div className={styles.statN}><Icon name="globus" size={26}/></div><div className={styles.statL}>{t('home_stat_offers')}</div></div>
-</div>
-<form onSubmit={handleSearch} className={styles.searchForm}>
-<input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Gemeinschaft, Ort oder Land..." className={styles.searchInput}/>
-<button type="submit" className={styles.searchBtn}>🔍</button>
+<div className={styles.heroText}>
+<span className={styles.eyebrow}>{de?'Verzeichnis für gemeinschaftliches Leben':'A directory of community living'}</span>
+<h1 className={styles.title}>{de?'Finde Menschen, die schon so leben.':'Find people who already live this way.'}</h1>
+<GoldLine/>
+<p className={styles.lead}>
+{de
+?`${totalCount} Ökodörfer, Kommunen und Kollektive in ${countryCount} Ländern. Auf einer Karte, mit Kontakt direkt zur Gemeinschaft.`
+:`${totalCount} ecovillages, communes and collectives in ${countryCount} countries. On one map, with direct contact to each community.`}
+</p>
+<form onSubmit={handleSearch} className={styles.searchForm} role="search">
+<label htmlFor="home-search" className={styles.srOnly}>{de?'Suche':'Search'}</label>
+<input id="home-search" type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder={de?'Ort, Land oder Name':'Place, country or name'} className={styles.searchInput}/>
+<button type="submit" className={styles.searchBtn}>{de?'Suchen':'Search'}</button>
 </form>
-<div className={styles.actions}>
-<Link href="/auth/login" className={styles.btnPrimary}>{t('home_cta_profile')}</Link>
-<Link href="/kommunen" className={styles.btnSecondary}>{t('home_cta_commune')}</Link>
+<div className={styles.heroLinks}>
+<Link href="/auth/login" className={styles.heroLink}>{de?'Profil erstellen':'Create profile'} →</Link>
+<Link href="/auth/login" className={styles.heroLink}>{de?'Gemeinschaft eintragen':'Add your community'} →</Link>
 </div>
 </div>
-</section>
-
-<section className={styles.visionSection}>
-<div className={styles.visionInner}>
-{lang==='de'?(
-<>
-<div className={styles.sectionLabel}>Unsere Vision</div>
-<h2 className={styles.visionTitle}>Gemeinschaft neu gedacht</h2>
-<p className={styles.visionText}>Communet ist eine offene Plattform für alle, die anders leben wollen — oder es bereits tun.</p>
-<p className={styles.visionText}>Wir verbinden Kommunen, Ökodörfer und Kollektive weltweit mit Menschen, die Gemeinschaft suchen. Nicht als Produkt. Nicht als Algorithmus. Sondern als ehrliche, kostenlose Karte des alternativen Lebens.</p>
-<Link href="/ueber-uns" className={styles.visionLink}>Mehr über Communet →</Link>
-</>
-):(
-<>
-<div className={styles.sectionLabel}>Our Vision</div>
-<h2 className={styles.visionTitle}>Community reimagined</h2>
-<p className={styles.visionText}>Communet is an open platform for everyone who wants to live differently — or already does.</p>
-<p className={styles.visionText}>We connect communes, ecovillages and collectives worldwide with people seeking community. Not as a product. Not as an algorithm. But as an honest, free map of alternative living.</p>
-<Link href="/ueber-uns" className={styles.visionLink}>About Communet →</Link>
-</>
-)}
-</div>
-</section>
-
-{dbKommunen.length>0&&(
-<section className={styles.section}>
-<div className={styles.sectionHeader}>
-<div><div className={styles.sectionLabel} style={{color:'#2d6a4f'}}>{t('home_section_active')}</div><h2 className={styles.sectionTitle}>{t('home_section_title')}</h2></div>
-<Link href="/kommunen" className={styles.sectionLink}>{t('home_see_all')}</Link>
-</div>
-<div className={styles.grid}>
-{dbKommunen.slice(0,4).map(k=>(
-<Link href={`/profil/p/${k.id}`} key={k.id} className={styles.card}>
-<div className={styles.cardImg} style={{background:getTypBg(k.kommune_typ||'Ökodorf')}}>
-{k.avatar_url?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-:<TypIcon typ={k.kommune_typ||'Ökodorf'}size={40}/>}
-</div>
-<div className={styles.cardBody}>
-<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-<span className={`badge ${getTypBadge(k.kommune_typ||'Ökodorf')}`}>{k.kommune_typ||'Ökodorf'}</span>
-<span style={{fontSize:10,color:'#2d6a4f',background:'#e8f5ee',padding:'2px 6px',borderRadius:10}}>🟢 Aktiv</span>
-</div>
-<div className={styles.cardName}>{k.name}</div>
-<div className={styles.cardLoc}><Icon name="standort"/> {k.land||'Ort unbekannt'}</div>
-</div>
+<div className={styles.heroGlobe}>
+<Link href="/karte" className={styles.globeLink} aria-label={de?'Zur Weltkarte':'Open the world map'}>
+<img src="/communet_globe.png" alt="" className={styles.globe}/>
+<span className={styles.globeHint}>{de?'Zur Weltkarte':'Open the world map'} →</span>
 </Link>
+</div>
+</section>
+
+{/* 2 · Wie Gemeinschaft aussieht */}
+<section className={styles.spotlight}>
+<div className={styles.spotText}>
+<span className={styles.kicker}><span className={styles.kickerLine}/>{de?'Wie Menschen zusammenleben':'How people live together'}</span>
+<h2 className={styles.h2}>{de?'Gemeinschaft ist Alltag.':'Community is everyday life.'}</h2>
+<GoldLine width={120}/>
+<p className={styles.body}>
+{de
+?'Zusammen kochen, bauen, entscheiden. Jede Gemeinschaft macht das anders. Auf Communet findest du diese Arten:'
+:'Cooking, building and deciding together. Every community does it differently. On Communet you will find these kinds:'}
+</p>
+<ul className={styles.facts}>
+{ARTEN.map(a=>(
+<li key={a.typ} className={styles.fact}>
+<span className={styles.factIcon}><TypIcon typ={a.typ} size={24}/></span>
+<span><strong>{de?a.de[0]:a.en[0]}</strong><span>{de?a.de[1]:a.en[1]}</span></span>
+</li>
 ))}
+</ul>
+<Link href="/kommunen" className={styles.textLink}>{de?'Alle Gemeinschaften ansehen':'Browse all communities'} →</Link>
 </div>
+<div className={styles.spotImage}>
+<img src={`${FOTO}/gemeinschaft-abend.jpg`} alt={de?'Menschen einer Gemeinschaft sitzen bei Sonnenuntergang zusammen':'Members of a community sitting together at sunset'} className={styles.spotImg} loading="lazy"/>
+</div>
+</section>
+
+{/* 3 · Aktive Gemeinschaften (nur wenn vorhanden) */}
+{dbKommunen.length>0&&(
+<section className={styles.active}>
+<div className={styles.sectionHead}>
+<div>
+<span className={styles.kicker}><span className={styles.kickerLine}/>{de?'Aktiv auf Communet':'Active on Communet'}</span>
+<h2 className={styles.h2Small}>{de?'Diese Gemeinschaften sind direkt erreichbar':'These communities can be contacted directly'}</h2>
+</div>
+<Link href="/kommunen" className={styles.textLink}>{de?'Alle Gemeinschaften':'All communities'} →</Link>
+</div>
+<ul className={styles.activeList}>
+{dbKommunen.slice(0,4).map(k=>(
+<li key={k.id}>
+<Link href={`/profil/p/${k.id}`} className={styles.activeItem}>
+<span className={styles.activeAvatar} style={{background:getTypBg(k.kommune_typ||'Ökodorf')}}>
+{k.avatar_url?<img src={k.avatar_url} alt=""/>:<TypIcon typ={k.kommune_typ||'Ökodorf'} size={28}/>}
+</span>
+<span className={styles.activeText}>
+<strong>{k.name}</strong>
+<span><span className={`badge ${getTypBadge(k.kommune_typ||'Ökodorf')}`}>{k.kommune_typ||'Ökodorf'}</span> <Icon name="standort" size={12}/> {k.land||(de?'Ort unbekannt':'Location unknown')}</span>
+</span>
+<span className={styles.arrow} aria-hidden="true">→</span>
+</Link>
+</li>
+))}
+</ul>
 </section>
 )}
 
-<section className={styles.howSection}>
-<h2 className={styles.howTitle}>{t('home_how_title')}</h2>
-<div className={styles.howGrid}>
-<Link href="/auth/login" className={styles.howCard}>
-<div className={styles.howIcon}><Icon name="person" size={36}/></div>
-<div className={styles.howCardTitle}>{t('home_how1_title')}</div>
-<div className={styles.howText}>{t('home_how1_text')}</div>
-</Link>
-<Link href="/kommunen" className={styles.howCard}>
-<div className={styles.howIcon}><Icon name="karte" size={36}/></div>
-<div className={styles.howCardTitle}>{t('home_how2_title')}</div>
-<div className={styles.howText}>{t('home_how2_text')}</div>
-</Link>
-<Link href="/angebote" className={styles.howCard}>
-<div className={styles.howIcon}>✉️</div>
-<div className={styles.howCardTitle}>{t('home_how3_title')}</div>
-<div className={styles.howText}>{t('home_how3_text')}</div>
-</Link>
+{/* 4 · So funktioniert es */}
+<section className={styles.steps}>
+<div className={styles.stepsInner}>
+<div className={styles.stepsHead}>
+<h2 className={styles.h2Light}>{de?'So findest du deine Gemeinschaft':'How to find your community'}</h2>
+<img src={`${FOTO}/tipi.jpg`} alt={de?'Blick von innen in die Spitze eines Tipis':'Looking up into the top of a tipi'} className={styles.stepsImg} loading="lazy"/>
+</div>
+<ol className={styles.stepGrid}>
+<li className={styles.step}>
+<span className={styles.stepNo}>01</span>
+<strong>{de?'Karte öffnen':'Open the map'}</strong>
+<span>{de?'Nach Land, Art oder Ort filtern. Ökodörfer, Kommunen, Kollektive und Wohnprojekte haben eigene Zeichen.':'Filter by country, type or place. Ecovillages, communes, collectives and housing projects each have their own symbol.'}</span>
+</li>
+<li className={styles.step}>
+<span className={styles.stepNo}>02</span>
+<strong>{de?'Profil lesen':'Read the profile'}</strong>
+<span>{de?'Wie viele Menschen dort leben, seit wann es die Gemeinschaft gibt und ob Besuch willkommen ist.':'How many people live there, when it was founded and whether visitors are welcome.'}</span>
+</li>
+<li className={styles.step}>
+<span className={styles.stepNo}>03</span>
+<strong>{de?'Direkt schreiben':'Write directly'}</strong>
+<span>{de?'Ohne Vermittlung und ohne Werbung. Deine Nachricht geht an die Gemeinschaft selbst.':'No middlemen, no ads. Your message goes to the community itself.'}</span>
+</li>
+</ol>
+<Link href="/ueber-uns" className={styles.textLinkLight}>{de?'Mehr über Communet':'More about Communet'} →</Link>
 </div>
 </section>
 
-<section className={styles.ctaSection}>
-<h2 className={styles.ctaTitle}>{t('home_cta_title')}</h2>
-<p className={styles.ctaSub}>{t('home_cta_sub')}</p>
+{/* 5 · Eintragen */}
+<section className={styles.cta} style={{backgroundImage:`url(${FOTO}/spirale.jpg)`}}>
+<div className={styles.ctaInner}>
+<Icon name="globus" size={56}/>
+<h2 className={styles.h2}>{de?'Eure Gemeinschaft fehlt noch?':'Your community is not listed yet?'}</h2>
+<GoldLine width={120}/>
+<p className={styles.body}>{de?'Der Eintrag ist kostenlos und dauert etwa fünf Minuten.':'Listing is free and takes about five minutes.'}</p>
 <div className={styles.ctaBtns}>
-<Link href="/auth/login" className={styles.ctaBtnP}>{t('home_cta_btn1')}</Link>
-<Link href="/auth/login" className={styles.ctaBtnS}>{t('home_cta_btn2')}</Link>
+<Link href="/auth/login" className={styles.btnPrimary}>{de?'Gemeinschaft eintragen':'Add your community'}</Link>
+<Link href="/auth/login" className={styles.btnSecondary}>{de?'Als Person registrieren':'Register as a person'}</Link>
+</div>
 </div>
 </section>
 
 <footer className={styles.footer}>
-<span className={styles.footerLogo}>communet · 2026</span>
-<div className={styles.footerLinks}>
-<Link href="/ueber-uns">{t('about')}</Link>
-<Link href="/kontakt">{t('contact')}</Link>
-<Link href="/datenschutz">{t('privacy')}</Link>
+<span>communet.net · {de?'werbefrei und unabhängig':'ad-free and independent'}</span>
+<nav className={styles.footerLinks} aria-label="Footer">
+<Link href="/ueber-uns">{de?'Über uns':'About'}</Link>
+<Link href="/kontakt">{de?'Kontakt':'Contact'}</Link>
+<Link href="/datenschutz">{de?'Datenschutz':'Privacy'}</Link>
 <Link href="/impressum">Impressum</Link>
-</div>
+</nav>
 </footer>
 <BackToTop/>
 </div>
