@@ -1,8 +1,8 @@
-/* Startseite nach Annas Design-System v1 – VORSCHAU Farbvariante Petrol + Terrakotta
-   Farben: Petrol #1F4E5A, Terrakotta #A4512F (auf hell) / #E8A07C (auf Petrol), Warm White #F6F2E9, Tinte #1E2A2F
+/* Startseite nach Annas Design-System v1 – VORSCHAU Farbvariante Salbei + Terrakotta (dunkles Salbei statt Petrol)
+   Farben: Dunkles Salbei #3F5A4C, helles Salbei #B5C4BA, Terrakotta #A4512F (auf hell) / #F0B494 (auf dunklem Salbei), Warm White #F6F2E9, Tinte #1E2A2F
    Schriften: Cormorant Garamond (Überschriften), Work Sans (Text) */
 .page{
---fg:#1F4E5A;--gold:#E8A07C;--goldText:#A4512F;--ww:#F6F2E9;--dg:#1E2A2F;--line:#E4DCC8;--soft:#4B5A58;--onAccent:#163A43;
+--fg:#3F5A4C;--gold:#F0B494;--goldText:#A4512F;--ww:#F6F2E9;--dg:#1E2A2F;--line:#E4DCC8;--soft:#4B5A58;--onAccent:#22322A;--sage:#B5C4BA;
 --serif:'Cormorant Garamond',Georgia,serif;--sans:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 min-height:100vh;background:var(--ww);color:var(--dg);font-family:var(--sans);line-height:1.6;overflow-x:hidden}
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -19,21 +19,21 @@ background:var(--fg);color:var(--ww);padding:72px clamp(20px,5vw,72px) 88px;min-
 .statN{font-family:var(--serif);font-size:38px;font-weight:600;line-height:1;color:var(--gold);min-height:38px;display:flex;align-items:center}
 .statL{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:rgba(246,242,233,.6)}
 .searchForm{display:flex;max-width:460px;width:100%}
-.searchInput{flex:1;min-width:0;min-height:50px;padding:0 20px;border-radius:999px 0 0 999px;border:1px solid rgba(232,160,124,.5);border-right:none;
+.searchInput{flex:1;min-width:0;min-height:50px;padding:0 20px;border-radius:999px 0 0 999px;border:1px solid rgba(240,180,148,.5);border-right:none;
 background:rgba(246,242,233,.06);color:var(--ww);font:inherit;font-size:15px;outline:none}
 .searchInput::placeholder{color:rgba(246,242,233,.55)}
 .searchInput:focus{border-color:var(--gold);background:rgba(246,242,233,.1)}
-.searchBtn{min-height:50px;padding:0 20px;border-radius:0 999px 999px 0;border:1px solid rgba(232,160,124,.5);background:rgba(232,160,124,.18);cursor:pointer;display:flex;align-items:center}
-.searchBtn:hover{background:rgba(232,160,124,.32)}
+.searchBtn{min-height:50px;padding:0 20px;border-radius:0 999px 999px 0;border:1px solid rgba(240,180,148,.5);background:rgba(240,180,148,.18);cursor:pointer;display:flex;align-items:center}
+.searchBtn:hover{background:rgba(240,180,148,.32)}
 .actions{display:flex;flex-wrap:wrap;gap:10px}
 .btnGold{display:inline-flex;align-items:center;min-height:46px;padding:0 24px;border-radius:999px;background:var(--gold);color:var(--onAccent);font-weight:600;font-size:14px}
-.btnGold:hover{background:#F0B494}
+.btnGold:hover{background:#F6C9AF}
 .btnGhost{display:inline-flex;align-items:center;min-height:46px;padding:0 24px;border-radius:999px;border:1px solid rgba(246,242,233,.35);color:rgba(246,242,233,.9);font-weight:500;font-size:14px}
 .btnGhost:hover{border-color:var(--ww);color:var(--ww)}
 .heroGlobe{display:flex;justify-content:center}
 .globeLink{display:flex;flex-direction:column;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent;outline:none}
 .globe{width:min(600px,44vw);height:auto;aspect-ratio:1;object-fit:contain;display:block;border-radius:50%;
-background:radial-gradient(circle closest-side,rgba(232,160,124,.24),rgba(232,160,124,.08) 60%,rgba(232,160,124,0) 100%);transition:transform .4s}
+background:radial-gradient(circle closest-side,rgba(240,180,148,.24),rgba(240,180,148,.08) 60%,rgba(240,180,148,0) 100%);transition:transform .4s}
 .globeLink:hover .globe{transform:scale(1.03)}
 .globeLink:focus-visible .globe{outline:2px solid var(--gold);outline-offset:6px}
 .globeHint{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
@@ -63,17 +63,17 @@ background:radial-gradient(circle closest-side,rgba(232,160,124,.24),rgba(232,16
 .activeText{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
 .activeText strong{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.15}
 .activeText>span{font-size:13px;color:var(--soft)}
-.activeStatus{font-size:11px;color:#1F4E5A;background:#E3EEF0;padding:3px 8px;border-radius:10px;white-space:nowrap}
+.activeStatus{font-size:11px;color:#3F5A4C;background:#E3EEF0;padding:3px 8px;border-radius:10px;white-space:nowrap}
 
 /* Einfach und direkt */
 .how{background:var(--fg);color:var(--ww);padding:104px clamp(20px,5vw,72px)}
 .howInner{max-width:1296px;margin:0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:20px}
 .howGrid{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:40px;margin-top:28px}
-.howItem{display:flex;flex-direction:column;gap:12px;border-top:1px solid rgba(232,160,124,.6);padding-top:24px;color:var(--ww)}
+.howItem{display:flex;flex-direction:column;gap:12px;border-top:1px solid rgba(240,180,148,.6);padding-top:24px;color:var(--ww)}
 .howItem strong{font-size:18px;font-weight:600}
 .howItem span:last-child{font-size:15px;color:rgba(246,242,233,.78)}
 .howItem:hover strong{color:var(--gold)}
-.howIcon{width:56px;height:56px;border-radius:50%;border:1.5px solid rgba(232,160,124,.7);display:flex;align-items:center;justify-content:center}
+.howIcon{width:56px;height:56px;border-radius:50%;border:1.5px solid rgba(240,180,148,.7);display:flex;align-items:center;justify-content:center}
 
 /* Deine Kommune noch nicht dabei? Spiralen-Foto mit hellem Verlauf von links */
 .cta{position:relative;padding:120px clamp(20px,5vw,72px);background-color:#EDE5D3;background-image:url(/fotos/spirale.jpg);background-size:cover;background-position:center 70%}
@@ -83,7 +83,7 @@ background:radial-gradient(circle closest-side,rgba(232,160,124,.24),rgba(232,16
 .ctaSub{font-size:17px;margin:0}
 .ctaBtns{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
 .btnPrimary{display:inline-flex;align-items:center;min-height:48px;padding:0 28px;border-radius:999px;background:var(--fg);color:var(--ww);font-weight:600}
-.btnPrimary:hover{background:#163A43}
+.btnPrimary:hover{background:#2F4639}
 .btnSecondary{display:inline-flex;align-items:center;min-height:48px;padding:0 28px;border-radius:999px;border:1.5px solid var(--fg);color:var(--fg);font-weight:600;background:rgba(246,242,233,.6)}
 .btnSecondary:hover{background:rgba(246,242,233,.95)}
 
@@ -101,3 +101,10 @@ background:radial-gradient(circle closest-side,rgba(232,160,124,.24),rgba(232,16
 .cta::before{background:linear-gradient(180deg,rgba(246,242,233,.96) 0%,rgba(246,242,233,.9) 55%,rgba(246,242,233,.35) 100%)}
 .cta{background-position:center bottom}
 }
+
+/* VORSCHAU: Salbei-Zwischenfläche (Ton angelehnt an "Grün mit Lagune") */
+.vision{background:var(--sage)}
+.vision .kicker{color:#7E3A1F}
+.vision .kickerLine{background:#7E3A1F}
+.vision .goldLine{color:#A4512F}
+.activeStatus{background:#DCE5DF}
