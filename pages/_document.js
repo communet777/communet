@@ -13,12 +13,14 @@ return(
 <meta name="theme-color" content="#173F4A"/>
 <meta property="og:title" content="communet — Gemeinschaft neu gedacht"/>
 <meta property="og:description" content="Weltkarte alternativer Gemeinschaften. Ökodörfer, Kommunen und Kollektive weltweit — kostenlos, werbefrei, ohne Algorithmus."/>
-<meta property="og:image" content="https://communet.net/communet_globe.png"/>
+<meta property="og:image" content="https://www.communet.net/api/og?v=petrol"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
 <meta property="og:url" content="https://communet.net"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="communet"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://communet.net/communet_globe.png"/>
+<meta name="twitter:image" content="https://www.communet.net/api/og?v=petrol"/>
 </Head>
 <body>
 <Main/>
