@@ -10,7 +10,7 @@ return(
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin=""/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<meta name="theme-color" content="#2d6a4f"/>
+<meta name="theme-color" content="#173F4A"/>
 <meta property="og:title" content="communet — Gemeinschaft neu gedacht"/>
 <meta property="og:description" content="Weltkarte alternativer Gemeinschaften. Ökodörfer, Kommunen und Kollektive weltweit — kostenlos, werbefrei, ohne Algorithmus."/>
 <meta property="og:image" content="https://communet.net/communet_globe.png"/>

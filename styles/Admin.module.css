@@ -43,7 +43,7 @@
 .hint { font-size: 12px; color: var(--muted); margin: -4px 0 16px; line-height: 1.5; }
 .link { color: var(--g); text-decoration: underline; }
 .error { color: #c0392b; font-size: 13px; margin: 8px 0; }
-.notice { background: #e8f5ee; color: #2d6a4f; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; cursor: pointer; }
+.notice { background: #E1ECEE; color: #173F4A; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; cursor: pointer; }
 
 /* Buttons */
 .btnPrimary { padding: 10px 18px; background: var(--g); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; }
@@ -68,7 +68,7 @@
 .rowArrow { color: var(--muted); font-size: 20px; }
 .badgeNew, .badgeEdited, .badgeHidden { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-left: 8px; }
 .rowBadges .badgeNew, .rowBadges .badgeEdited, .rowBadges .badgeHidden { margin-left: 0; }
-.badgeNew { background: #e8f5ee; color: #2d6a4f; }
+.badgeNew { background: #E1ECEE; color: #173F4A; }
 .badgeEdited { background: #fbf3dc; color: #8a6514; }
 .badgeHidden { background: #f0f0ee; color: #6b6b63; }
 

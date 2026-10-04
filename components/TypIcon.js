@@ -9,7 +9,7 @@ export default function TypIcon({ typ, src, size = 20, badge = false, bg }) {
   if (!badge) return <span style={{ display: 'inline-flex', verticalAlign: '-0.15em' }}>{img}</span>
   const d = Math.round(size * 1.7)
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: d, height: d, borderRadius: '50%', background: bg || (typ ? getTypColor(typ) : '#123A2E'), border: '1.5px solid #C9A84C', flexShrink: 0 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: d, height: d, borderRadius: '50%', background: bg || (typ ? getTypColor(typ) : '#173F4A'), border: '1.5px solid #D9A04A', flexShrink: 0 }}>
       {img}
     </span>
   )

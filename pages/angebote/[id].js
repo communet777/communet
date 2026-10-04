@@ -29,7 +29,7 @@ export default function AngebotDetail() {
       })
   }, [id])
 
-  if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:32,height:32,border:'3px solid #eee',borderTopColor:'#2d6a4f',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/></div>
+  if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:32,height:32,border:'3px solid #eee',borderTopColor:'#173F4A',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/></div>
   if (!offer) return <div><Nav/><div style={{padding:48,textAlign:'center',color:'var(--muted)'}}>— Angebot nicht gefunden. <Link href="/angebote" style={{color:'var(--g)'}}>Zurück</Link></div></div>
 
   return (
@@ -41,7 +41,7 @@ export default function AngebotDetail() {
 
         {/* Badge + Datum */}
         <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12,flexWrap:'wrap'}}>
-          <span style={{fontSize:12,fontWeight:600,background:'#e8f5ee',color:'var(--g)',padding:'3px 10px',borderRadius:20}}>{offer.typ}</span>
+          <span style={{fontSize:12,fontWeight:600,background:'#E1ECEE',color:'var(--g)',padding:'3px 10px',borderRadius:20}}>{offer.typ}</span>
           {offer.datum && (
             <span style={{fontSize:12,color:'var(--muted)',background:'var(--card)',padding:'3px 10px',borderRadius:20}}>
               📅 {new Date(offer.datum).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
