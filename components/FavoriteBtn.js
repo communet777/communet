@@ -1,8 +1,22 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
-import { UI_ICONS } from '../lib/uiIcons'
 import styles from '../styles/FavoriteBtn.module.css'
+
+// Stern aus dem Communet-Icon-Set (Form "Entdecken").
+// Nicht favorisiert: nur die Umrisslinie (innen leer). Favorisiert: komplett gefüllt.
+const STERN_AUSSEN = 'M238 461 c0 -1 -1 -7 -1 -13 -1 -22 -7 -58 -12 -77 -22 -81 -68 -124 -141 -131 -15 -1 -15 -4 0 -5 87 -6 132 -57 150 -170 2 -9 5 -36 5 -41 0 -3 1 -5 1 -6 2 -2 3 1 3 9 0 10 5 48 7 60 1 3 3 9 4 13 11 51 35 91 67 112 12 8 17 11 36 17 8 3 35 8 46 8 8 1 4 3 -5 5 -88 10 -132 58 -151 165 -3 14 -6 42 -6 49 0 5 -1 7 -3 5z'
+const STERN_UMRISS = 'M238 461 c0 -1 -1 -7 -1 -13 -1 -22 -7 -58 -12 -77 -22 -81 -68 -124 -141 -131 -15 -1 -15 -4 0 -5 87 -6 132 -57 150 -170 2 -9 5 -36 5 -41 0 -3 1 -5 1 -6 2 -2 3 1 3 9 0 10 5 48 7 60 1 3 3 9 4 13 11 51 35 91 67 112 12 8 17 11 36 17 8 3 35 8 46 8 8 1 4 3 -5 5 -88 10 -132 58 -151 165 -3 14 -6 42 -6 49 0 5 -1 7 -3 5z m10 -125 c10 -37 28 -65 50 -80 8 -6 22 -14 24 -14 1 0 1 0 1 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 -1 -1 -2 -1 -4 0 -24 -10 -31 -15 -20 -16 -37 -42 -45 -71 -3 -11 -9 -35 -10 -40 -1 -5 -1 -5 -1 -2 -9 38 -13 51 -24 72 -13 26 -31 43 -53 52 -5 1 -10 3 -11 3 -2 0 -1 2 2 2 27 7 55 36 70 72 7 18 15 46 15 55 0 1 1 -2 3 -8 2 -7 4 -16 6 -22z'
+
+function Stern({ gefuellt }) {
+  return (
+    <svg viewBox="0 0 480 480" width={20} height={20} aria-hidden="true" style={{display:'block'}}>
+      <g transform="translate(0,480) scale(1,-1)" fill="#D9A04A">
+        <path d={gefuellt ? STERN_AUSSEN : STERN_UMRISS} fillRule="evenodd"/>
+      </g>
+    </svg>
+  )
+}
 
 export default function FavoriteBtn({ communityId }) {
   const { user } = useAuth()
@@ -45,8 +59,9 @@ export default function FavoriteBtn({ communityId }) {
       onClick={toggle}
       disabled={loading}
       title={liked ? 'Aus Favoriten entfernen' : 'Favorisieren'}
+      aria-pressed={liked}
     >
-      <img src={UI_ICONS.stern} alt="" width={18} height={18} style={{display:'block',filter:liked?undefined:'grayscale(1)',opacity:liked?1:.5}}/>
+      <Stern gefuellt={liked}/>
     </button>
   )
 }
