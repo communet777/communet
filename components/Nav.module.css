@@ -3,7 +3,7 @@
 .logoText{display:flex;flex-direction:column;line-height:1.05}
 .logoName{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:21px;letter-spacing:.09em}
 .logoClaim{font-size:9px;letter-spacing:.22em;color:#7A5114;margin-top:2px}
-@media(prefers-color-scheme:dark){.logo{color:#F6F2E9}.logoClaim{color:#E9AD55}}
+@media(prefers-color-scheme:dark){.logo{color:#F0E6D2}.logoClaim{color:#E9AD55}}
 .links{display:flex;align-items:center;gap:4px}
 .link{padding:7px 14px;border-radius:8px;font-size:13px;color:var(--muted);transition:all .15s}
 .link:hover{background:rgba(217,160,74,.12);color:var(--g)}
