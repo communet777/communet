@@ -1,5 +1,5 @@
 .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:.5px solid var(--border);background:var(--sand);position:sticky;top:0;z-index:100}
-.logo{display:flex;align-items:center;gap:10px;color:#123A2E}
+.logo{display:flex;align-items:center;gap:10px;color:#173F4A}
 .logoText{display:flex;flex-direction:column;line-height:1.05}
 .logoName{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:21px;letter-spacing:.09em}
 .logoClaim{font-size:9px;letter-spacing:.22em;color:#8A6A1E;margin-top:2px}

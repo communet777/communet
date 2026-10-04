@@ -1,8 +1,8 @@
-/* Startseite nach Annas Design-System v1
-   Farben: Forest Green #123A2E, Gold #C9A84C, Warm White #F6F2E9, Dark Green #1E2B24
+/* Startseite nach Annas Design-System v1 – VORSCHAU tiefes Petrol + Gold
+   Farben: tiefes Petrol #173F4A (statt Forest Green #123A2E), Gold #C9A84C, Warm White #F6F2E9, Tinte #1C2A2E
    Schriften: Cormorant Garamond (Überschriften), Work Sans (Text) */
 .page{
---fg:#123A2E;--gold:#C9A84C;--goldText:#8A6A1E;--ww:#F6F2E9;--dg:#1E2B24;--line:#E4DCC8;--soft:#4B5A50;
+--fg:#173F4A;--gold:#C9A84C;--goldText:#8A6A1E;--ww:#F6F2E9;--dg:#1C2A2E;--line:#E4DCC8;--soft:#4B5A5C;
 --serif:'Cormorant Garamond',Georgia,serif;--sans:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 min-height:100vh;background:var(--ww);color:var(--dg);font-family:var(--sans);line-height:1.6;overflow-x:hidden}
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -63,7 +63,7 @@ background:radial-gradient(circle closest-side,rgba(201,168,76,.24),rgba(201,168
 .activeText{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
 .activeText strong{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.15}
 .activeText>span{font-size:13px;color:var(--soft)}
-.activeStatus{font-size:11px;color:#2d6a4f;background:#e8f5ee;padding:3px 8px;border-radius:10px;white-space:nowrap}
+.activeStatus{font-size:11px;color:#173F4A;background:#E1ECEE;padding:3px 8px;border-radius:10px;white-space:nowrap}
 
 /* Einfach und direkt */
 .how{background:var(--fg);color:var(--ww);padding:104px clamp(20px,5vw,72px)}
@@ -83,7 +83,7 @@ background:radial-gradient(circle closest-side,rgba(201,168,76,.24),rgba(201,168
 .ctaSub{font-size:17px;margin:0}
 .ctaBtns{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
 .btnPrimary{display:inline-flex;align-items:center;min-height:48px;padding:0 28px;border-radius:999px;background:var(--fg);color:var(--ww);font-weight:600}
-.btnPrimary:hover{background:#0B261E}
+.btnPrimary:hover{background:#0F2F38}
 .btnSecondary{display:inline-flex;align-items:center;min-height:48px;padding:0 28px;border-radius:999px;border:1.5px solid var(--fg);color:var(--fg);font-weight:600;background:rgba(246,242,233,.6)}
 .btnSecondary:hover{background:rgba(246,242,233,.95)}
 
