@@ -1,8 +1,8 @@
-/* Startseite nach Annas Design-System v1 – VORSCHAU Farbvariante Petrol + Terrakotta
+/* Startseite nach Annas Design-System v1 – VORSCHAU Farbvariante Petrol + Terrakotta + Salbei
    Farben: Petrol #1F4E5A, Terrakotta #A4512F (auf hell) / #E8A07C (auf Petrol), Warm White #F6F2E9, Tinte #1E2A2F
    Schriften: Cormorant Garamond (Überschriften), Work Sans (Text) */
 .page{
---fg:#1F4E5A;--gold:#E8A07C;--goldText:#A4512F;--ww:#F6F2E9;--dg:#1E2A2F;--line:#E4DCC8;--soft:#4B5A58;--onAccent:#163A43;
+--fg:#1F4E5A;--gold:#E8A07C;--goldText:#A4512F;--ww:#F6F2E9;--dg:#1E2A2F;--line:#E4DCC8;--soft:#4B5A58;--onAccent:#163A43;--sage:#B5C4BA;
 --serif:'Cormorant Garamond',Georgia,serif;--sans:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 min-height:100vh;background:var(--ww);color:var(--dg);font-family:var(--sans);line-height:1.6;overflow-x:hidden}
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -101,3 +101,10 @@ background:radial-gradient(circle closest-side,rgba(232,160,124,.24),rgba(232,16
 .cta::before{background:linear-gradient(180deg,rgba(246,242,233,.96) 0%,rgba(246,242,233,.9) 55%,rgba(246,242,233,.35) 100%)}
 .cta{background-position:center bottom}
 }
+
+/* VORSCHAU: Salbei-Zwischenfläche (Ton angelehnt an "Grün mit Lagune") */
+.vision{background:var(--sage)}
+.vision .kicker{color:#7E3A1F}
+.vision .kickerLine{background:#7E3A1F}
+.vision .goldLine{color:#A4512F}
+.activeStatus{background:#DCE5DF}
