@@ -27,7 +27,7 @@ export default function OeffentlichesKommuneProfil() {
       .then(({ data }) => { if (data) setOffers(data) })
   }, [id])
 
-  if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:32,height:32,border:'3px solid #eee',borderTopColor:'#2d6a4f',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/></div>
+  if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:32,height:32,border:'3px solid #eee',borderTopColor:'#173F4A',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/></div>
   if (!k) return <div><Nav/><div style={{padding:48,textAlign:'center',color:'var(--muted)'}}>— Profil nicht gefunden. <Link href="/kommunen" style={{color:'var(--g)'}}>Zurück</Link></div></div>
 
   const typ = k.kommune_typ || 'Kommune'
@@ -43,7 +43,7 @@ export default function OeffentlichesKommuneProfil() {
             : <TypIcon typ={typ} size={60}/>
           }
         </div>
-        <div className={styles.statusBadge} style={{background:'#e8f5ee',color:'#2d6a4f'}}>🟢 Auf Communet</div>
+        <div className={styles.statusBadge} style={{background:'#E1ECEE',color:'#173F4A'}}>🟢 Auf Communet</div>
       </div>
 
       <div className={styles.profileHeader}>
@@ -83,7 +83,7 @@ export default function OeffentlichesKommuneProfil() {
                 <Link key={o.id} href={`/angebote/${o.id}`} style={{textDecoration:'none'}}>
                   <div style={{background:'var(--bg)',border:'1.5px solid var(--border)',borderLeft:'3px solid var(--g)',borderRadius:10,padding:'12px 16px',marginBottom:10,cursor:'pointer'}}>
                     <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:4,flexWrap:'wrap'}}>
-                      <span style={{fontSize:11,fontWeight:600,background:'#e8f5ee',color:'var(--g)',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
+                      <span style={{fontSize:11,fontWeight:600,background:'#E1ECEE',color:'var(--g)',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
                       {o.datum && <span style={{fontSize:11,color:'var(--muted)'}}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'short'})}{o.uhrzeit?' · '+o.uhrzeit.slice(0,5)+' Uhr':''}</span>}
                       {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
                     </div>
