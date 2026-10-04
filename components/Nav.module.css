@@ -2,7 +2,7 @@
 .logo{display:flex;align-items:center;gap:10px;color:#173F4A}
 .logoText{display:flex;flex-direction:column;line-height:1.05}
 .logoName{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:21px;letter-spacing:.09em}
-.logoClaim{font-size:9px;letter-spacing:.22em;color:#8A6A1E;margin-top:2px}
+.logoClaim{font-size:9px;letter-spacing:.22em;color:#7A5C14;margin-top:2px}
 @media(prefers-color-scheme:dark){.logo{color:#F6F2E9}.logoClaim{color:#C9A84C}}
 .links{display:flex;align-items:center;gap:4px}
 .link{padding:7px 14px;border-radius:8px;font-size:13px;color:var(--muted);transition:all .15s}
