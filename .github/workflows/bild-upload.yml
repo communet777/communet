@@ -1,0 +1,42 @@
+# Bild-Upload für Claude
+# Claude kann über sein GitHub-Werkzeug nur Text schreiben. Für Bilder legt es
+# das Bild als Base64-Textteile in .upload/ ab und zuletzt .upload/manifest.json.
+# Dieser Workflow setzt die Teile wieder zum Originalbild zusammen, prüft die
+# SHA-256-Prüfsumme und committet das Bild an den Zielpfad im selben Zweig.
+# Läuft nur auf Zweigen foto/**, nie auf main.
+name: Bild-Upload zusammensetzen
+
+on:
+  push:
+    branches: ['foto/**']
+    paths: ['.upload/manifest.json']
+
+permissions:
+  contents: write
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Teile zusammensetzen und prüfen
+        run: |
+          set -euo pipefail
+          TARGET=$(jq -r .target .upload/manifest.json)
+          SHA=$(jq -r .sha256 .upload/manifest.json)
+          mkdir -p "$(dirname "$TARGET")"
+          ls .upload/*.b64 | sort | xargs cat | tr -d '\n\r ' | base64 -d > "$TARGET"
+          echo "$SHA  $TARGET" | sha256sum -c -
+          ls -l "$TARGET"
+
+      - name: Bild committen, Teile entfernen
+        run: |
+          set -euo pipefail
+          TARGET=$(jq -r .target .upload/manifest.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git rm -rq .upload
+          git add "$TARGET"
+          git commit -m "Bild $TARGET hochgeladen (aus Base64-Teilen zusammengesetzt)"
+          git push
