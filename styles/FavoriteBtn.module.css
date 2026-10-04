@@ -1,23 +1,27 @@
 .btn {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
-  color: var(--muted);
   padding: 4px 6px;
   border-radius: 6px;
-  transition: color 0.15s, transform 0.1s;
+  transition: transform 0.15s;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .btn:hover {
-  color: #e74c3c;
   transform: scale(1.15);
 }
 
-.liked {
-  color: #e74c3c;
+/* kleiner Hüpfer beim Favorisieren */
+.liked svg {
+  animation: pop 0.25s ease-out;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.8); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .btn:disabled {
