@@ -1,0 +1,6 @@
+# Länder für den nächsten Start über run.txt (Kürzel, eine Zeile pro Land)
+BE
+CH
+AT
+IT
+DK
