@@ -11,7 +11,7 @@ const STERN_UMRISS = 'M238 461 c0 -1 -1 -7 -1 -13 -1 -22 -7 -58 -12 -77 -22 -81 
 function Stern({ gefuellt }) {
   return (
     <svg viewBox="0 0 480 480" width={20} height={20} aria-hidden="true" style={{display:'block'}}>
-      <g transform="translate(0,480) scale(1,-1)" fill="#D9A04A">
+      <g transform="translate(0,480) scale(1,-1)" fill="#E9AD55">
         <path d={gefuellt ? STERN_AUSSEN : STERN_UMRISS} fillRule="evenodd"/>
       </g>
     </svg>
