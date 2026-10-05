@@ -9,10 +9,10 @@ button{font-family:inherit;cursor:pointer}
 .btn-secondary{padding:10px 18px;border-radius:10px;background:transparent;color:var(--text);border:.5px solid var(--border);font-size:14px;cursor:pointer}
 .btn-secondary:hover{background:var(--gl)}
 .badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500}
-.badge-oeko{background:#E6EEDF;color:#3E5C33}.badge-kommune{background:#F6E2D9;color:#8A3F24}
+.badge-oeko{background:#E6EEDF;color:#3E5C33}.badge-kommune{background:#FFF3E0;color:#7C4A0A}
 .badge-kollektiv{background:#E3E6F4;color:#3A4478}.badge-spirituell{background:#F3E2EF;color:#74356A}
-.badge-wohn{background:#FFF3E0;color:#7C4A0A}
-.badge-hofgemeinschaft{background:#F4E0E4;color:#7A2639}.badge-coliving{background:#E0ECF5;color:#245A82}
+.badge-wohn{background:#F4E0E4;color:#7A2639}
+.badge-hofgemeinschaft{background:#F6E2D9;color:#8A3F24}.badge-coliving{background:#E0ECF5;color:#245A82}
 .badge-hof{background:#F2E4D3;color:#6F461F}
 html{background:#173F4A}
 /* Karten: leichter warmer Goldton über den Kartenkacheln, Farben bleiben lebendig. Gilt für alle Leaflet-Karten. */
