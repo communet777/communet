@@ -9,7 +9,7 @@ import{useLang}from'../../lib/LanguageContext'
 import{useCatalog}from'../../lib/catalog'
 import{TYPEN,getTypBadge,getStatusInfo,LAND_EN}from'../../data/communities'
 import TypIcon from'../../components/TypIcon'
-import{getTypColor}from'../../lib/typColors'
+import{getTypBg}from'../../lib/typColors'
 import{getCommunityImage}from'../../lib/communityImages'
 import{supabase}from'../../lib/supabase'
 import styles from'../../styles/Kommunen.module.css'
@@ -87,7 +87,7 @@ landEn.includes(q)||
 )
 })
 
-const bgColor=getTypColor
+const bgColor=getTypBg
 
 return(
 <div>
