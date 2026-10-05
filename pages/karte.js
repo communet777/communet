@@ -7,7 +7,8 @@ import PlaceSearch from'../components/PlaceSearch'
 import{useWaterSources,fetchAllRows,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
-import{getTypBadge}from'../data/communities'
+import{getTypBadge,typesPresent}from'../lib/typBadge'
+import FarmCommunityLink from'../components/FarmCommunityLink'
 import TypIcon from'../components/TypIcon'
 import{ICONS}from'../lib/typIcons'
 import{getWaterIcon}from'../lib/waterIcons'
@@ -158,7 +159,7 @@ style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',back
 </div>
 )}
 <div className={styles.pills}>
-{['alle','Ökodorf','Kommune','Kollektiv','Spirituelle Gemeinschaft','Wohnprojekt'].map(typ=>(
+{['alle',...typesPresent(allKommunen)].map(typ=>(
 <button key={typ}className={`${styles.pill}${filter===typ?' '+styles.active:''}`}onClick={()=>setFilter(typ)}>
 {typ==='alle'?t('communities_all').split(' ')[0]:<><TypIcon typ={typ}size={13}/> {typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}</>}
 </button>
@@ -259,6 +260,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 {selectedFarm.bio_verband&&<div className={styles.popupDesc}>{t('hof_verband')}: {selectedFarm.bio_verband}</div>}
 {selectedFarm.produits&&selectedFarm.produits.length>0&&<div className={styles.popupDesc}>🛒 {selectedFarm.produits.join(' · ')}</div>}
 {selectedFarm.hinweis&&<div className={styles.popupLoc}>ℹ️ {selectedFarm.hinweis}</div>}
+<FarmCommunityLink farmId={selectedFarm.id}/>
 <a href={`/hoflaeden/${encodeURIComponent(selectedFarm.id)}`}className={`${styles.popupBtn} ${styles.popupBtnFarm}`}>{t('map_view_profile')}</a>
 </div>
 )}
