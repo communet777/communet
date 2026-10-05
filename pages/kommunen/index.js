@@ -160,7 +160,7 @@ return(
 {k.avatar_url
 ?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
 :foto
-?<><img src={foto.src} alt={k.name} loading="lazy" className={styles.cardFoto}/><span className={styles.cardTyp}><TypIcon typ={k.typ} size={16} badge/></span><span className={styles.cardCredit}>Foto: {foto.autor} · {foto.lizenz}</span></>
+?<><img src={foto.src} alt={k.name} title={`Foto: ${foto.autor} · ${foto.lizenz} · Wikimedia Commons`} loading="lazy" className={styles.cardFoto}/><span className={styles.cardTyp}><TypIcon typ={k.typ} size={16} badge/></span></>
 :<TypIcon typ={k.typ}size={44}/>}
 </div>)})()}
 <div className={styles.cardBody}>

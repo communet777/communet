@@ -26,15 +26,13 @@ const besucher=getBesucher(k.besucher||'unbekannt')
 const isActive=k.status==='aktiv'
 const isSetup=k.status==='einrichtung'
 const isInactive=k.status==='nicht-registriert'
+const foto=getCommunityImage(k.id)
 return(
 <div>
 <Nav/>
 <div className={styles.banner}style={{opacity:isInactive?0.7:1}}>
-{(()=>{const foto=getCommunityImage(k.id);return foto?<>
-<img src={foto.src} alt={k.name} className={styles.bannerFoto}/>
-<a href={foto.page} target="_blank" rel="noopener noreferrer" className={styles.bannerCredit}>Foto: {foto.autor} · {foto.lizenz} · Wikimedia Commons</a>
-</>:<div className={styles.bannerPattern}/>})()}
-<div className={styles.avatar}style={{background:getTypBg(k.typ)}}><TypIcon typ={k.typ}size={60}/></div>
+<div className={styles.bannerPattern}/>
+<div className={styles.avatar}style={{background:getTypBg(k.typ)}}>{foto?<img src={foto.src} alt={k.name} className={styles.avatarFoto}/>:<TypIcon typ={k.typ}size={60}/>}</div>
 <div className={styles.statusBadge}style={{background:status.bg,color:status.color}}>
 {isActive?`🟢 ${t('status_active')}`:isSetup?`🟡`:` ⚫ ${t('status_inactive')}`}
 </div>
@@ -47,6 +45,7 @@ return(
 <span className={styles.loc}><Icon name="standort"/> {k.ort}{k.region?`, ${k.region}`:''} · {k.land}</span>
 <span className={styles.founded}>{t('profile_since')} {k.jahr}</span>
 </div>
+{foto&&<a href={foto.page} target="_blank" rel="noopener noreferrer" className={styles.fotoCredit}>Foto: {foto.autor} · {foto.lizenz} · Wikimedia Commons</a>}
 </div>
 <div className={styles.actions}style={{display:'flex',alignItems:'center',gap:12}}>
 {isActive&&<><button className="btn-secondary">✉️ {t('profile_contact')}</button><button className="btn-primary">{t('profile_contact')}</button></>}
@@ -63,7 +62,7 @@ return(
 <div className={styles.statCell}><div className={styles.statN}>{isActive?k.angebote:'—'}</div><div className={styles.statL}>{t('nav_offers')}</div></div>
 <div className={styles.statCell}>
 <div className={styles.statN}style={{fontSize:18}}>{besucher.icon}</div>
-<div className={styles.statL}>{lang==='en'?'Visitors':t('profile_visitors')||'Besucher'}</div>
+<div className={styles.statL}>{lang==='en'?'Visitors':'Besucher'}</div>
 </div>
 </div>
 
@@ -80,7 +79,6 @@ return(
 <span style={{fontSize:20}}>{besucher.icon}</span>
 <div>
 <div style={{fontSize:13,fontWeight:500,color:besucher.color}}>{lang==='en'?besucher.label_en:besucher.label}</div>
-{isInactive&&<div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{lang==='en'?'Register on Communet to update this information':'Registriere dich auf Communet um diese Info zu aktualisieren'}</div>}
 </div>
 </div>
 </div>
@@ -92,7 +90,7 @@ return(
 
 {isInactive&&<div className={styles.section}>
 <div className={styles.sectionTitle}>{t('profile_offers')}</div>
-<div className={styles.lockedBox}><div className={styles.lockedIcon}>🔒</div><div className={styles.lockedText}>{t('profile_locked')}<br/><button className={styles.inviteBtn}style={{marginTop:10}}>{t('profile_invite')}</button></div></div>
+<div className={styles.lockedBox}><div className={styles.lockedIcon}>🔒</div><div className={styles.lockedText}>{lang==='en'?'Offers are only visible for active community members.':'Angebote sind nur bei aktiven Kommunenmitgliedern sichtbar.'}<br/><button className={styles.inviteBtn}style={{marginTop:10}}>{t('profile_invite')}</button></div></div>
 </div>}
 </div>
 
