@@ -55,7 +55,7 @@ const L=require('leaflet')
 const g=waterLayerRef.current
 g.clearLayers()
 waterSources.forEach(w=>{
-const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:${WATER_COLORS[w.typ]||'#5a8898'};border:2px solid #E9AD55;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${getWaterIcon(w.typ)}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[26,26],iconAnchor:[13,13]})
+const icon=L.divIcon({className:'',html:`<div style="width:20px;height:20px;border-radius:50%;background:${WATER_COLORS[w.typ]||'#2B8CC4'};border:1.5px solid #E9AD55;box-shadow:0 1px 4px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${getWaterIcon(w.typ)}" width="12" height="12" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[20,20],iconAnchor:[10,10]})
 L.marker([w.lat,w.lon],{icon})
 .on('click',()=>waterCbRef.current&&waterCbRef.current(w))
 .addTo(g)

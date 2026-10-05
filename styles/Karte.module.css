@@ -48,8 +48,15 @@
 .popupBtnFarm:hover{opacity:.88}
 
 @media(max-width:768px){
-.layout{grid-template-columns:1fr;grid-template-rows:auto 350px}
-.sidebar{border-right:none;border-bottom:.5px solid var(--border);max-height:300px}
-.mapWrap{height:350px}
-.list{max-height:220px}
+.page{height:auto;min-height:100vh;overflow:visible}
+.layout{display:flex;flex-direction:column;overflow:visible}
+.sidebar{display:contents}
+.sideHeader{order:1;background:var(--sand)}
+.searchWrap{order:2;background:var(--sand)}
+.pills{order:3;background:var(--sand)}
+.memberPanel{order:4}
+.mapWrap{order:5;flex:none;height:62vh;min-height:320px;border-top:.5px solid var(--border);border-bottom:.5px solid var(--border)}
+.list{order:6;flex:none;overflow:visible;background:var(--sand)}
+.popup{left:12px;right:12px;bottom:12px;width:auto}
+.mapWrap :global(.leaflet-container){min-height:0!important}
 }
