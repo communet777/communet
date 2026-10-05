@@ -4,7 +4,7 @@ import dynamic from'next/dynamic'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
 import PlaceSearch from'../components/PlaceSearch'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
+import{useWaterSources,fetchAllRows,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{getTypBadge}from'../data/communities'
@@ -75,18 +75,18 @@ useEffect(()=>{
 useEffect(()=>{
   if(!user||!showFarmShops){ setFarmShops([]); return }
   Promise.all([
-    supabase.from('farm_shops')
+    fetchAllRows(()=>supabase.from('farm_shops')
       .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
-      .not('lat','is',null),
-    supabase.from('farm_shops_fr')
+      .not('lat','is',null).order('id')),
+    fetchAllRows(()=>supabase.from('farm_shops_fr')
       .select('numero_bio,name,adresse,code_postal,ville,departement,organisme_certificateur,lat,lon,site_web,raw,produits_web')
       .eq('location_precision','exact')
-      .not('lat','is',null),
-    supabase.from('farm_shops_osm')
+      .not('lat','is',null).order('numero_bio')),
+    fetchAllRows(()=>supabase.from('farm_shops_osm')
       .select('osm_id,country,name,lat,lon,website,phone,email,addr_street,addr_housenumber,addr_city,addr_postcode,opening_hours')
-      .not('lat','is',null),
+      .not('lat','is',null).order('osm_id')),
   ]).then(([de,fr,osm])=>{
-    const all=[...(de.data||[]), ...(fr.data||[]).map(normalizeFarmShopFr), ...(osm.data||[]).map(normalizeFarmShopOsm)]
+    const all=[...de, ...fr.map(normalizeFarmShopFr), ...osm.map(normalizeFarmShopOsm)]
     setFarmShops(all)
   })
 },[user,showFarmShops])
