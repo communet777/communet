@@ -5,6 +5,7 @@ import Link from'next/link'
 import Nav from'../components/Nav'
 import WaterPopup from'../components/WaterPopup'
 import PlaceSearch from'../components/PlaceSearch'
+import FarmCommunityLink from'../components/FarmCommunityLink'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
@@ -163,6 +164,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 {selectedFarm.bio_verband&&<div className={styles.popupDesc}>{t('hof_verband')}: {selectedFarm.bio_verband}</div>}
 {selectedFarm.produits&&selectedFarm.produits.length>0&&<div className={styles.popupDesc}>🛒 {selectedFarm.produits.join(' · ')}</div>}
 {selectedFarm.hinweis&&<div className={styles.popupLoc}>ℹ️ {selectedFarm.hinweis}</div>}
+<FarmCommunityLink farmId={selectedFarm.id}/>
 <a href={`/hoflaeden/${encodeURIComponent(selectedFarm.id)}`}className={`${styles.popupBtn} ${styles.popupBtnFarm}`}>{t('map_view_profile')}</a>
 </div>
 )}
