@@ -6,9 +6,9 @@
 @media(prefers-color-scheme:dark){.logo{color:#F0E6D2}.logoClaim{color:#E9AD55}}
 .links{display:flex;align-items:center;gap:4px}
 .link{padding:7px 14px;border-radius:8px;font-size:13px;color:var(--muted);transition:all .15s}
-.link:hover{background:rgba(217,160,74,.12);color:var(--g)}
-.link.active{background:none;color:var(--g);font-weight:600;box-shadow:inset 0 -2px 0 #D9A04A;border-radius:8px 8px 0 0}
-.navSupply{background:none;border:1px solid #D9A04A;color:#7A5114;font-weight:600}
+.link:hover{background:rgba(233,173,85,.12);color:var(--g)}
+.link.active{background:none;color:var(--g);font-weight:600;box-shadow:inset 0 -2px 0 #E9AD55;border-radius:8px 8px 0 0}
+.navSupply{background:none;border:1px solid #E9AD55;color:#7A5114;font-weight:600}
 .navSupply:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
 .navSupply.active{background:var(--gold);color:#fff;border-color:var(--gold);box-shadow:none;border-radius:8px}
 .navSupply:hover img,.navSupply.active img{filter:brightness(0) invert(1)}
