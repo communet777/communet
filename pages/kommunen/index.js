@@ -7,7 +7,8 @@ import BackToTop from'../../components/BackToTop'
 import FavoriteBtn from'../../components/FavoriteBtn'
 import{useLang}from'../../lib/LanguageContext'
 import{useCatalog}from'../../lib/catalog'
-import{TYPEN,getTypBadge,getStatusInfo,LAND_EN}from'../../data/communities'
+import{getStatusInfo,LAND_EN}from'../../data/communities'
+import{getTypBadge,typesPresent}from'../../lib/typBadge'
 import TypIcon from'../../components/TypIcon'
 import{getTypBg}from'../../lib/typColors'
 import{getCommunityImage}from'../../lib/communityImages'
@@ -107,7 +108,7 @@ return(
 {/* Typ */}
 <div className={styles.pills}>
 <button className={`${styles.pill}${filter==='alle'?' '+styles.active:''}`} onClick={()=>setFilter('alle')}>{t('communities_all')}</button>
-{TYPEN.map(typ=>(
+{typesPresent(allKommunen).map(typ=>(
 <button key={typ} className={`${styles.pill}${filter===typ?' '+styles.active:''}`} onClick={()=>setFilter(typ)}>
 <TypIcon typ={typ}size={14}/> {typ==='Spirituelle Gemeinschaft'?'Spirituell':typ}
 </button>

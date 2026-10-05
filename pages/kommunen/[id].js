@@ -5,7 +5,11 @@ import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
 import{useLang}from'../../lib/LanguageContext'
 import{useCatalog}from'../../lib/catalog'
-import{getTypBadge,getStatusInfo,getBesucher,LAND_EN}from'../../data/communities'
+import{getStatusInfo,getBesucher,LAND_EN}from'../../data/communities'
+import{getTypBadge}from'../../lib/typBadge'
+import{useFarmLinks}from'../../lib/links'
+import{ICONS}from'../../lib/typIcons'
+import{FARM_COLOR}from'../../lib/typColors'
 import TypIcon from'../../components/TypIcon'
 import{getTypBg}from'../../lib/typColors'
 import{getCommunityImage}from'../../lib/communityImages'
@@ -18,6 +22,7 @@ const[COMMUNITIES,catalogLoaded]=useCatalog()
 const router=useRouter()
 const{t,lang}=useLang()
 const{id}=router.query
+const{byCommunity}=useFarmLinks()
 const k=COMMUNITIES.find(c=>c.id===parseInt(id))
 if(!k&&(!catalogLoaded||!router.isReady))return<div><Nav/></div>
 if(!k)return<div><Nav/><div style={{padding:48,textAlign:'center',color:'var(--muted)'}}>— <Link href="/kommunen"style={{color:'var(--g)'}}>{t('profile_back')}</Link></div></div>
@@ -27,6 +32,7 @@ const isActive=k.status==='aktiv'
 const isSetup=k.status==='einrichtung'
 const isInactive=k.status==='nicht-registriert'
 const foto=getCommunityImage(k.id)
+const hoflaeden=byCommunity[k.id]||[]
 return(
 <div>
 <Nav/>
@@ -82,6 +88,19 @@ return(
 </div>
 </div>
 </div>
+
+{hoflaeden.length>0&&<div className={styles.section}>
+<div className={styles.sectionTitle}>{lang==='en'?'Farm shop':'Hofladen'}</div>
+<div style={{display:'flex',flexDirection:'column',gap:8}}>
+{hoflaeden.map(h=>(
+<Link key={h.farm_id}href={`/hoflaeden/${encodeURIComponent(h.farm_id)}`}style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:10,border:'.5px solid var(--border)',background:'var(--surface)',textDecoration:'none',color:'var(--text)',fontSize:13}}>
+<TypIcon src={ICONS.korb}size={16}badge bg={FARM_COLOR}/>
+<span style={{flex:1}}>{h.farm_name||(lang==='en'?'Farm shop':'Hofladen')}</span>
+<span style={{color:'var(--g)',fontSize:12}}>{lang==='en'?'Open farm shop →':'Zum Hofladen →'}</span>
+</Link>
+))}
+</div>
+</div>}
 
 <div className={styles.section}>
 <div className={styles.sectionTitle}>{t('profile_values')}</div>

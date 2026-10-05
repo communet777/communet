@@ -3,6 +3,15 @@ import{getTypIconUrl,ICONS}from'../lib/typIcons'
 import{WATER_COLORS}from'../lib/water'
 import{getWaterIcon}from'../lib/waterIcons'
 import{getTypColor,ICON_SHADOW,FARM_COLOR}from'../lib/typColors'
+// Marker-Formen: Gemeinschaften rund, Wasserquellen als Tropfen, Bio-Hofläden als Sechseck
+const MARKER_BASE='display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none'
+function dropMarker(bg,icon,isz){
+return`<div style="width:24px;height:24px;box-sizing:border-box;border-radius:50% 0 50% 50%;transform:rotate(-45deg);background:${bg};border:1.5px solid #E9AD55;box-shadow:0 1px 5px rgba(0,0,0,0.35);${MARKER_BASE}"><img src="${icon}" width="${isz}" height="${isz}" alt="" style="display:block;pointer-events:none;transform:rotate(45deg);filter:${ICON_SHADOW}"/></div>`
+}
+const HEX='polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0% 50%)'
+function hexMarker(bg,icon){
+return`<div style="filter:drop-shadow(0 1px 3px rgba(0,0,0,0.35));${MARKER_BASE}"><div style="width:26px;height:26px;clip-path:${HEX};background:#E9AD55;${MARKER_BASE}"><div style="width:23px;height:23px;clip-path:${HEX};background:${bg};${MARKER_BASE}"><img src="${icon}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div></div></div>`
+}
 export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],overviewPoints=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
@@ -46,7 +55,7 @@ Object.values(farmMarkersRef.current).forEach(m=>mapInstanceRef.current.removeLa
 farmMarkersRef.current={}
 farmShops.forEach(f=>{
 if(f.lat==null||f.lon==null)return
-const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:${FARM_COLOR};border:1.5px solid #E9AD55;box-shadow:0 1px 5px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${ICONS.korb}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[24,24],iconAnchor:[12,12]})
+const icon=L.divIcon({className:'',html:hexMarker(FARM_COLOR,ICONS.korb),iconSize:[26,26],iconAnchor:[13,13]})
 const marker=L.marker([f.lat,f.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelectFarm&&onSelectFarm(f))
 farmMarkersRef.current[f.id]=marker
 })
@@ -57,7 +66,7 @@ const L=require('leaflet')
 const g=waterLayerRef.current
 g.clearLayers()
 waterSources.forEach(w=>{
-const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:${WATER_COLORS[w.typ]||'#2B8CC4'};border:1.5px solid #E9AD55;box-shadow:0 1px 5px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${getWaterIcon(w.typ)}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[24,24],iconAnchor:[12,12]})
+const icon=L.divIcon({className:'',html:dropMarker(WATER_COLORS[w.typ]||'#2B8CC4',getWaterIcon(w.typ),w.typ==='Heilquelle'?18:15),iconSize:[24,24],iconAnchor:[12,12]})
 L.marker([w.lat,w.lon],{icon})
 .on('click',()=>waterCbRef.current&&waterCbRef.current(w))
 .addTo(g)
