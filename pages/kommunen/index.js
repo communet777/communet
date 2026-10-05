@@ -9,7 +9,8 @@ import{useLang}from'../../lib/LanguageContext'
 import{useCatalog}from'../../lib/catalog'
 import{TYPEN,getTypBadge,getStatusInfo,LAND_EN}from'../../data/communities'
 import TypIcon from'../../components/TypIcon'
-import{getTypBg}from'../../lib/typColors'
+import{getTypColor}from'../../lib/typColors'
+import{getCommunityImage}from'../../lib/communityImages'
 import{supabase}from'../../lib/supabase'
 import styles from'../../styles/Kommunen.module.css'
 
@@ -86,7 +87,7 @@ landEn.includes(q)||
 )
 })
 
-const bgColor=getTypBg
+const bgColor=getTypColor
 
 return(
 <div>
@@ -154,11 +155,14 @@ return(
 <div key={k.id} style={{position:'relative'}}>
 {isDb&&<div style={{position:'absolute',top:6,right:6,zIndex:2}}><FavoriteBtn communityId={k.dbId}/></div>}
 <Link href={href} className={styles.card}>
+{(()=>{const foto=!isDb&&getCommunityImage(k.id);return(
 <div className={styles.cardImg} style={{background:bgColor(k.typ)}}>
 {k.avatar_url
-?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>
+?<img src={k.avatar_url} alt={k.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+:foto
+?<><img src={foto.src} alt={k.name} loading="lazy" className={styles.cardFoto}/><span className={styles.cardTyp}><TypIcon typ={k.typ} size={16} badge/></span><span className={styles.cardCredit}>Foto: {foto.autor} · {foto.lizenz}</span></>
 :<TypIcon typ={k.typ}size={44}/>}
-</div>
+</div>)})()}
 <div className={styles.cardBody}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6,gap:4}}>
 <span className={`badge ${getTypBadge(k.typ)}`}>{k.typ==='Spirituelle Gemeinschaft'?'Spirituell':k.typ}</span>
