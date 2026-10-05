@@ -7,6 +7,7 @@ Ablauf pro Land:
   2. mit osmium auf Quellen (natural=spring/hot_spring) und Straßen/Feldwege (highway=...) filtern
   3. für jede Quelle die Entfernung zur nächsten befahrbaren Straße und zum nächsten Feldweg berechnen
   4. Quellen mit höchstens 250 m Entfernung (Straße ODER Feldweg) nach Supabase public.water_sources schreiben
+  5. außer DE/FR: Bio-Hofläden (shop=farm + organic) aus derselben Datei nach public.farm_shops_osm
 
 Umgebungsvariablen:
   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY   Ziel-Datenbank
@@ -45,6 +46,40 @@ DEFAULT_EXTRACTS = [
     ("AT", "europe/austria"),
     ("IT", "europe/italy"),
     ("DK", "europe/denmark"),
+    ("GB", "europe/great-britain"),
+    ("IE", "europe/ireland-and-northern-ireland"),
+    ("NL", "europe/netherlands"),
+    ("LU", "europe/luxembourg"),
+    ("LI", "europe/liechtenstein"),
+    ("PL", "europe/poland"),
+    ("CZ", "europe/czech-republic"),
+    ("SK", "europe/slovakia"),
+    ("HU", "europe/hungary"),
+    ("SI", "europe/slovenia"),
+    ("HR", "europe/croatia"),
+    ("BA", "europe/bosnia-herzegovina"),
+    ("RS", "europe/serbia"),
+    ("ME", "europe/montenegro"),
+    ("XK", "europe/kosovo"),
+    ("AL", "europe/albania"),
+    ("MK", "europe/macedonia"),
+    ("GR", "europe/greece"),
+    ("BG", "europe/bulgaria"),
+    ("RO", "europe/romania"),
+    ("MD", "europe/moldova"),
+    ("UA", "europe/ukraine"),
+    ("BY", "europe/belarus"),
+    ("LT", "europe/lithuania"),
+    ("LV", "europe/latvia"),
+    ("EE", "europe/estonia"),
+    ("FI", "europe/finland"),
+    ("SE", "europe/sweden"),
+    ("NO", "europe/norway"),
+    ("IS", "europe/iceland"),
+    ("CY", "europe/cyprus"),
+    ("MT", "europe/malta"),
+    ("AD", "europe/andorra"),
+    ("RU", "russia"),
 ]
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
@@ -197,6 +232,79 @@ def upsert(rows):
             raise RuntimeError("Upload endgültig fehlgeschlagen")
 
 
+# Bio-Hofläden aus derselben OSM-Datei (spart einen zweiten Download).
+# Deutschland und Frankreich haben amtliche Bio-Register (eigene Importe) und werden hier übersprungen.
+FARM_SKIP = {"DE", "FR"}
+
+
+def farm_point(geom):
+    gtype = geom.get("type")
+    c = geom.get("coordinates")
+    if gtype == "Point":
+        return c[1], c[0]
+    if gtype == "Polygon":
+        pts = c[0]
+    elif gtype == "MultiPolygon":
+        pts = c[0][0]
+    elif gtype == "LineString":
+        pts = c
+    elif gtype == "MultiLineString":
+        pts = [p for line in c for p in line]
+    else:
+        return None
+    return sum(p[1] for p in pts) / len(pts), sum(p[0] for p in pts) / len(pts)
+
+
+def farms_from_pbf(region: str, raw: str) -> None:
+    """shop=farm mit organic=yes/only (Bio laut OSM-Community) nach public.farm_shops_osm schreiben."""
+    flt = os.path.join(WORK, f"farm-{region}.osm.pbf")
+    gj = os.path.join(WORK, f"farm-{region}.geojson")
+    subprocess.run(["osmium", "tags-filter", "--overwrite", "-o", flt, raw, "nwr/shop=farm"], check=True)
+    subprocess.run(["osmium", "export", flt, "-o", gj, "--overwrite", "-f", "geojson", "--add-unique-id=type_id"], check=True)
+    with open(gj) as f:
+        feats = json.load(f).get("features", [])
+    rows = []
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    for feat in feats:
+        tags = feat.get("properties") or {}
+        if tags.get("organic") not in ("yes", "only"):
+            continue
+        pt = farm_point(feat.get("geometry") or {})
+        osm_id = feat.get("id") or tags.get("@id")
+        if not pt or not osm_id:
+            continue
+        tags = {k: v for k, v in tags.items() if k != "@id"}
+        rows.append({
+            "osm_id": str(osm_id), "country": region, "name": tags.get("name"),
+            "lat": pt[0], "lon": pt[1], "organic": tags.get("organic"),
+            "website": tags.get("website") or tags.get("contact:website"),
+            "phone": tags.get("phone") or tags.get("contact:phone"),
+            "email": tags.get("email") or tags.get("contact:email"),
+            "addr_street": tags.get("addr:street"), "addr_housenumber": tags.get("addr:housenumber"),
+            "addr_city": tags.get("addr:city"), "addr_postcode": tags.get("addr:postcode"),
+            "opening_hours": tags.get("opening_hours"), "raw": tags, "imported_at": now,
+        })
+    for p in (flt, gj):
+        try:
+            os.remove(p)
+        except OSError:
+            pass
+    if not DRY:
+        for i in range(0, len(rows), 500):
+            batch = rows[i:i + 500]
+            for attempt in range(5):
+                r = requests.post(f"{SUPABASE_URL}/rest/v1/farm_shops_osm?on_conflict=osm_id",
+                                  headers={**HEAD, "Prefer": "resolution=merge-duplicates,return=minimal"},
+                                  data=json.dumps(batch), timeout=120)
+                if r.status_code < 300:
+                    break
+                log(f"[{region}] Hofläden-Upload-Fehler {r.status_code}: {r.text[:200]} (Versuch {attempt + 1})")
+                time.sleep(4 * (attempt + 1))
+            else:
+                raise RuntimeError("Hofläden-Upload endgültig fehlgeschlagen")
+    log(f"[{region}] {len(rows)} Bio-Hofläden (OSM shop=farm + organic) gespeichert")
+
+
 def process(region: str, path: str) -> dict:
     os.makedirs(WORK, exist_ok=True)
     name = path.split("/")[-1]
@@ -209,6 +317,12 @@ def process(region: str, path: str) -> dict:
         subprocess.run(["curl", "-sSfL", "--retry", "5", "--retry-delay", "10", "-o", raw,
                         f"https://download.geofabrik.de/{path}-latest.osm.pbf"], check=True)
         log(f"[{region}] {name}: {os.path.getsize(raw) / 1e9:.2f} GB in {time.time() - t0:.0f} s geladen")
+
+    if region not in FARM_SKIP:
+        try:
+            farms_from_pbf(region, raw)
+        except Exception as e:
+            log(f"[{region}] Hofläden-Fehler (Quellen laufen weiter): {e}")
 
     t0 = time.time()
     hw = ",".join(sorted(ROAD_TYPES | {TRACK}))
