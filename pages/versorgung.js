@@ -9,6 +9,7 @@ import FarmCommunityLink from'../components/FarmCommunityLink'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
+import{loadFarmPoints}from'../lib/farms'
 import{useWaterSources,useWaterOverview,fetchAllRows,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,OVERVIEW_TYPES,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
 import TypIcon from'../components/TypIcon'
 import{ICONS}from'../lib/typIcons'
@@ -56,22 +57,7 @@ const overviewPoints=useMemo(()=>{
 
 useEffect(()=>{
   if(!user)return
-  // Seitenweise laden: Supabase liefert höchstens 1000 Zeilen pro Anfrage (Frankreich hat mehr)
-  Promise.all([
-    fetchAllRows(()=>supabase.from('farm_shops')
-      .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
-      .not('lat','is',null).order('id')),
-    fetchAllRows(()=>supabase.from('farm_shops_fr')
-      .select('numero_bio,name,adresse,code_postal,ville,departement,organisme_certificateur,lat,lon,site_web,raw,produits_web')
-      .eq('location_precision','exact')
-      .not('lat','is',null).order('numero_bio')),
-    fetchAllRows(()=>supabase.from('farm_shops_osm')
-      .select('osm_id,country,name,lat,lon,website,phone,email,addr_street,addr_housenumber,addr_city,addr_postcode,opening_hours')
-      .not('lat','is',null).order('osm_id')),
-  ]).then(([de,fr,osm])=>{
-    const all=[...de, ...fr.map(normalizeFarmShopFr), ...osm.map(normalizeFarmShopOsm)]
-    setFarmShops(all)
-  })
+  loadFarmPoints().then(setFarmShops)
 },[user])
 
 function selectFarm(f){ setSelectedFarm(f); setSelectedWater(null) }

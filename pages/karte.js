@@ -15,6 +15,7 @@ import{getWaterIcon}from'../lib/waterIcons'
 import{FARM_COLOR}from'../lib/typColors'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
+import{loadFarmPoints}from'../lib/farms'
 import styles from'../styles/Karte.module.css'
 const MapComponent=dynamic(()=>import('../components/Map'),{ssr:false,loading:()=><div className={styles.mapLoading}><Icon name="karte" size={48}/></div>})
 
@@ -75,21 +76,7 @@ useEffect(()=>{
 
 useEffect(()=>{
   if(!user||!showFarmShops){ setFarmShops([]); return }
-  Promise.all([
-    fetchAllRows(()=>supabase.from('farm_shops')
-      .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
-      .not('lat','is',null).order('id')),
-    fetchAllRows(()=>supabase.from('farm_shops_fr')
-      .select('numero_bio,name,adresse,code_postal,ville,departement,organisme_certificateur,lat,lon,site_web,raw,produits_web')
-      .eq('location_precision','exact')
-      .not('lat','is',null).order('numero_bio')),
-    fetchAllRows(()=>supabase.from('farm_shops_osm')
-      .select('osm_id,country,name,lat,lon,website,phone,email,addr_street,addr_housenumber,addr_city,addr_postcode,opening_hours')
-      .not('lat','is',null).order('osm_id')),
-  ]).then(([de,fr,osm])=>{
-    const all=[...de, ...fr.map(normalizeFarmShopFr), ...osm.map(normalizeFarmShopOsm)]
-    setFarmShops(all)
-  })
+  loadFarmPoints().then(setFarmShops)
 },[user,showFarmShops])
 
 const allKommunen=[...dbKommunen,...COMMUNITIES]
