@@ -3,12 +3,13 @@ import{getTypIconUrl,ICONS}from'../lib/typIcons'
 import{WATER_COLORS}from'../lib/water'
 import{getWaterIcon}from'../lib/waterIcons'
 import{getTypColor,ICON_SHADOW,FARM_COLOR}from'../lib/typColors'
-export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
+export default function Map({communities,selected,onSelect,farmShops=[],selectedFarm=null,selectedZoom=6,onSelectFarm,waterSources=[],overviewPoints=[],onSelectWater,onViewChange,initialView=null,flyTarget=null}){
 const mapRef=useRef(null)
 const mapInstanceRef=useRef(null)
 const markersRef=useRef({})
 const farmMarkersRef=useRef({})
 const waterLayerRef=useRef(null)
+const overviewLayerRef=useRef(null)
 const canvasRef=useRef(null)
 // Aktuelle Callbacks merken, damit Leaflet-Ereignisse immer die neueste Version aufrufen
 const viewCbRef=useRef(onViewChange);viewCbRef.current=onViewChange
@@ -22,6 +23,7 @@ mapInstanceRef.current=map
 // Wasserquellen werden auf einer Zeichenfläche (Canvas) gezeichnet, das bleibt auch bei 1000 Punkten flüssig
 canvasRef.current=L.canvas({padding:0.3})
 waterLayerRef.current=L.layerGroup().addTo(map)
+overviewLayerRef.current=L.layerGroup().addTo(map)
 const emitView=()=>{const b=map.getBounds();viewCbRef.current&&viewCbRef.current({south:b.getSouth(),west:b.getWest(),north:b.getNorth(),east:b.getEast(),zoom:map.getZoom()})}
 map.on('moveend',emitView)
 emitView()
@@ -44,7 +46,7 @@ Object.values(farmMarkersRef.current).forEach(m=>mapInstanceRef.current.removeLa
 farmMarkersRef.current={}
 farmShops.forEach(f=>{
 if(f.lat==null||f.lon==null)return
-const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:${FARM_COLOR};border:2px solid #E9AD55;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${ICONS.korb}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[26,26],iconAnchor:[13,13]})
+const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:${FARM_COLOR};border:1.5px solid #E9AD55;box-shadow:0 1px 5px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${ICONS.korb}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[24,24],iconAnchor:[12,12]})
 const marker=L.marker([f.lat,f.lon],{icon}).addTo(mapInstanceRef.current).on('click',()=>onSelectFarm&&onSelectFarm(f))
 farmMarkersRef.current[f.id]=marker
 })
@@ -55,12 +57,25 @@ const L=require('leaflet')
 const g=waterLayerRef.current
 g.clearLayers()
 waterSources.forEach(w=>{
-const icon=L.divIcon({className:'',html:`<div style="width:20px;height:20px;border-radius:50%;background:${WATER_COLORS[w.typ]||'#2B8CC4'};border:1.5px solid #E9AD55;box-shadow:0 1px 4px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${getWaterIcon(w.typ)}" width="12" height="12" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[20,20],iconAnchor:[10,10]})
+const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:${WATER_COLORS[w.typ]||'#2B8CC4'};border:1.5px solid #E9AD55;box-shadow:0 1px 5px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none"><img src="${getWaterIcon(w.typ)}" width="16" height="16" alt="" style="display:block;pointer-events:none;filter:${ICON_SHADOW}"/></div>`,iconSize:[24,24],iconAnchor:[12,12]})
 L.marker([w.lat,w.lon],{icon})
 .on('click',()=>waterCbRef.current&&waterCbRef.current(w))
 .addTo(g)
 })
 },[waterSources])
+// Übersichtspunkte (Weltansicht bei Versorgung): kleine Punkte auf der Zeichenfläche, Klick zoomt hinein
+useEffect(()=>{
+if(!mapInstanceRef.current||!overviewLayerRef.current)return
+const L=require('leaflet')
+const g=overviewLayerRef.current
+const map=mapInstanceRef.current
+g.clearLayers()
+overviewPoints.forEach(p=>{
+L.circleMarker([p.lat,p.lon],{renderer:canvasRef.current,radius:3.5,weight:1,color:'#E9AD55',fillColor:p.color,fillOpacity:0.95})
+.on('click',()=>map.flyTo([p.lat,p.lon],Math.max(map.getZoom()+3,10),{duration:0.8}))
+.addTo(g)
+})
+},[overviewPoints])
 useEffect(()=>{
 if(!mapInstanceRef.current||!selected)return
 mapInstanceRef.current.flyTo([selected.lat,selected.lon],selectedZoom,{duration:1})

@@ -1,4 +1,4 @@
-import{useState,useEffect}from'react'
+import{useState,useEffect,useMemo}from'react'
 import Icon from'../components/Icon'
 import dynamic from'next/dynamic'
 import Link from'next/link'
@@ -8,7 +8,7 @@ import PlaceSearch from'../components/PlaceSearch'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
-import{useWaterSources,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
+import{useWaterSources,useWaterOverview,fetchAllRows,WATER_MIN_ZOOM,WATER_LIMIT,WATER_COLORS,WATER_CATEGORIES,DEFAULT_WATER_CATEGORIES,FARM_MIN_ZOOM,OVERVIEW_TYPES,inView,saveMapView,loadMapView,normalizeFarmShopFr,normalizeFarmShopOsm}from'../lib/water'
 import TypIcon from'../components/TypIcon'
 import{ICONS}from'../lib/typIcons'
 import{getWaterIcon}from'../lib/waterIcons'
@@ -37,22 +37,38 @@ if(onlyRoad)visibleWater=visibleWater.filter(w=>w.road_distance_m!=null)
 if(!showRestricted)visibleWater=visibleWater.filter(w=>w.access!=='private'&&w.access!=='no')
 const farmZoomOk=!!view&&view.zoom>=FARM_MIN_ZOOM
 const visibleFarms=showFarm&&farmZoomOk?farmShops.filter(f=>inView(f,view)):[]
+// Weltansicht: unterhalb der Detail-Zoomstufe alle Hofläden und Quellen als kleine Punkte zeigen
+const overviewMode=!!view&&view.zoom<FARM_MIN_ZOOM
+const waterOverview=useWaterOverview(!!user&&showWater&&overviewMode,activeCats)
+const overviewPoints=useMemo(()=>{
+  if(!overviewMode)return[]
+  const pts=[]
+  if(showFarm)for(const f of farmShops){if(f.lat!=null&&f.lon!=null)pts.push({lat:f.lat,lon:f.lon,color:FARM_COLOR})}
+  if(showWater)for(const p of waterOverview){
+    if(onlyRoad&&!p[3])continue
+    if(!showRestricted&&p[4])continue
+    const typ=OVERVIEW_TYPES[p[2]]
+    pts.push({lat:p[0],lon:p[1],color:WATER_COLORS[typ]})
+  }
+  return pts
+},[overviewMode,showFarm,showWater,farmShops,waterOverview.length,activeCats.join('|'),onlyRoad,showRestricted])
 
 useEffect(()=>{
   if(!user)return
+  // Seitenweise laden: Supabase liefert höchstens 1000 Zeilen pro Anfrage (Frankreich hat mehr)
   Promise.all([
-    supabase.from('farm_shops')
+    fetchAllRows(()=>supabase.from('farm_shops')
       .select('id,name,strasse,plz,ort,bundesland,bio_verband,lat,lon,website')
-      .not('lat','is',null),
-    supabase.from('farm_shops_fr')
+      .not('lat','is',null).order('id')),
+    fetchAllRows(()=>supabase.from('farm_shops_fr')
       .select('numero_bio,name,adresse,code_postal,ville,departement,organisme_certificateur,lat,lon,site_web,raw,produits_web')
       .eq('location_precision','exact')
-      .not('lat','is',null),
-    supabase.from('farm_shops_osm')
+      .not('lat','is',null).order('numero_bio')),
+    fetchAllRows(()=>supabase.from('farm_shops_osm')
       .select('osm_id,country,name,lat,lon,website,phone,email,addr_street,addr_housenumber,addr_city,addr_postcode,opening_hours')
-      .not('lat','is',null),
+      .not('lat','is',null).order('osm_id')),
   ]).then(([de,fr,osm])=>{
-    const all=[...(de.data||[]), ...(fr.data||[]).map(normalizeFarmShopFr), ...(osm.data||[]).map(normalizeFarmShopOsm)]
+    const all=[...de, ...fr.map(normalizeFarmShopFr), ...osm.map(normalizeFarmShopOsm)]
     setFarmShops(all)
   })
 },[user])
@@ -76,7 +92,7 @@ return(
 
 let waterInfo=null
 if(showWater){
-  if(!view||view.zoom<WATER_MIN_ZOOM) waterInfo='Zum Anzeigen der Wasserquellen weiter in die Karte hineinzoomen'
+  if(!view||view.zoom<WATER_MIN_ZOOM) waterInfo=waterOverview.length?`${waterOverview.length.toLocaleString('de-DE')} Wasserquellen weltweit · zum Öffnen einer Quelle hineinzoomen`:'Wasserquellen werden geladen …'
   else if(water.error) waterInfo='Wasserquellen konnten nicht geladen werden'
   else if(water.loading&&water.items.length===0) waterInfo='Wasserquellen werden geladen …'
   else waterInfo=`${visibleWater.length}${water.items.length>=WATER_LIMIT?'+':''} Wasserquellen im Kartenausschnitt`
@@ -90,7 +106,7 @@ return(
 <div className={styles.sideHeader}>
 <h1 className={styles.title}>{t('supply_title')}</h1>
 <PlaceSearch onFound={r=>setFlyTarget(r)}bias={view||(initialView?{south:initialView.lat-1,west:initialView.lon-1,north:initialView.lat+1,east:initialView.lon+1}:null)}/>
-<p className={styles.sub}>{showFarm?(farmZoomOk?`${visibleFarms.length} ${t('supply_farmshops')} im Kartenausschnitt`:'Zum Anzeigen der Bio-Hofläden und Wasserquellen in die Karte hineinzoomen'):`${farmShops.length} ${t('supply_farmshops')}`}</p>
+<p className={styles.sub}>{showFarm?(farmZoomOk?`${visibleFarms.length} ${t('supply_farmshops')} im Kartenausschnitt`:`${farmShops.length.toLocaleString('de-DE')} ${t('supply_farmshops')} · zum Öffnen hineinzoomen`):`${farmShops.length} ${t('supply_farmshops')}`}</p>
 </div>
 <div className={styles.memberPanel}>
 <span className={styles.memberLabel}>🔒 Nur mit Konto sichtbar</span>
@@ -136,10 +152,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 </div>
 </div>
 <div className={styles.mapWrap}>
-{user&&(showFarm||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
-<div className={styles.zoomHint}>🔍 Zum Anzeigen weiter hineinzoomen</div>
-)}
-<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}flyTarget={flyTarget}/>
+<MapComponent communities={[]}selected={null}onSelect={()=>{}}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater?visibleWater:[]}overviewPoints={overviewPoints}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}flyTarget={flyTarget}/>
 {selectedFarm&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelectedFarm(null)}>✕</button>
