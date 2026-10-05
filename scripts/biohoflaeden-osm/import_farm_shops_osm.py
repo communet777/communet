@@ -127,6 +127,11 @@ def process_country(code: str, url: str) -> int:
             ring = geom["coordinates"][0][0]
             lon = sum(p[0] for p in ring) / len(ring)
             lat = sum(p[1] for p in ring) / len(ring)
+        elif gtype in ("LineString", "MultiLineString"):
+            # Umriss ohne Flächen-Tag (z. B. Hofgelände als Linie gezeichnet): Mittelpunkt der Punkte
+            pts = geom["coordinates"] if gtype == "LineString" else [p for line in geom["coordinates"] for p in line]
+            lon = sum(p[0] for p in pts) / len(pts)
+            lat = sum(p[1] for p in pts) / len(pts)
         else:
             skipped_no_geom += 1
             continue

@@ -4,3 +4,4 @@ Startet den Bio-Hofläden-Import für Spanien und Portugal über OpenStreetMap
 Letzter Start: 2026-09-26 – Erstimport
 Lauf 4: Flächen (Gebäude-Umrisse) zusätzlich zu Punkten einbeziehen
 Lauf 5: 2026-10-05 – Belgien, Schweiz, Österreich, Italien, Dänemark (Länderauswahl in countries.txt)
+Lauf 6: 2026-10-05 – Belgien nachholen (Länderprüfung in der Datenbank erweitert), Linien-Umrisse mit einbeziehen
