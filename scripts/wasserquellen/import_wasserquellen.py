@@ -40,6 +40,11 @@ DEFAULT_EXTRACTS = [
     ("ES", "africa/canary-islands"),
     ("FR", "europe/france"),
     ("DE", "europe/germany"),
+    ("BE", "europe/belgium"),
+    ("CH", "europe/switzerland"),
+    ("AT", "europe/austria"),
+    ("IT", "europe/italy"),
+    ("DK", "europe/denmark"),
 ]
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
@@ -79,7 +84,9 @@ def classify(tags: dict) -> str:
     if (re.search(r"mineral|carbon|sulph|sulf|heil", st)
             or tags.get("drinking_water:mineral") == "yes"
             or re.search(r"heilquell|mineralquell|sauerbrunn|säuerling|fuente agria|"
-                         r"agua agria|source min[ée]rale|caldas", name)):
+                         r"agua agria|source min[ée]rale|caldas|"
+                         r"sorgente minerale|acqua minerale|acetosa|ferruginos|solfor|sulfure|"
+                         r"helligkilde|hellig kilde", name)):
         return "Heilquelle"
     if tags.get("drinking_water") == "yes":
         return "Trinkwasserquelle"
@@ -266,8 +273,15 @@ def main():
         print("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen", file=sys.stderr)
         sys.exit(1)
     extracts = DEFAULT_EXTRACTS
-    if os.environ.get("EXTRACTS"):
-        extracts = [tuple(x.split(":", 1)) for x in os.environ["EXTRACTS"].split(",")]
+    spec = os.environ.get("EXTRACTS", "").strip()
+    # Bei Start über run.txt (push): Länderauswahl aus extracts.txt, damit nicht jedes Mal alle Länder neu laufen.
+    # Monatlicher Lauf (schedule) nimmt weiterhin alle Länder.
+    if not spec and os.environ.get("GITHUB_EVENT_NAME") == "push":
+        f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extracts.txt")
+        if os.path.exists(f):
+            spec = ",".join(l.strip() for l in open(f) if l.strip() and not l.startswith("#"))
+    if spec:
+        extracts = [tuple(x.split(":", 1)) for x in spec.split(",")]
     log(f"Start Wasserquellen-Import: {', '.join(p for _, p in extracts)} (max. {MAX_M} m zur Straße/Feldweg)")
     total = 0
     failed = []

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bio-Hofläden Spanien & Portugal über OpenStreetMap statt Behörden-Register.
+Bio-Hofläden über OpenStreetMap statt Behörden-Register: Spanien, Portugal, Belgien, Schweiz, Österreich, Italien, Dänemark.
 
 Grund: Beide Länder haben keine sauber abrufbare Behördendatenbank (Spanien:
 17 getrennte Regionalregister ohne Bulk-Export; Portugal: Daten nur als
@@ -36,6 +36,11 @@ UA = "Communet-BioHoflaeden-OSM/1.0 (+https://communet.net; communet@outlook.de)
 COUNTRIES = {
     "ES": "https://download.geofabrik.de/europe/spain-latest.osm.pbf",
     "PT": "https://download.geofabrik.de/europe/portugal-latest.osm.pbf",
+    "BE": "https://download.geofabrik.de/europe/belgium-latest.osm.pbf",
+    "CH": "https://download.geofabrik.de/europe/switzerland-latest.osm.pbf",
+    "AT": "https://download.geofabrik.de/europe/austria-latest.osm.pbf",
+    "IT": "https://download.geofabrik.de/europe/italy-latest.osm.pbf",
+    "DK": "https://download.geofabrik.de/europe/denmark-latest.osm.pbf",
 }
 
 WORKDIR = "/tmp/farm_shops_osm"
@@ -172,9 +177,14 @@ def main():
         print("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen", file=sys.stderr)
         sys.exit(1)
     countries = COUNTRIES
-    only = os.environ.get("ONLY_COUNTRY")
+    only = (os.environ.get("ONLY_COUNTRY") or "").strip()
+    # Bei Start über run.txt (push): Länderauswahl aus countries.txt (z. B. nur neue Länder)
+    if not only and os.environ.get("GITHUB_EVENT_NAME") == "push":
+        f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "countries.txt")
+        if os.path.exists(f):
+            only = ",".join(l.strip() for l in open(f) if l.strip() and not l.startswith("#"))
     if only:
-        countries = {only: COUNTRIES[only]}
+        countries = {c.strip(): COUNTRIES[c.strip()] for c in only.split(",") if c.strip()}
     log(f"Start: Bio-Hofläden über OSM für {', '.join(countries)}")
     total = 0
     failed = []

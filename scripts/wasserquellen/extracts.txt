@@ -1,0 +1,6 @@
+# Länder für den nächsten Start über run.txt (eine Zeile pro Land, Format KÜRZEL:geofabrik-pfad)
+BE:europe/belgium
+CH:europe/switzerland
+AT:europe/austria
+IT:europe/italy
+DK:europe/denmark
