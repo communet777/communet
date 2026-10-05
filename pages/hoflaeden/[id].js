@@ -5,6 +5,7 @@ import Link from'next/link'
 import dynamic from'next/dynamic'
 import Nav from'../../components/Nav'
 import TypIcon from'../../components/TypIcon'
+import FarmCommunityLink from'../../components/FarmCommunityLink'
 import{ICONS}from'../../lib/typIcons'
 import{useLang}from'../../lib/LanguageContext'
 import{useAuth}from'../../lib/AuthContext'
@@ -90,6 +91,7 @@ return(
 {hof.bio_verband&&<span className="badge">{hof.bio_verband}</span>}
 <span className={styles.loc}><Icon name="standort"/> {hof.ort}{hof.ort&&hof.bundesland?' · ':''}{hof.bundesland}</span>
 </div>
+<FarmCommunityLink farmId={id} style={{marginTop:10,display:'inline-flex'}}/>
 </div>
 <Link href="/versorgung"className={styles.inviteBtn}>{t('hof_back')}</Link>
 </div>
