@@ -7,7 +7,7 @@ import{useLang}from'../../lib/LanguageContext'
 import{useCatalog}from'../../lib/catalog'
 import{getTypBadge,getStatusInfo,getBesucher,LAND_EN}from'../../data/communities'
 import TypIcon from'../../components/TypIcon'
-import{getTypColor}from'../../lib/typColors'
+import{getTypBg}from'../../lib/typColors'
 import{getCommunityImage}from'../../lib/communityImages'
 import styles from'../../styles/KommuneProfil.module.css'
 
@@ -34,7 +34,7 @@ return(
 <img src={foto.src} alt={k.name} className={styles.bannerFoto}/>
 <a href={foto.page} target="_blank" rel="noopener noreferrer" className={styles.bannerCredit}>Foto: {foto.autor} · {foto.lizenz} · Wikimedia Commons</a>
 </>:<div className={styles.bannerPattern}/>})()}
-<div className={styles.avatar}style={{background:getTypColor(k.typ)}}><TypIcon typ={k.typ}size={60}/></div>
+<div className={styles.avatar}style={{background:getTypBg(k.typ)}}><TypIcon typ={k.typ}size={60}/></div>
 <div className={styles.statusBadge}style={{background:status.bg,color:status.color}}>
 {isActive?`🟢 ${t('status_active')}`:isSetup?`🟡`:` ⚫ ${t('status_inactive')}`}
 </div>
