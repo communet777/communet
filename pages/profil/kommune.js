@@ -1,3 +1,4 @@
+import { notifyMemberPush } from '../../lib/push'
 import OfferExtraFields,{EMPTY_EXTRA,extraFromOffer,extraToFields} from '../../components/OfferExtraFields'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
@@ -113,6 +114,7 @@ export default function KommuneBearbeiten() {
     const { error } = await supabase.from('kommune_members').insert({ kommune_id: pid, user_id: h.id })
     if (error) { setMemberMsg('Hinzufügen fehlgeschlagen: ' + error.message); return }
     setMemberMsg('')
+    notifyMemberPush(pid, h.id)
     setMembers(m => [...m, { user_id: h.id, name: h.name, avatar_url: h.avatar_url }])
   }
   useEffect(() => { if (tab === 'mitglieder' && !isNew && pid) searchMembers(memberQuery) }, [tab, pid])
