@@ -37,7 +37,7 @@ function Dishes({ offerId, asId, isOwner }) {
 
   return (
     <div>
-      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Noch nichts eingetragen. Trag ein, was du mitbringst – doppelte Einträge werden verhindert.</div>}
+      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Noch nichts eingetragen. Trag ein, was du mitbringst – bei Doppelungen bekommst du eine Warnung.</div>}
       {cats.map(c => (
         <div key={c} style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 4 }}>{c}</div>
@@ -61,7 +61,7 @@ function Dishes({ offerId, asId, isOwner }) {
           <input style={inp} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="z.B. Hummus" maxLength={80}/>
           <select style={inp} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>{CATS.map(c => <option key={c}>{c}</option>)}</select>
         </div>
-        {dupe && <div style={{ fontSize: 13, color: '#b3261e' }}>⚠️ „{dupe.name}“ gibt es schon{dupe.claimed_by ? ` – ${dupe.mine ? 'du bringst es mit' : (dupe.claimed_name || 'jemand') + ' bringt es mit'}` : ' auf der Wunschliste'}.</div>}
+        {dupe && <div style={{ fontSize: 13, color: '#b3261e' }}>⚠️ „{dupe.name}“ steht schon in der Liste{dupe.claimed_by ? ` – ${dupe.mine ? 'du bringst es mit' : (dupe.claimed_name || 'jemand') + ' bringt es mit'}` : ' auf der Wunschliste'}.</div>}
         <input style={inp} value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} placeholder="Notiz (optional), z.B. für 8 Personen" maxLength={200}/>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {TAGS.map(t => {
@@ -70,7 +70,7 @@ function Dishes({ offerId, asId, isOwner }) {
           })}
         </div>
         {isOwner && <label style={{ fontSize: 13 }}><input type="checkbox" checked={form.wish} onChange={e => setForm(f => ({ ...f, wish: e.target.checked }))}/> Als Wunsch eintragen (andere übernehmen es mit „Ich bring’s“)</label>}
-        <div><button type="submit" style={btn} disabled={!form.name.trim() || !!dupe}>{form.wish ? 'Wunsch eintragen' : 'Ich bringe mit'}</button></div>
+        <div><button type="submit" style={btn} disabled={!form.name.trim()}>{form.wish ? 'Wunsch eintragen' : dupe ? 'Trotzdem eintragen' : 'Ich bringe mit'}</button></div>
       </form>
       {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
     </div>
@@ -171,15 +171,158 @@ function Schedule({ offerId, isOwner, offer }) {
   )
 }
 
+const MAHL = ['Frühstück', 'Mittagessen', 'Abendessen']
+const dayLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' })
+
+function Meals({ offer, asId, isOwner }) {
+  const [list, setList] = useState([])
+  const [err, setErr] = useState('')
+  const [f, setF] = useState({ von: offer.von || offer.datum || '', bis: offer.bis || offer.datum || '', arten: ['Mittagessen', 'Abendessen'] })
+  const load = useCallback(async () => {
+    const { data } = await supabase.rpc('offer_meals_list', { p_offer: offer.id, p_as: asId })
+    setList(data || [])
+  }, [offer.id, asId])
+  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t) }, [load])
+  async function act(id, action, titel) {
+    setErr('')
+    const { error } = await supabase.rpc('meal_act', { p_id: id, p_as: asId, p_action: action, p_titel: titel || null })
+    if (error) setErr(error.message)
+    load()
+  }
+  async function add(e) {
+    e.preventDefault(); setErr('')
+    const { error } = await supabase.rpc('meals_add', { p_offer: offer.id, p_as: asId, p_von: f.von, p_bis: f.bis, p_arten: f.arten })
+    if (error) setErr(error.message)
+    load()
+  }
+  let last = null
+  return (
+    <div>
+      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>{isOwner ? 'Lege unten die Mahlzeiten an. Danach tragen sich Teilnehmende als Köche ein.' : 'Noch keine Mahlzeiten angelegt.'}</div>}
+      {list.map(m => {
+        const head = m.tag !== last ? (last = m.tag, dayLabel(m.tag)) : null
+        return (
+          <div key={m.id}>
+            {head && <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', margin: '10px 0 4px' }}>{head}</div>}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+              <span style={{ width: 96, fontWeight: 700, flexShrink: 0 }}>{m.mahlzeit}</span>
+              <div style={{ flex: 1, minWidth: 140 }}>
+                {m.titel && <div style={{ fontSize: 14 }}>{m.titel}</div>}
+                <div style={{ fontSize: 12, color: m.cooks.length ? 'var(--text)' : 'var(--muted)' }}>{m.cooks.length ? `👩‍🍳 ${m.cooks.join(', ')}` : '🙋 Noch niemand – wer kocht?'}</div>
+              </div>
+              {m.mine
+                ? <><button style={ghost} onClick={() => { const t = window.prompt('Was gibt es? (Menü)', m.titel || ''); if (t !== null) act(m.id, 'title', t) }}>Menü</button><button style={ghost} onClick={() => act(m.id, 'uncook')}>Abgeben</button></>
+                : <button style={btn} onClick={() => act(m.id, 'cook')}>Ich koche</button>}
+              {isOwner && <button style={ghost} onClick={() => act(m.id, 'delete')}>×</button>}
+            </div>
+          </div>
+        )
+      })}
+      {isOwner && (
+        <form onSubmit={add} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>Mahlzeiten anlegen</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 8 }}>
+            <input style={inp} type="date" value={f.von} onChange={e => setF(x => ({ ...x, von: e.target.value }))}/>
+            <input style={inp} type="date" value={f.bis} onChange={e => setF(x => ({ ...x, bis: e.target.value }))}/>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {MAHL.map(a => {
+              const on = f.arten.includes(a)
+              return <button type="button" key={a} onClick={() => setF(x => ({ ...x, arten: on ? x.arten.filter(y => y !== a) : [...x.arten, a] }))} style={{ ...ghost, background: on ? 'var(--g)' : 'transparent', color: on ? 'white' : 'var(--muted)' }}>{a}</button>
+            })}
+          </div>
+          <div><button type="submit" style={btn} disabled={!f.von || !f.bis || f.arten.length === 0}>Anlegen</button></div>
+        </form>
+      )}
+      {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
+    </div>
+  )
+}
+
+function Rides({ offer, asId }) {
+  const [list, setList] = useState([])
+  const [err, setErr] = useState('')
+  const [open, setOpen] = useState(false)
+  const [f, setF] = useState({ plaetze: 3, ort: '', abfahrt: '', notiz: '' })
+  const load = useCallback(async () => {
+    const { data } = await supabase.rpc('offer_rides_list', { p_offer: offer.id, p_as: asId })
+    setList(data || [])
+  }, [offer.id, asId])
+  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t) }, [load])
+  async function act(id, action) {
+    setErr('')
+    const { error } = await supabase.rpc('ride_act', { p_id: id, p_as: asId, p_action: action })
+    if (error) setErr(error.message)
+    load()
+  }
+  async function add(e) {
+    e.preventDefault(); setErr('')
+    const { error } = await supabase.rpc('ride_add', { p_offer: offer.id, p_as: asId, p_plaetze: parseInt(f.plaetze, 10), p_ort: f.ort, p_abfahrt: f.abfahrt || null, p_notiz: f.notiz })
+    if (error) { setErr(error.message); return }
+    setOpen(false); load()
+  }
+  const hasOwn = list.some(r => r.mine)
+  return (
+    <div>
+      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Noch kein Auto eingetragen. Kommst du mit dem Auto? Biete freie Plätze an.</div>}
+      {list.map(r => {
+        const free = r.plaetze - r.taken
+        return (
+          <div key={r.id} style={{ padding: '10px 0', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 28 }}>🚗</span>
+              <div style={{ flex: 1, minWidth: 150 }}>
+                <div><strong>{r.mine ? 'Du' : r.driver_name}</strong>{r.ort ? ` · ab ${r.ort}` : ''}</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)' }}>{r.abfahrt ? new Date(r.abfahrt).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' Uhr' : 'Zeit offen'}</div>
+              </div>
+              <div style={{ minWidth: 110 }}>
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {Array.from({ length: r.plaetze }).map((_, i) => <span key={i} style={{ width: 16, height: 16, borderRadius: 4, background: i < r.taken ? 'var(--g)' : 'transparent', border: '1.5px solid var(--g)' }}/>)}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{free > 0 ? `${free} von ${r.plaetze} Plätzen frei` : 'voll'}</div>
+              </div>
+              {!r.mine && !r.i_ride && free > 0 && <button style={btn} onClick={() => act(r.id, 'join')}>{list.some(x => x.i_ride) ? 'Wechseln' : 'Mitfahren'}</button>}
+              {r.i_ride && <button style={ghost} onClick={() => act(r.id, 'leave')}>Aussteigen</button>}
+              {r.mine && <button style={ghost} onClick={() => act(r.id, 'delete')}>Löschen</button>}
+            </div>
+            {(r.notiz || r.riders.length > 0) && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4, marginLeft: 38 }}>{r.notiz}{r.notiz && r.riders.length ? ' · ' : ''}{r.riders.length ? `Mit: ${r.riders.join(', ')}` : ''}</div>}
+          </div>
+        )
+      })}
+      {!hasOwn && !open && <button style={{ ...btn, marginTop: 12 }} onClick={() => setOpen(true)}>🚗 Ich komme mit dem Auto</button>}
+      {open && (
+        <form onSubmit={add} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 8 }}>
+            <label style={{ fontSize: 12, fontWeight: 600 }}>Freie Plätze<input style={inp} type="number" min="1" max="8" inputMode="numeric" value={f.plaetze} onChange={e => setF(x => ({ ...x, plaetze: e.target.value }))}/></label>
+            <label style={{ fontSize: 12, fontWeight: 600 }}>Abfahrt<input style={inp} type="datetime-local" value={f.abfahrt} onChange={e => setF(x => ({ ...x, abfahrt: e.target.value }))}/></label>
+          </div>
+          <input style={inp} value={f.ort} onChange={e => setF(x => ({ ...x, ort: e.target.value }))} placeholder="Abfahrtsort, z.B. Köln Hbf" maxLength={80}/>
+          <input style={inp} value={f.notiz} onChange={e => setF(x => ({ ...x, notiz: e.target.value }))} placeholder="Notiz (optional), z.B. Platz für Gepäck" maxLength={200}/>
+          <div style={{ display: 'flex', gap: 8 }}><button type="submit" style={btn}>Eintragen</button><button type="button" style={ghost} onClick={() => setOpen(false)}>Abbrechen</button></div>
+        </form>
+      )}
+      {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
+    </div>
+  )
+}
+
 export default function OfferOrganisation({ offer, asId, role }) {
-  const [tab, setTab] = useState('essen')
   const isOwner = role === 'owner'
-  const tabs = [['essen', '🥙 Mitbringen'], ['aufgaben', '✅ Aufgaben'], ['plan', '🕒 Zeitplan']]
+  const modus = offer.essen_modus
+  const tabs = [
+    ...(modus === 'gemeinschaft' ? [['meals', '🍲 Mahlzeiten']] : []),
+    ...(modus === 'versorgt' ? [] : modus === 'gemeinschaft' ? [['essen', '🥙 Mitbringen']] : [['essen', '🥙 Mitbringen']]),
+    ['aufgaben', '✅ Aufgaben'], ['rides', '🚗 Mitfahren'], ['plan', '🕒 Zeitplan'],
+  ]
+  const [tab, setTab] = useState(tabs[0][0])
   return (
     <div style={card}>
       <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
         {tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} style={{ ...ghost, fontSize: 13, padding: '7px 12px', background: tab === k ? 'var(--g)' : 'transparent', color: tab === k ? 'white' : 'var(--text)', fontWeight: 600 }}>{l}</button>)}
       </div>
+      {modus === 'versorgt' && <div style={{ fontSize: 13, marginBottom: 12, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>🍽️ Für das Essen ist gesorgt – du musst nichts mitbringen.</div>}
+      {tab === 'meals' && <Meals offer={offer} asId={asId} isOwner={isOwner}/>}
+      {tab === 'rides' && <Rides offer={offer} asId={asId}/>}
       {tab === 'essen' && <Dishes offerId={offer.id} asId={asId} isOwner={isOwner}/>}
       {tab === 'aufgaben' && <Tasks offerId={offer.id} asId={asId} isOwner={isOwner}/>}
       {tab === 'plan' && <Schedule offerId={offer.id} isOwner={isOwner} offer={offer}/>}

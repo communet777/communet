@@ -1,5 +1,5 @@
 -- Communet: Angebots-Organisation (Mitbring-Liste, Aufgaben, Zeitplan, Ankündigung, Anreise/Abreise, Push-Empfänger)
--- Im Supabase-Dashboard: SQL Editor -> New query -> alles einfügen -> Run.
+-- Im Supabase-Dashboard: SQL Editor -> New query -> alles einfügen -> Run. (Darf auch ein zweites Mal ausgeführt werden.)
 begin;
 
 alter table public.offers
@@ -8,7 +8,8 @@ alter table public.offers
   add column if not exists mindestdauer text,
   add column if not exists hausregeln text,
   add column if not exists ankuendigung text,
-  add column if not exists ankuendigung_at timestamptz;
+  add column if not exists ankuendigung_at timestamptz,
+  add column if not exists essen_modus text;
 
 alter table public.offer_interest
   add column if not exists anreise date,
@@ -26,7 +27,7 @@ create table if not exists public.offer_dishes (
   created_by uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz not null default now()
 );
-create unique index if not exists offer_dishes_unique_name on public.offer_dishes (offer_id, lower(btrim(name)));
+drop index if exists public.offer_dishes_unique_name;
 alter table public.offer_dishes enable row level security;
 revoke all on public.offer_dishes from anon, authenticated;
 
@@ -53,6 +54,10 @@ create table if not exists public.offer_schedule (
 alter table public.offer_schedule enable row level security;
 revoke all on public.offer_schedule from anon;
 grant select, insert, update, delete on public.offer_schedule to authenticated;
+drop policy if exists offer_schedule_select on public.offer_schedule;
+drop policy if exists offer_schedule_write_ins on public.offer_schedule;
+drop policy if exists offer_schedule_write_upd on public.offer_schedule;
+drop policy if exists offer_schedule_write_del on public.offer_schedule;
 create policy offer_schedule_select on public.offer_schedule for select using (public.offer_access(offer_id) is not null);
 create policy offer_schedule_write_ins on public.offer_schedule for insert with check (public.offer_access(offer_id) = 'owner');
 create policy offer_schedule_write_upd on public.offer_schedule for update using (public.offer_access(offer_id) = 'owner') with check (public.offer_access(offer_id) = 'owner');
@@ -70,18 +75,12 @@ $$;
 
 create or replace function public.dish_add(p_offer uuid, p_as uuid, p_category text, p_name text, p_tags text[], p_note text, p_wish boolean)
 returns void language plpgsql security definer set search_path = public as $$
-declare v_role text; v_ex record; v_name text := btrim(coalesce(p_name,''));
+declare v_role text; v_name text := btrim(coalesce(p_name,''));
 begin
   v_role := public.offer_access_as(p_offer, p_as);
   if v_role is null then raise exception 'Nicht erlaubt'; end if;
   if p_wish and v_role <> 'owner' then raise exception 'Nur die Kommune kann Wünsche eintragen'; end if;
   if v_name = '' then raise exception 'Bitte einen Namen eintragen'; end if;
-  select d.*, pr.name as who into v_ex from public.offer_dishes d left join public.profiles pr on pr.id = d.claimed_by
-    where d.offer_id = p_offer and lower(btrim(d.name)) = lower(v_name);
-  if found then
-    if v_ex.claimed_by is not null then raise exception 'Schon vergeben: „%“ bringt % mit.', v_ex.name, coalesce(v_ex.who, 'jemand');
-    else raise exception '„%“ steht schon auf der Wunschliste – tippe dort auf „Ich bring’s“.', v_ex.name; end if;
-  end if;
   if (select count(*) from public.offer_dishes where offer_id = p_offer) >= 300 then raise exception 'Liste ist voll'; end if;
   insert into public.offer_dishes(offer_id, category, name, tags, note, wish, claimed_by, created_by)
   values (p_offer, coalesce(nullif(btrim(p_category),''),'Sonstiges'), v_name, coalesce(p_tags,'{}'), nullif(btrim(coalesce(p_note,'')),''),
@@ -150,6 +149,138 @@ begin
   else raise exception 'Ungültige Aktion'; end if;
 end $$;
 
+
+-- Mahlzeiten (Gemeinschaftsessen über mehrere Tage)
+create table if not exists public.offer_meals (
+  id uuid primary key default gen_random_uuid(),
+  offer_id uuid not null references public.offers(id) on delete cascade,
+  tag date not null,
+  mahlzeit text not null check (mahlzeit in ('Frühstück','Mittagessen','Abendessen','Sonstiges')),
+  titel text check (titel is null or char_length(titel) <= 120),
+  created_at timestamptz not null default now(),
+  unique (offer_id, tag, mahlzeit)
+);
+create table if not exists public.offer_meal_cooks (
+  meal_id uuid not null references public.offer_meals(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (meal_id, user_id)
+);
+alter table public.offer_meals enable row level security;
+alter table public.offer_meal_cooks enable row level security;
+revoke all on public.offer_meals, public.offer_meal_cooks from anon, authenticated;
+
+create or replace function public.offer_meals_list(p_offer uuid, p_as uuid)
+returns table(id uuid, tag date, mahlzeit text, titel text, cooks json, mine boolean)
+language sql stable security definer set search_path = public as $$
+  select m.id, m.tag, m.mahlzeit, m.titel,
+    coalesce((select json_agg(p.name order by c.created_at) from public.offer_meal_cooks c join public.profiles p on p.id = c.user_id where c.meal_id = m.id), '[]'::json),
+    exists (select 1 from public.offer_meal_cooks c where c.meal_id = m.id and c.user_id = auth.uid())
+  from public.offer_meals m
+  where m.offer_id = p_offer and public.offer_access_as(p_offer, p_as) is not null
+  order by m.tag, case m.mahlzeit when 'Frühstück' then 1 when 'Mittagessen' then 2 when 'Abendessen' then 3 else 4 end;
+$$;
+
+create or replace function public.meals_add(p_offer uuid, p_as uuid, p_von date, p_bis date, p_arten text[])
+returns void language plpgsql security definer set search_path = public as $$
+declare d date; a text;
+begin
+  if public.offer_access_as(p_offer, p_as) is distinct from 'owner' then raise exception 'Nicht erlaubt'; end if;
+  if p_von is null or p_bis is null or p_bis < p_von or p_bis - p_von > 30 then raise exception 'Bitte einen Zeitraum bis max. 31 Tage wählen'; end if;
+  foreach a in array p_arten loop
+    if a not in ('Frühstück','Mittagessen','Abendessen','Sonstiges') then raise exception 'Ungültige Mahlzeit'; end if;
+    for d in select generate_series(p_von, p_bis, interval '1 day')::date loop
+      insert into public.offer_meals(offer_id, tag, mahlzeit) values (p_offer, d, a) on conflict do nothing;
+    end loop;
+  end loop;
+end $$;
+
+create or replace function public.meal_act(p_id uuid, p_as uuid, p_action text, p_titel text default null)
+returns void language plpgsql security definer set search_path = public as $$
+declare m record; v_role text;
+begin
+  select * into m from public.offer_meals where id = p_id;
+  if not found then raise exception 'Nicht gefunden'; end if;
+  v_role := public.offer_access_as(m.offer_id, p_as);
+  if v_role is null then raise exception 'Nicht erlaubt'; end if;
+  if p_action = 'cook' then
+    insert into public.offer_meal_cooks(meal_id, user_id) values (p_id, auth.uid()) on conflict do nothing;
+  elsif p_action = 'uncook' then
+    delete from public.offer_meal_cooks where meal_id = p_id and user_id = auth.uid();
+  elsif p_action = 'title' then
+    if v_role <> 'owner' and not exists (select 1 from public.offer_meal_cooks where meal_id = p_id and user_id = auth.uid()) then raise exception 'Nicht erlaubt'; end if;
+    update public.offer_meals set titel = nullif(btrim(coalesce(p_titel,'')),'') where id = p_id;
+  elsif p_action = 'delete' then
+    if v_role <> 'owner' then raise exception 'Nicht erlaubt'; end if;
+    delete from public.offer_meals where id = p_id;
+  else raise exception 'Ungültige Aktion'; end if;
+end $$;
+
+-- Mitfahrgelegenheiten
+create table if not exists public.offer_rides (
+  id uuid primary key default gen_random_uuid(),
+  offer_id uuid not null references public.offers(id) on delete cascade,
+  driver uuid not null references auth.users(id) on delete cascade,
+  plaetze int not null check (plaetze between 1 and 8),
+  ort text check (ort is null or char_length(ort) <= 80),
+  abfahrt timestamp,
+  notiz text check (notiz is null or char_length(notiz) <= 200),
+  created_at timestamptz not null default now()
+);
+create table if not exists public.offer_ride_riders (
+  ride_id uuid not null references public.offer_rides(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (ride_id, user_id)
+);
+alter table public.offer_rides enable row level security;
+alter table public.offer_ride_riders enable row level security;
+revoke all on public.offer_rides, public.offer_ride_riders from anon, authenticated;
+
+create or replace function public.offer_rides_list(p_offer uuid, p_as uuid)
+returns table(id uuid, driver_name text, plaetze int, taken int, ort text, abfahrt timestamp, notiz text, riders json, mine boolean, i_ride boolean)
+language sql stable security definer set search_path = public as $$
+  select r.id, p.name, r.plaetze,
+    (select count(*)::int from public.offer_ride_riders x where x.ride_id = r.id), r.ort, r.abfahrt, r.notiz,
+    coalesce((select json_agg(pp.name order by x.created_at) from public.offer_ride_riders x join public.profiles pp on pp.id = x.user_id where x.ride_id = r.id), '[]'::json),
+    r.driver = auth.uid(),
+    exists (select 1 from public.offer_ride_riders x where x.ride_id = r.id and x.user_id = auth.uid())
+  from public.offer_rides r join public.profiles p on p.id = r.driver
+  where r.offer_id = p_offer and public.offer_access_as(p_offer, p_as) is not null
+  order by r.abfahrt nulls last, r.created_at;
+$$;
+
+create or replace function public.ride_add(p_offer uuid, p_as uuid, p_plaetze int, p_ort text, p_abfahrt timestamp, p_notiz text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if public.offer_access_as(p_offer, p_as) is null then raise exception 'Nicht erlaubt'; end if;
+  if p_plaetze is null or p_plaetze < 1 or p_plaetze > 8 then raise exception 'Bitte 1–8 freie Plätze angeben'; end if;
+  if exists (select 1 from public.offer_rides where offer_id = p_offer and driver = auth.uid()) then raise exception 'Du hast schon ein Auto eingetragen'; end if;
+  insert into public.offer_rides(offer_id, driver, plaetze, ort, abfahrt, notiz)
+  values (p_offer, auth.uid(), p_plaetze, nullif(btrim(coalesce(p_ort,'')),''), p_abfahrt, nullif(btrim(coalesce(p_notiz,'')),''));
+end $$;
+
+create or replace function public.ride_act(p_id uuid, p_as uuid, p_action text)
+returns void language plpgsql security definer set search_path = public as $$
+declare r record; v_taken int;
+begin
+  select * into r from public.offer_rides where id = p_id;
+  if not found then raise exception 'Nicht gefunden'; end if;
+  if public.offer_access_as(r.offer_id, p_as) is null then raise exception 'Nicht erlaubt'; end if;
+  if p_action = 'join' then
+    if r.driver = auth.uid() then raise exception 'Das ist dein eigenes Auto'; end if;
+    select count(*) into v_taken from public.offer_ride_riders where ride_id = p_id;
+    if v_taken >= r.plaetze then raise exception 'Das Auto ist voll'; end if;
+    delete from public.offer_ride_riders x using public.offer_rides o where x.ride_id = o.id and o.offer_id = r.offer_id and x.user_id = auth.uid();
+    insert into public.offer_ride_riders(ride_id, user_id) values (p_id, auth.uid()) on conflict do nothing;
+  elsif p_action = 'leave' then
+    delete from public.offer_ride_riders where ride_id = p_id and user_id = auth.uid();
+  elsif p_action = 'delete' then
+    if r.driver <> auth.uid() and public.offer_access_as(r.offer_id, p_as) <> 'owner' then raise exception 'Nicht erlaubt'; end if;
+    delete from public.offer_rides where id = p_id;
+  else raise exception 'Ungültige Aktion'; end if;
+end $$;
+
 -- Anreise/Abreise der eigenen Anfrage
 create or replace function public.offer_set_my_dates(p_offer uuid, p_anreise date, p_abreise date)
 returns void language plpgsql security definer set search_path = public as $$
@@ -207,9 +338,11 @@ end $$;
 
 revoke all on function public.offer_dishes_list(uuid,uuid), public.dish_add(uuid,uuid,text,text,text[],text,boolean), public.dish_act(uuid,uuid,text),
   public.offer_tasks_list(uuid,uuid), public.task_add(uuid,uuid,text), public.task_act(uuid,uuid,text), public.offer_set_my_dates(uuid,date,date),
-  public.offer_push_targets(uuid,uuid,text,uuid) from public, anon;
+  public.offer_push_targets(uuid,uuid,text,uuid), public.offer_meals_list(uuid,uuid), public.meals_add(uuid,uuid,date,date,text[]), public.meal_act(uuid,uuid,text,text),
+  public.offer_rides_list(uuid,uuid), public.ride_add(uuid,uuid,int,text,timestamp,text), public.ride_act(uuid,uuid,text) from public, anon;
 grant execute on function public.offer_dishes_list(uuid,uuid), public.dish_add(uuid,uuid,text,text,text[],text,boolean), public.dish_act(uuid,uuid,text),
   public.offer_tasks_list(uuid,uuid), public.task_add(uuid,uuid,text), public.task_act(uuid,uuid,text), public.offer_set_my_dates(uuid,date,date),
-  public.offer_push_targets(uuid,uuid,text,uuid) to authenticated;
+  public.offer_push_targets(uuid,uuid,text,uuid), public.offer_meals_list(uuid,uuid), public.meals_add(uuid,uuid,date,date,text[]), public.meal_act(uuid,uuid,text,text),
+  public.offer_rides_list(uuid,uuid), public.ride_add(uuid,uuid,int,text,timestamp,text), public.ride_act(uuid,uuid,text) to authenticated;
 
 commit;

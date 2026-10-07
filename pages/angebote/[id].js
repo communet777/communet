@@ -74,6 +74,7 @@ export default function AngebotDetail() {
     ['Vergütung', [offer.verguetung, offer.verguetung_info].filter(Boolean).join(' – ')],
     ['Unterkunft', offer.unterkunft],
     ['Verpflegung', offer.verpflegung],
+    ['Essen', {versorgt:'Für Essen ist gesorgt',gemeinschaft:'Gemeinschaftsessen – Teilnehmende übernehmen Mahlzeiten',buffet:'Buffet – jeder bringt etwas mit'}[offer.essen_modus]],
     ['Arbeitszeit', offer.stunden_pro_tag],
     ['Mindestdauer', offer.mindestdauer],
     ['Freie Plätze', offer.plaetze ? String(offer.plaetze) : ''],
