@@ -80,6 +80,7 @@ DEFAULT_EXTRACTS = [
     ("MT", "europe/malta"),
     ("AD", "europe/andorra"),
     ("RU", "russia"),
+    ("TR", "europe/turkey"),
 ]
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
@@ -255,6 +256,16 @@ def farm_point(geom):
     return sum(p[1] for p in pts) / len(pts), sum(p[0] for p in pts) / len(pts)
 
 
+
+def drop_way_duplicates(rows: list) -> list:
+    """osmium export liefert geschlossene Wege doppelt: als Fläche a<2n> und als Linie w<n>.
+    Die Linie wird verworfen, wenn die Fläche vorhanden ist."""
+    ids = {r["osm_id"] for r in rows}
+    return [r for r in rows
+            if not (r["osm_id"].startswith("w") and r["osm_id"][1:].isdigit()
+                    and f"a{int(r['osm_id'][1:]) * 2}" in ids)]
+
+
 def farms_from_pbf(region: str, raw: str) -> None:
     """shop=farm mit organic=yes/only (Bio laut OSM-Community) nach public.farm_shops_osm schreiben."""
     flt = os.path.join(WORK, f"farm-{region}.osm.pbf")
@@ -284,6 +295,7 @@ def farms_from_pbf(region: str, raw: str) -> None:
             "addr_city": tags.get("addr:city"), "addr_postcode": tags.get("addr:postcode"),
             "opening_hours": tags.get("opening_hours"), "raw": tags, "imported_at": now,
         })
+    rows = drop_way_duplicates(rows)
     for p in (flt, gj):
         try:
             os.remove(p)
