@@ -41,7 +41,7 @@ export default function InstallHint() {
   if (!user || !mode) return null
   const en = lang === 'en'
   return (
-    <div role="dialog" aria-label={en ? 'Install app' : 'App installieren'} style={{ position: 'fixed', left: 12, right: 76, bottom: 12, zIndex: 60, background: '#173F4A', color: '#F0E6D2', border: '1px solid rgba(233,173,85,.5)', borderRadius: 16, padding: '12px 14px', boxShadow: '0 6px 24px rgba(0,0,0,.28)', fontSize: 13, lineHeight: 1.45, maxWidth: 420 }}>
+    <div role="dialog" aria-label={en ? 'Install app' : 'App installieren'} style={{ position: 'fixed', left: 12, right: 76, bottom: 'calc(72px + env(safe-area-inset-bottom))', zIndex: 60, background: '#173F4A', color: '#F0E6D2', border: '1px solid rgba(233,173,85,.5)', borderRadius: 16, padding: '12px 14px', boxShadow: '0 6px 24px rgba(0,0,0,.28)', fontSize: 13, lineHeight: 1.45, maxWidth: 420 }}>
       <button onClick={close} aria-label={en ? 'Close' : 'Schließen'} style={{ position: 'absolute', top: 4, right: 8, background: 'none', border: 'none', color: '#F0E6D2', fontSize: 18, cursor: 'pointer' }}>×</button>
       <div style={{ fontWeight: 600, color: '#E9AD55', marginBottom: 2 }}>{en ? 'Use Communet as an app' : 'Communet als App nutzen'}</div>
       {mode === 'ios' ? (

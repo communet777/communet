@@ -8,7 +8,7 @@ return()=>window.removeEventListener('scroll',onScroll)
 },[])
 if(!show)return null
 return(
-<button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}style={{position:'fixed',bottom:24,right:24,width:44,height:44,borderRadius:'50%',background:'var(--g)',color:'#fff',border:'none',fontSize:20,cursor:'pointer',boxShadow:'0 4px 16px rgba(0,0,0,0.18)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',transition:'opacity .2s'}}aria-label="Nach oben">
+<button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}style={{position:'fixed',bottom:'calc(80px + env(safe-area-inset-bottom))',right:16,width:44,height:44,borderRadius:'50%',background:'var(--g)',color:'#fff',border:'none',fontSize:20,cursor:'pointer',boxShadow:'0 4px 16px rgba(0,0,0,0.18)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',transition:'opacity .2s'}}aria-label="Nach oben">
 ↑
 </button>
 )
