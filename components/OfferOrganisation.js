@@ -54,13 +54,13 @@ function useDishes(offer, asId) {
   return { list, err, add, act, move }
 }
 
-function MoveSelect({ dish, days, onMove }) {
+function MoveSelect({ dish, days, onMove, off = [] }) {
   if (!dish.can_move) return null
   const val = dish.tag && dish.slot ? `${dish.tag}|${dish.slot}` : ''
   return (
     <select value={val} onChange={e => onMove(dish.id, e.target.value)} style={{ ...inp, width: 'auto', maxWidth: 190, padding: '5px 8px', fontSize: 12 }} title="Einer Mahlzeit zuordnen">
       <option value="">Keiner Mahlzeit zugeordnet</option>
-      {days.map(d => <optgroup key={d} label={dayShort(d)}>{SLOTS.map(sl => <option key={sl} value={`${d}|${sl}`}>{dayShort(d)} · {sl}</option>)}</optgroup>)}
+      {days.map(d => <optgroup key={d} label={dayShort(d)}>{SLOTS.filter(sl => !off.includes(`${d}|${sl}`)).map(sl => <option key={sl} value={`${d}|${sl}`}>{dayShort(d)} · {sl}</option>)}</optgroup>)}
     </select>
   )
 }
@@ -96,7 +96,7 @@ function Dishes({ offer, asId, isOwner, store }) {
               {!d.claimed_by && !isOwner && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
               {d.mine && <button style={ghost} onClick={() => act(d.id, 'release')}>Zurückziehen</button>}
               {isOwner && !d.mine && <button style={ghost} onClick={() => act(d.id, 'delete')}>Entfernen</button>}
-              {offer.essen_modus === 'gemeinschaft' && <MoveSelect dish={d} days={days} onMove={move}/>}
+              {offer.essen_modus === 'gemeinschaft' && <MoveSelect dish={d} days={days} onMove={move} off={offer.mahlzeiten_aus || []}/>}
             </div>
           ))}
         </div>
@@ -216,9 +216,26 @@ function Schedule({ offerId, isOwner, offer }) {
   )
 }
 
-function Meals({ offer, isOwner, store }) {
+function Meals({ offer, isOwner, store, onOfferChange }) {
   const { list, err, add, act, move } = store
-  const days = offerDays(offer, list)
+  const [localErr, setLocalErr] = useState('')
+  const [showOff, setShowOff] = useState(false)
+  const off = offer.mahlzeiten_aus || []
+  const isOff = (day, sl) => off.includes(`${day}|${sl}`)
+  async function setOff(next) {
+    setLocalErr('')
+    const { error } = await supabase.from('offers').update({ mahlzeiten_aus: next }).eq('id', offer.id)
+    if (error) setLocalErr(error.message)
+    else if (onOfferChange) onOfferChange({ mahlzeiten_aus: next })
+  }
+  function hide(day, slots) {
+    const busy = slots.filter(sl => list.some(d => d.tag === day && d.slot === sl))
+    if (busy.length) { setLocalErr(`„${busy.join(', ')}“ am ${dayShort(day)} enthält noch Gerichte – verschiebe oder entferne sie zuerst.`); return }
+    setOff([...new Set([...off, ...slots.map(sl => `${day}|${sl}`)])])
+  }
+  function unhide(keys) { setOff(off.filter(k => !keys.includes(k))) }
+  const allDays = offerDays(offer, list)
+  const days = isOwner ? allDays : allDays.filter(d => SLOTS.some(sl => !isOff(d, sl)))
   const [quick, setQuick] = useState(null) // { tag, slot }
   const [name, setName] = useState('')
   const unplaced = list.filter(d => d.can_move && !(d.tag && d.slot))
@@ -237,20 +254,23 @@ function Meals({ offer, isOwner, store }) {
           {unplaced.map(d => (
             <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '4px 0' }}>
               <span style={{ flex: 1, minWidth: 120 }}>{d.name} <span style={{ fontSize: 11, color: 'var(--muted)' }}>({d.category})</span></span>
-              <MoveSelect dish={d} days={days} onMove={move}/>
+              <MoveSelect dish={d} days={days} onMove={move} off={offer.mahlzeiten_aus || []}/>
             </div>
           ))}
         </div>
       )}
       {days.map(day => (
         <div key={day} style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, margin: '4px 0 6px' }}>{dayLabel(day)}</div>
-          {SLOTS.map(sl => {
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 6px' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{dayLabel(day)}</span>
+            {isOwner && SLOTS.some(sl => !isOff(day, sl)) && <button style={ghost} onClick={() => hide(day, SLOTS)}>Tag ohne Essen</button>}
+          </div>
+          {SLOTS.filter(sl => !isOff(day, sl)).map(sl => {
             const items = list.filter(d => d.tag === day && d.slot === sl)
             const isQuick = quick && quick.tag === day && quick.slot === sl
             return (
               <div key={sl} style={{ display: 'flex', gap: 10, padding: '6px 0', borderTop: '1px solid var(--border)', alignItems: 'flex-start' }}>
-                <span style={{ width: 96, fontWeight: 600, fontSize: 13, flexShrink: 0 }}>{sl}</span>
+                <span style={{ width: 96, fontWeight: 600, fontSize: 13, flexShrink: 0 }}>{sl}{isOwner && <button title="Diese Mahlzeit entfernen" style={{ ...ghost, marginLeft: 4, padding: '0 6px' }} onClick={() => hide(day, [sl])}>×</button>}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {items.map(d => (
                     <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
@@ -260,7 +280,7 @@ function Meals({ offer, isOwner, store }) {
                         <div style={{ fontSize: 12, color: d.claimed_by ? 'var(--muted)' : '#b3261e' }}>{d.claimed_by ? (d.mine ? '👩‍🍳 Du' : `👩‍🍳 ${d.claimed_name || 'Jemand'}`) : '🙋 Gesucht'}</div>
                       </span>
                       {!d.claimed_by && !isOwner && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
-                      <MoveSelect dish={d} days={days} onMove={move}/>
+                      <MoveSelect dish={d} days={days} onMove={move} off={offer.mahlzeiten_aus || []}/>
                     </div>
                   ))}
                   {isQuick ? (
@@ -278,7 +298,13 @@ function Meals({ offer, isOwner, store }) {
           })}
         </div>
       ))}
-      {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
+      {isOwner && off.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <button style={ghost} onClick={() => setShowOff(v => !v)}>{showOff ? 'Ausgeblendete verbergen' : `Ausgeblendete anzeigen (${off.length})`}</button>
+          {showOff && off.slice().sort().map(k => { const [d, sl] = k.split('|'); return <div key={k} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '4px 0', fontSize: 13 }}><span style={{ flex: 1, color: 'var(--muted)' }}>{dayShort(d)} · {sl}</span><button style={ghost} onClick={() => unhide([k])}>Wieder einblenden</button></div> })}
+        </div>
+      )}
+      {(err || localErr) && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err || localErr}</p>}
     </div>
   )
 }
@@ -382,7 +408,7 @@ export default function OfferOrganisation({ offer, asId, role, onOfferChange }) 
         {tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} style={{ ...ghost, fontSize: 13, padding: '7px 12px', background: cur === k ? 'var(--g)' : 'transparent', color: cur === k ? 'white' : 'var(--text)', fontWeight: 600 }}>{l}</button>)}
       </div>
       {modus === 'versorgt' && <div style={{ fontSize: 13, marginBottom: 12, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>🍽️ Für das Essen ist gesorgt – du musst nichts mitbringen.</div>}
-      {cur === 'meals' && <Meals offer={offer} isOwner={isOwner} store={store}/>}
+      {cur === 'meals' && <Meals offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange}/>}
       {cur === 'rides' && <Rides offer={offer} asId={asId} isOwner={isOwner}/>}
       {cur === 'essen' && <Dishes offer={offer} asId={asId} isOwner={isOwner} store={store}/>}
       {cur === 'aufgaben' && <Tasks offerId={offer.id} asId={asId} isOwner={isOwner}/>}
