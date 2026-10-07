@@ -58,10 +58,9 @@ export default function Login() {
       return
     }
 
-    const profileStatus = typ === 'kommune' ? 'pending' : 'approved'
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { name, typ } }
+      options: { data: { name, typ, invite: code } }
     })
     if (error) { setError(error.message); setStatus('idle'); return }
     if (!data.user || data.user.identities?.length === 0) {
@@ -69,12 +68,7 @@ export default function Login() {
       setStatus('idle')
       return
     }
-    if (data.user) {
-      await supabase.from('profiles').upsert({
-        id: data.user.id, name, typ, email, status: profileStatus
-      })
-      await supabase.rpc('redeem_invite_code', { p_code: code, p_user: data.user.id })
-    }
+    // Profil und Einladungscode werden serverseitig beim Anlegen des Accounts verarbeitet (Datenbank-Trigger).
     setStatus('registered')
   }
 
