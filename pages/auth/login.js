@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/Auth.module.css'
-import Icon from '../../components/Icon'
 
 export default function Login() {
   const router = useRouter()
@@ -12,7 +11,6 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
-  const [typ, setTyp] = useState('person')
   const [inviteCode, setInviteCode] = useState('')
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
@@ -58,9 +56,10 @@ export default function Login() {
       return
     }
 
+    // Registrierung legt immer ein persönliches Profil an. Eine Gemeinschaft wird danach im Profil angelegt.
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { name, typ, invite: code } }
+      options: { data: { name, invite: code } }
     })
     if (error) { setError(error.message); setStatus('idle'); return }
     if (!data.user || data.user.identities?.length === 0) {
@@ -161,13 +160,9 @@ export default function Login() {
                   <label>Early-Access-Code</label>
                   <input type="text" required value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="Dein Code" autoFocus/>
                 </div>
-                <div className={styles.typSelector}>
-                  <button type="button" className={`${styles.typBtn} ${typ==='person'?styles.typActive:''}`} onClick={()=>setTyp('person')}><Icon name="person"/> Person</button>
-                  <button type="button" className={`${styles.typBtn} ${typ==='kommune'?styles.typActive:''}`} onClick={()=>setTyp('kommune')}><Icon name="globus"/> Gemeinschaft</button>
-                </div>
                 <div className={styles.field}>
-                  <label>{typ==='kommune' ? 'Name der Kommune' : 'Dein Name'}</label>
-                  <input type="text" required value={name} onChange={e=>setName(e.target.value)} placeholder={typ==='kommune' ? 'z.B. Ökodorf Sieben Linden' : 'Vor- und Nachname'}/>
+                  <label>Dein Name</label>
+                  <input type="text" required value={name} onChange={e=>setName(e.target.value)} placeholder="Vor- und Nachname"/>
                 </div>
                 <div className={styles.field}>
                   <label>E-Mail</label>
@@ -177,6 +172,7 @@ export default function Login() {
                   <label>Passwort</label>
                   <input type="password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} placeholder="mind. 8 Zeichen"/>
                 </div>
+                <p className={styles.magicInfo}>Du registrierst dich als Person. Eine Gemeinschaft legst du danach in deinem Profil an — mehrere Personen können sie gemeinsam verwalten.</p>
                 {error && <p className={styles.error}>{error}</p>}
                 <button type="submit" className={styles.btn} disabled={status==='loading'}>
                   {status==='loading' ? 'Lädt...' : 'Konto erstellen'}
@@ -188,10 +184,7 @@ export default function Login() {
               <div className={styles.success}>
                 <div className={styles.successIcon}>🎉</div>
                 <h2>Willkommen bei Communet!</h2>
-                {typ === 'kommune'
-                  ? <p>Deine Kommune wurde angelegt und wird bald freigeschaltet. Du kannst dich jetzt anmelden und dein Profil bearbeiten.</p>
-                  : <p>Bitte bestätige deine E-Mail-Adresse — danach kannst du dich anmelden.</p>
-                }
+                <p>Bitte bestätige deine E-Mail-Adresse — danach kannst du dich anmelden. Eine Gemeinschaft kannst du dann in deinem Profil anlegen; sie wird von uns freigeschaltet.</p>
               </div>
             )}
 
