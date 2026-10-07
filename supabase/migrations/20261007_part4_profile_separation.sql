@@ -1,0 +1,2 @@
+-- Bereits angewendet (offer_access_as_profile, offer_interest_status_update_guard):
+-- Angebots-Funktionen kennen jetzt das aktive Profil (p_as); offer_interest.status ist per Update-Trigger gegen Selbstfreischaltung geschützt.

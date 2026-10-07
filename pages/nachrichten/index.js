@@ -17,7 +17,7 @@ function timeLabel(ts) {
 
 export default function Nachrichten() {
   const { user, loading } = useAuth()
-  const { earlyAccess, profiles, refreshUnread } = useActiveProfile()
+  const { earlyAccess, profiles, active, unreadOther, refreshUnread } = useActiveProfile()
   const router = useRouter()
   const [convs, setConvs] = useState(null)
 
@@ -37,11 +37,12 @@ export default function Nachrichten() {
       <div style={{maxWidth:680,margin:'0 auto',padding:'32px 20px 80px'}}>
         <h1 style={{margin:'0 0 16px'}}>Nachrichten</h1>
         {earlyAccess && <PushToggle/>}
+        {active && profiles.length > 1 && <p style={{fontSize:13,color:'var(--muted)',margin:'0 0 12px'}}>Du bist gerade als <strong>{active.name}</strong> unterwegs.{unreadOther > 0 ? ` Ungelesen im anderen Profil: ${unreadOther}.` : ''}</p>}
         {profiles.length > 0 && !earlyAccess && <p>Nachrichten sind in der geschlossenen Testphase nur für Early-Access-Mitglieder verfügbar.</p>}
-        {earlyAccess && convs && convs.length === 0 && (
+        {earlyAccess && convs && convs.filter(c => !active || c.my_profile_id === active.id).length === 0 && (
           <p style={{color:'var(--muted)'}}>Noch keine Unterhaltungen. <Link href="/leute" style={{color:'var(--g)'}}>Leute finden</Link> oder auf einer Kommunen-Seite schreiben.</p>
         )}
-        {(convs || []).map(c => (
+        {(convs || []).filter(c => !active || c.my_profile_id === active.id).map(c => (
           <Link key={`${c.conversation_id}-${c.my_profile_id}`} href={`/nachrichten/${c.conversation_id}?as=${c.my_profile_id}`} style={{textDecoration:'none'}}>
             <div style={{display:'flex',gap:14,alignItems:'center',background:'var(--card)',borderRadius:14,padding:14,marginBottom:10,borderLeft:c.unread>0?'3px solid var(--gold,#E9AD55)':'3px solid transparent'}}>
               <div style={{width:46,height:46,borderRadius:'50%',overflow:'hidden',background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
@@ -52,7 +53,7 @@ export default function Nachrichten() {
                   <strong style={{color:'var(--text)'}}>{c.other_name}</strong>
                   <span style={{fontSize:11,color:'var(--muted)'}}>{c.last_at && timeLabel(c.last_at)}</span>
                 </div>
-                {profiles.length > 1 && <div style={{fontSize:11,color:'var(--muted)'}}>als {c.my_name}</div>}
+                
                 <div style={{fontSize:13,color:'var(--muted)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontWeight:c.unread>0?700:400}}>{c.last_sender === c.my_profile_id ? 'Du: ' : ''}{c.last_body}</div>
               </div>
               {c.unread > 0 && <span style={{background:'var(--gold,#E9AD55)',color:'#173F4A',borderRadius:12,padding:'2px 8px',fontSize:12,fontWeight:700}}>{c.unread}</span>}
