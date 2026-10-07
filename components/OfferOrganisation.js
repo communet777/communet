@@ -260,8 +260,8 @@ function Meals({ offer, isOwner, store, onOfferChange }) {
         </div>
       )}
       {days.map(day => (
-        <div key={day} style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 6px' }}>
+        <div key={day} style={{ marginBottom: 14, border: '1.5px solid var(--border)', borderRadius: 12, padding: '10px 14px', background: 'var(--bg)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
             <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{dayLabel(day)}</span>
             {isOwner && SLOTS.some(sl => !isOff(day, sl)) && <button style={ghost} onClick={() => hide(day, SLOTS)}>Tag ohne Essen</button>}
           </div>
