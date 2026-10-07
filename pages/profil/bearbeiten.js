@@ -11,7 +11,7 @@ export default function ProfilBearbeiten() {
   const router = useRouter()
   const fileRef = useRef()
 
-  const [profile, setProfile] = useState({ name: '', bio: '', land: '', website: '', instagram: '', avatar_url: '' })
+  const [profile, setProfile] = useState({ name: '', bio: '', land: '', website: '', instagram: '', avatar_url: '', auffindbar: true })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -31,7 +31,8 @@ export default function ProfilBearbeiten() {
           land: data.land || '',
           website: data.website || '',
           instagram: data.instagram || '',
-          avatar_url: data.avatar_url || ''
+          avatar_url: data.avatar_url || '',
+          auffindbar: data.auffindbar !== false
         })
       })
   }, [user])
@@ -62,7 +63,8 @@ export default function ProfilBearbeiten() {
       land: profile.land,
       website: profile.website,
       instagram: profile.instagram,
-      avatar_url: profile.avatar_url
+      avatar_url: profile.avatar_url,
+      auffindbar: profile.auffindbar
     })
     setSaving(false)
     if (saveErr) { setError('Speichern fehlgeschlagen: ' + saveErr.message); return }
@@ -121,6 +123,13 @@ export default function ProfilBearbeiten() {
               <span>@</span>
               <input type="text" value={profile.instagram} onChange={e => setProfile(p => ({...p, instagram: e.target.value}))} placeholder="deinhandle"/>
             </div>
+          </div>
+
+          <div className={styles.field}>
+            <label style={{display:'flex',gap:10,alignItems:'flex-start',cursor:'pointer'}}>
+              <input type="checkbox" checked={profile.auffindbar} onChange={e => setProfile(p => ({...p, auffindbar: e.target.checked}))} style={{width:'auto',marginTop:3}}/>
+              <span><strong>Für andere Mitglieder auffindbar</strong><br/><span style={{fontSize:12,color:'var(--muted)'}}>Andere Early-Access-Mitglieder können dich in der Personensuche finden und dir schreiben. Deine E-Mail-Adresse sieht niemand.</span></span>
+            </label>
           </div>
 
           {error && <p className={styles.error}>{error}</p>}

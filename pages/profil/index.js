@@ -5,12 +5,15 @@ import Nav from '../../components/Nav'
 import Icon from '../../components/Icon'
 import TypIcon from '../../components/TypIcon'
 import { useAuth } from '../../lib/AuthContext'
+import { useActiveProfile } from '../../lib/ActiveProfileContext'
+import ProfileSwitcher from '../../components/ProfileSwitcher'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/Profil.module.css'
 
 export default function Profil() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
+  const { active, earlyAccess } = useActiveProfile()
   const [profile, setProfile] = useState(null)
   const [feedOffers, setFeedOffers] = useState([])
   const [feedLoading, setFeedLoading] = useState(true)
@@ -18,10 +21,10 @@ export default function Profil() {
   useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
 
   useEffect(() => {
-    if (!user) return
-    supabase.from('profiles').select('*').eq('id', user.id).single()
+    if (!user || !active) return
+    supabase.from('profiles').select('*').eq('id', active.id).single()
       .then(({ data }) => { if (data) setProfile(data) })
-  }, [user])
+  }, [user, active?.id])
 
   useEffect(() => {
     if (!user) return
@@ -47,7 +50,7 @@ export default function Profil() {
 
   const name = profile?.name || user.user_metadata?.name || user.email
   const typ = profile?.typ || user.user_metadata?.typ || 'person'
-  const since = new Date(user.created_at).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+  const since = new Date(profile?.created_at || user.created_at).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
   const isKommune = typ === 'kommune'
   const isPending = profile?.status === 'pending'
 
@@ -69,12 +72,17 @@ export default function Profil() {
             <h1 className={styles.name}>{name}</h1>
             <div className={styles.badge}>{isKommune ? (profile?.kommune_typ || 'Kommune') : 'Person'}</div>
             {profile?.land && <div className={styles.meta}><Icon name="standort"/> {profile.land}</div>}
-            <div className={styles.meta}>{user.email}</div>
+            {!isKommune && <div className={styles.meta}>{user.email}</div>}
             {profile?.bio && <p className={styles.bio}>{profile.bio}</p>}
             <div className={styles.since}>Mitglied seit {since}</div>
             <div className={styles.divider}/>
-            <Link href={isKommune ? '/profil/kommune' : '/profil/bearbeiten'} className={styles.btnPrimary}>Profil bearbeiten</Link>
+            <ProfileSwitcher style={{width:'100%',maxWidth:'none',marginBottom:10}}/>
+            {profile?.hidden && <div className={styles.meta}>🔒 Versteckt – nur für dich und eingeladene Mitglieder</div>}
+            <Link href={isKommune ? `/profil/kommune?id=${active?.id}` : '/profil/bearbeiten'} className={styles.btnPrimary}>Profil bearbeiten</Link>
             <div className={styles.actions}>
+              {earlyAccess && <Link href="/nachrichten" className={styles.btnSecondary}>✉️ Nachrichten</Link>}
+              {earlyAccess && <Link href="/leute" className={styles.btnSecondary}><Icon name="person"/> Leute finden</Link>}
+              {earlyAccess && <Link href="/profil/kommune?neu=1" className={styles.btnSecondary}><Icon name="globus"/> Neue Kommune</Link>}
               <Link href="/favoriten" className={styles.btnSecondary}><Icon name="stern"/> Favoriten</Link>
               <Link href="/kommunen" className={styles.btnSecondary}><Icon name="globus"/> Gemeinschaften</Link>
               <Link href="/karte" className={styles.btnSecondary}><Icon name="karte"/> Karte</Link>

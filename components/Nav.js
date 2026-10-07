@@ -6,11 +6,14 @@ import{useRouter}from'next/router'
 import{useState}from'react'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
+import{useActiveProfile}from'../lib/ActiveProfileContext'
+import ProfileSwitcher from'./ProfileSwitcher'
 import styles from'./Nav.module.css'
 export default function Nav(){
 const router=useRouter()
 const{lang,setLang,t}=useLang()
 const{user}=useAuth()
+const{earlyAccess,unread}=useActiveProfile()
 const[open,setOpen]=useState(false)
 return(
 <>
@@ -21,7 +24,10 @@ return(
 <Link href="/kommunen"className={`${styles.link}${router.pathname.startsWith('/kommunen')?' '+styles.active:''}`}>{t('nav_communities')}</Link>
 <Link href="/angebote"className={`${styles.link}${router.pathname==='/angebote'?' '+styles.active:''}`}>{t('nav_offers')}</Link>
 <Link href="/versorgung"className={`${styles.link} ${styles.navSupply}${router.pathname==='/versorgung'?' '+styles.active:''}`}><TypIcon src={ICONS.korb}size={15}/> {t('nav_supply')}</Link>
+{user&&earlyAccess&&<Link href="/leute"className={`${styles.link}${router.pathname.startsWith('/leute')?' '+styles.active:''}`}>Leute</Link>}
+{user&&earlyAccess&&<Link href="/nachrichten"className={`${styles.link}${router.pathname.startsWith('/nachrichten')?' '+styles.active:''}`}>Nachrichten{unread>0&&<span style={{marginLeft:6,background:'var(--gold,#E9AD55)',color:'#173F4A',borderRadius:10,padding:'1px 7px',fontSize:11,fontWeight:700}}>{unread}</span>}</Link>}
 {user&&<Link href="/app"className={`${styles.link}${router.pathname==='/app'?' '+styles.active:''}`}>App</Link>}
+{user&&<ProfileSwitcher/>}
 {user
 ?<Link href="/profil"className={`${styles.cta}${router.pathname.startsWith('/profil')?' '+styles.active:''}`}><Icon name="person"/> Profil</Link>
 :<Link href="/auth/login"className={styles.cta}>Anmelden</Link>
@@ -41,11 +47,14 @@ return(
 <Link href="/kommunen"className={styles.mobileLink}><Icon name="globus"/> {t('nav_communities')}</Link>
 <Link href="/angebote"className={styles.mobileLink}><Icon name="stern"/> {t('nav_offers')}</Link>
 <Link href="/versorgung"className={`${styles.mobileLink} ${styles.navSupply}`}><TypIcon src={ICONS.korb}size={15}/> {t('nav_supply')}</Link>
+{user&&earlyAccess&&<Link href="/leute"className={styles.mobileLink}><Icon name="person"/> Leute</Link>}
+{user&&earlyAccess&&<Link href="/nachrichten"className={styles.mobileLink}><Icon name="stern"/> Nachrichten{unread>0?` (${unread})`:''}</Link>}
 {user&&<Link href="/app"className={styles.mobileLink}><Icon name="stern"/> App</Link>}
 <div className={styles.mobileLang}>
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('de')}}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('en')}}>EN</button>
 </div>
+{user&&<div style={{padding:'4px 16px'}}><ProfileSwitcher style={{width:'100%',maxWidth:'none'}}/></div>}
 {user
 ?<Link href="/profil"className={styles.mobileCta}><Icon name="person"/> Profil</Link>
 :<Link href="/auth/login"className={styles.mobileCta}>Anmelden</Link>

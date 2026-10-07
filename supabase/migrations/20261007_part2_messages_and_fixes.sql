@@ -1,0 +1,6 @@
+-- Bereits in Supabase angewendet (Migrationen: messages_and_offer_interest, grants_messages_and_members,
+-- fix_protect_profile_fields). Hier nur zur Dokumentation; Details siehe Supabase > Database > Migrations.
+-- Tabellen: conversations, messages, conversation_reads, offer_interest (alle mit RLS)
+-- Funktionen: send_message, mark_read, my_conversations, offer_interest_info (security definer, nur Early-Access)
+-- Korrektur: protect_profile_fields prüft per auth.uid()/is_admin()/app.trusted statt current_user;
+--            redeem_invite_code setzt app.trusted, damit early_access nicht vom Trigger zurückgesetzt wird.

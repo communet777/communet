@@ -5,6 +5,7 @@ import Nav from '../../components/Nav'
 import Icon from '../../components/Icon'
 import TypIcon from '../../components/TypIcon'
 import { useAuth } from '../../lib/AuthContext'
+import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/ProfilBearbeiten.module.css'
 
@@ -74,6 +75,13 @@ function OrtAutocomplete({ value, onChange, onSelect, placeholder, hint }) {
 export default function KommuneBearbeiten() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const { reload: reloadProfiles, setActiveId, profiles: myProfiles, earlyAccess } = useActiveProfile()
+  const pid = typeof router.query.id === 'string' ? router.query.id : null
+  const isNew = !pid
+  const [hidden, setHidden] = useState(false)
+  const [members, setMembers] = useState([])
+  const [memberQuery, setMemberQuery] = useState('')
+  const [memberHits, setMemberHits] = useState([])
   const fileRef = useRef()
   const [profile, setProfile] = useState({ name:'', bio:'', land:'', adresse:'', website:'', instagram:'', avatar_url:'', kommune_typ:'Ökodorf', gruendungsjahr:'', mitglieder:'', sichtbarkeit:'stadt' })
   const [coords, setCoords] = useState({ lat:null, lon:null })
@@ -91,33 +99,53 @@ export default function KommuneBearbeiten() {
   useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
 
   useEffect(() => {
-    if (!user) return
-    supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
+    if (!user || !router.isReady) return
+    if (!pid) {
+      // Bisheriges Verhalten: Wer sich als Kommune registriert hat, bearbeitet sein Profil weiter (id = Login-ID)
+      if (router.query.neu) return
+      router.replace(`/profil/kommune?id=${user.id}`)
+      return
+    }
+    supabase.from('profiles').select('*').eq('id', pid).eq('typ', 'kommune').single().then(({ data }) => {
       if (data) {
+        setHidden(!!data.hidden)
         setProfile({ name:data.name||'', bio:data.bio||'', land:data.land||'', adresse:data.adresse||'', website:data.website||'', instagram:data.instagram||'', avatar_url:data.avatar_url||'', kommune_typ:data.kommune_typ||'Ökodorf', gruendungsjahr:data.gruendungsjahr||'', mitglieder:data.mitglieder||'', sichtbarkeit:data.sichtbarkeit||'stadt' })
         setCoords({ lat:data.lat||null, lon:data.lon||null })
         setProfileStatus(data.status||'pending')
       }
     })
-    supabase.from('offers').select('*').eq('kommune_id', user.id).order('created_at', { ascending:false })
+    supabase.from('offers').select('*').eq('kommune_id', pid).order('created_at', { ascending:false })
       .then(({ data }) => { if (data) setOffers(data) })
-  }, [user])
+    supabase.rpc('kommune_members_list', { p_kommune: pid }).then(({ data }) => { if (data) setMembers(data) })
+  }, [user, router.isReady, pid])
 
   async function handleUpload(e) {
     const file = e.target.files[0]; if (!file) return
     setUploading(true)
     const ext = file.name.split('.').pop()
-    const { error: upErr } = await supabase.storage.from('avatars').upload(`${user.id}/avatar.${ext}`, file, { upsert:true })
+    const { error: upErr } = await supabase.storage.from('avatars').upload(`${user.id}/${pid || 'neu'}-avatar.${ext}`, file, { upsert:true })
     if (upErr) { setError('Upload fehlgeschlagen'); setUploading(false); return }
-    const { data } = supabase.storage.from('avatars').getPublicUrl(`${user.id}/avatar.${ext}`)
+    const { data } = supabase.storage.from('avatars').getPublicUrl(`${user.id}/${pid || 'neu'}-avatar.${ext}`)
     setProfile(p => ({ ...p, avatar_url:data.publicUrl })); setUploading(false)
   }
 
   async function handleSave(e) {
     e.preventDefault(); setSaving(true); setError('')
-    const { error: saveErr } = await supabase.from('profiles').upsert({ id:user.id, email:user.email, typ:'kommune', ...profile, lat:coords.lat, lon:coords.lon, gruendungsjahr:profile.gruendungsjahr?parseInt(profile.gruendungsjahr):null, mitglieder:profile.mitglieder?parseInt(profile.mitglieder):null })
+    const payload = { ...profile, hidden, lat:coords.lat, lon:coords.lon, gruendungsjahr:profile.gruendungsjahr?parseInt(profile.gruendungsjahr):null, mitglieder:profile.mitglieder?parseInt(profile.mitglieder):null }
+    let saveErr
+    if (isNew) {
+      if (!profile.name.trim()) { setSaving(false); setError('Bitte gib einen Namen ein.'); return }
+      const { data: created, error: e1 } = await supabase.from('profiles').insert({ typ:'kommune', email:user.email, ...payload }).select('id').single()
+      saveErr = e1
+      if (!e1 && created) { await reloadProfiles(); setActiveId(created.id); setSaving(false); router.replace(`/profil/kommune?id=${created.id}`); return }
+    } else {
+      const { error: e2 } = await supabase.from('profiles').update(payload).eq('id', pid)
+      saveErr = e2
+    }
     setSaving(false)
     if (saveErr) { setError('Speichern fehlgeschlagen: '+saveErr.message); return }
+    reloadProfiles()
+    supabase.from('profiles').select('status').eq('id', pid).single().then(({ data }) => { if (data) setProfileStatus(data.status) })
     setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
@@ -125,7 +153,7 @@ export default function KommuneBearbeiten() {
     e.preventDefault(); setSavingOffer(true); setOfferError('')
     if (!newOffer.titel) { setOfferError('Titel ist Pflicht.'); setSavingOffer(false); return }
     const { data, error: err } = await supabase.from('offers').insert({
-      kommune_id: user.id,
+      kommune_id: pid,
       kommune_name: profile.name || '',
       titel: newOffer.titel,
       beschreibung: newOffer.beschreibung || null,
@@ -155,14 +183,15 @@ export default function KommuneBearbeiten() {
       <div className={styles.container}>
         <div className={styles.header}>
           <Link href="/profil" className={styles.back}>← Profil</Link>
-          <h1 className={styles.title}>Kommune bearbeiten</h1>
-          {profileStatus==='pending' && <div className={styles.pendingBanner}>⏳ Wartet auf Freischaltung durch Communet.</div>}
-          {profileStatus==='approved' && <div className={styles.approvedBanner}>✅ Deine Kommune ist freigeschaltet.</div>}
+          <h1 className={styles.title}>{isNew ? 'Neue Kommune anlegen' : 'Kommune bearbeiten'}</h1>
+          {!isNew && profileStatus==='pending' && <div className={styles.pendingBanner}>⏳ Wartet auf Freischaltung durch Communet.</div>}
+          {!isNew && profileStatus==='approved' && <div className={styles.approvedBanner}>✅ Deine Kommune ist freigeschaltet.</div>}
         </div>
 
         <div style={{display:'flex',gap:4,marginBottom:24,background:'var(--card)',borderRadius:12,padding:4}}>
           <button onClick={()=>setTab('profil')} style={{flex:1,padding:'8px',border:'none',borderRadius:8,fontSize:14,fontWeight:500,cursor:'pointer',background:tab==='profil'?'var(--bg)':'none',color:tab==='profil'?'var(--text)':'var(--muted)',boxShadow:tab==='profil'?'0 1px 4px rgba(0,0,0,0.08)':'none'}}>Profil</button>
-          <button onClick={()=>setTab('angebote')} style={{flex:1,padding:'8px',border:'none',borderRadius:8,fontSize:14,fontWeight:500,cursor:'pointer',background:tab==='angebote'?'var(--bg)':'none',color:tab==='angebote'?'var(--text)':'var(--muted)',boxShadow:tab==='angebote'?'0 1px 4px rgba(0,0,0,0.08)':'none'}}>Angebote {offers.length>0&&`(${offers.length})`}</button>
+          {!isNew&&<button onClick={()=>setTab('angebote')} style={{flex:1,padding:'8px',border:'none',borderRadius:8,fontSize:14,fontWeight:500,cursor:'pointer',background:tab==='angebote'?'var(--bg)':'none',color:tab==='angebote'?'var(--text)':'var(--muted)',boxShadow:tab==='angebote'?'0 1px 4px rgba(0,0,0,0.08)':'none'}}>Angebote {offers.length>0&&`(${offers.length})`}</button>}
+          {!isNew&&hidden&&<button onClick={()=>setTab('mitglieder')} style={{flex:1,padding:'8px',border:'none',borderRadius:8,fontSize:14,fontWeight:500,cursor:'pointer',background:tab==='mitglieder'?'var(--bg)':'none',color:tab==='mitglieder'?'var(--text)':'var(--muted)',boxShadow:tab==='mitglieder'?'0 1px 4px rgba(0,0,0,0.08)':'none'}}>Mitglieder ({members.length})</button>}
         </div>
 
         {tab==='profil' && (
@@ -189,6 +218,7 @@ export default function KommuneBearbeiten() {
             </div>
             {(profile.sichtbarkeit==='stadt'||profile.sichtbarkeit==='region')&&(<div className={styles.field}><label>Ort / Region</label><OrtAutocomplete value={profile.land} onChange={val=>setProfile(p=>({...p,land:val}))} onSelect={({label,lat,lon})=>{setProfile(p=>({...p,land:label}));setCoords({lat,lon})}} placeholder={profile.sichtbarkeit==='region'?'z.B. Nordrhein-Westfalen':'z.B. Köln'} hint={coords.lat?`✅ Verortet`:'Tipp: Ort aus Dropdown wählen'}/></div>)}
             {profile.sichtbarkeit==='genau'&&(<div className={styles.field}><label>Genaue Adresse</label><OrtAutocomplete value={profile.adresse} onChange={val=>setProfile(p=>({...p,adresse:val}))} onSelect={({label,lat,lon})=>{setProfile(p=>({...p,adresse:label}));setCoords({lat,lon})}} placeholder="Straße, Hausnummer, Ort" hint={coords.lat?`✅ Verortet`:'Intern für die Karte'}/></div>)}
+            {earlyAccess&&(<div className={styles.field}><label style={{display:'flex',gap:10,alignItems:'flex-start',cursor:'pointer'}}><input type="checkbox" checked={hidden} onChange={e=>setHidden(e.target.checked)} style={{width:'auto',marginTop:3}}/><span><strong>🔒 Versteckte Kommune</strong><br/><span style={{fontSize:12,color:'var(--muted)'}}>Nicht im Katalog, auf der Karte oder in der Suche sichtbar. Nur du und eingeladene Mitglieder sehen sie. Wird sie später öffentlich gemacht, prüft Communet sie zuerst.</span></span></label></div>)}
             <div className={styles.field}><label>Website</label><input type="url" value={profile.website} onChange={e=>setProfile(p=>({...p,website:e.target.value}))} placeholder="https://eure-website.de"/></div>
             <div className={styles.field}><label>Instagram</label><div className={styles.inputPrefix}><span>@</span><input type="text" value={profile.instagram} onChange={e=>setProfile(p=>({...p,instagram:e.target.value}))} placeholder="euerhandle"/></div></div>
             {error&&<p className={styles.error}>{error}</p>}
@@ -196,7 +226,21 @@ export default function KommuneBearbeiten() {
           </form>
         )}
 
-        {tab==='angebote' && (
+        {tab==='mitglieder' && !isNew && (
+          <div>
+            <p style={{fontSize:13,color:'var(--muted)',marginTop:0}}>Diese Personen sehen die versteckte Kommune und ihre Angebote. Suche nach dem Namen und füge sie hinzu.</p>
+            <div style={{display:'flex',gap:8,marginBottom:12}}>
+              <input type="text" value={memberQuery} onChange={e=>setMemberQuery(e.target.value)} placeholder="Name der Person" style={{flex:1}}/>
+              <button type="button" className={styles.btn} style={{width:'auto',padding:'8px 18px'}} onClick={async()=>{const {data}=await supabase.rpc('search_people',{p_q:memberQuery});setMemberHits((data||[]).filter(h=>!members.some(m=>m.user_id===h.id)))}}>Suchen</button>
+            </div>
+            {memberHits.map(h=>(<div key={h.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--card)',borderRadius:10,padding:'10px 14px',marginBottom:8}}><span>{h.name}</span><button type="button" onClick={async()=>{const {error:e}=await supabase.from('kommune_members').insert({kommune_id:pid,user_id:h.id});if(!e){setMembers(m=>[...m,{user_id:h.id,name:h.name,avatar_url:h.avatar_url}]);setMemberHits(x=>x.filter(y=>y.id!==h.id))}}} style={{border:'none',background:'var(--g)',color:'white',borderRadius:8,padding:'6px 12px',cursor:'pointer'}}>Hinzufügen</button></div>))}
+            <div style={{marginTop:16,fontSize:13,fontWeight:600}}>Aktuelle Mitglieder</div>
+            {members.length===0&&<p style={{color:'var(--muted)',fontSize:13}}>Noch niemand eingeladen.</p>}
+            {members.map(m=>(<div key={m.user_id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--card)',borderRadius:10,padding:'10px 14px',marginTop:8}}><span>{m.name}</span><button type="button" onClick={async()=>{await supabase.from('kommune_members').delete().eq('kommune_id',pid).eq('user_id',m.user_id);setMembers(x=>x.filter(y=>y.user_id!==m.user_id))}} style={{border:'none',background:'none',color:'var(--muted)',cursor:'pointer',fontSize:16}}>×</button></div>))}
+          </div>
+        )}
+
+        {tab==='angebote' && !isNew && (
           <div>
             <form onSubmit={handleAddOffer} style={{background:'var(--card)',borderRadius:14,padding:24,marginBottom:24,display:'flex',flexDirection:'column',gap:14,border:'1.5px solid var(--border)'}}>              
               <div className={styles.row}>
