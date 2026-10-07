@@ -2,3 +2,4 @@
 -- Angebots-Funktionen kennen jetzt das aktive Profil (p_as); offer_interest.status ist per Update-Trigger gegen Selbstfreischaltung geschützt.
 -- Bereits angewendet (dishes_meal_slots): offer_dishes.tag/slot, offer_dishes_list2, dish_add2, dish_move (Gerichte Mahlzeiten zuordnen).
 -- Bereits angewendet (handle_new_user_profile): Trigger auf auth.users legt beim Registrieren das Personenprofil an und löst den Einladungscode (user_metadata.invite) ein.
+-- Bereits angewendet (member_push_targets): Push-Empfänger beim Hinzufügen zu einer Kommune.
