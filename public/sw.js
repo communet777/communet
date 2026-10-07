@@ -2,7 +2,7 @@
 // Bewusst schlank: Es werden nur unveränderliche Dateien (Skripte, Bilder, Icons) zwischengespeichert,
 // damit die App schneller startet. Seiten, Anmeldung und Daten (Supabase, Kartenkacheln) laufen immer
 // über das Netz und werden nie zwischengespeichert. Ohne Verbindung erscheint /offline.html.
-const VERSION = 'communet-v1'
+const VERSION = 'communet-v2'
 const STATIC_CACHE = `${VERSION}-static`
 const OFFLINE_URL = '/offline.html'
 
@@ -54,4 +54,30 @@ self.addEventListener('fetch', (event) => {
       )
     )
   }
+})
+
+// Mitteilungen bei neuen Nachrichten (Web Push)
+self.addEventListener('push', (event) => {
+  let data = {}
+  try { data = event.data ? event.data.json() : {} } catch (e) {}
+  event.waitUntil(self.registration.showNotification(data.title || 'Communet', {
+    body: data.body || 'Neue Nachricht',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.url || 'communet',
+    data: { url: data.url || '/nachrichten' },
+  }))
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = (event.notification.data && event.notification.data.url) || '/nachrichten'
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if ('focus' in c) { c.navigate(url); return c.focus() }
+      }
+      return self.clients.openWindow(url)
+    })
+  )
 })
