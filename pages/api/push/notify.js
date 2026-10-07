@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const priv = process.env.VAPID_PRIVATE_KEY
   if (!token || !conv || !pub || !priv) return res.status(400).json({ ok: false })
 
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:communet@outlook.de', pub, priv)
+  webpush.setVapidDetails('mailto:communet@outlook.de', pub, priv)
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false },
