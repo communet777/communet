@@ -32,7 +32,9 @@
 }
 
 @media (max-width: 700px) {
-  .layout { grid-template-columns: 1fr; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .sidebar, .feed { min-width: 0; }
+  .sidebar { position: static; }
 }
 
 .sidebar {
@@ -125,10 +127,11 @@
 }
 .btnPrimary:hover { opacity: 0.88; }
 
-.actions { display: flex; gap: 8px; width: 100%; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
 
 .btnSecondary {
-  flex: 1;
+  flex: 1 1 calc(50% - 8px);
+  min-width: 0;
   text-align: center;
   padding: 8px;
   border-radius: 8px;
