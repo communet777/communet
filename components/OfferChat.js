@@ -37,13 +37,22 @@ export default function OfferChat({ offerId, asId }) {
       <div style={{fontWeight:700,marginBottom:12}}>💬 Gruppen-Chat</div>
       <div style={{maxHeight:320,overflowY:'auto',display:'flex',flexDirection:'column',gap:8,marginBottom:12}}>
         {msgs.length === 0 && <div style={{fontSize:13,color:'var(--muted)'}}>Noch keine Nachrichten. Sag Hallo 👋</div>}
-        {msgs.map(m => (
-          <div key={m.id} style={{alignSelf:m.mine?'flex-end':'flex-start',maxWidth:'85%',background:m.mine?'var(--g)':'var(--bg)',color:m.mine?'white':'var(--text)',borderRadius:12,padding:'8px 12px',fontSize:14,wordBreak:'break-word'}}>
-            {!m.mine && <div style={{fontSize:11,fontWeight:700,opacity:.75,marginBottom:2}}>{m.sender_name}{m.from_kommune ? ' (Kommune)' : ''}</div>}
-            <div style={{whiteSpace:'pre-wrap'}}>{m.body}</div>
-            <div style={{fontSize:10,opacity:.6,marginTop:2,textAlign:'right'}}>{new Date(m.created_at).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
-          </div>
-        ))}
+        {msgs.map((m, i) => {
+          const prev = msgs[i - 1]
+          const newDay = !prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString()
+          const hue = [...(m.sender_name || '')].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 360, 7)
+          const nameColor = m.mine ? 'rgba(255,255,255,.95)' : `hsl(${hue},55%,35%)`
+          return (
+            <div key={m.id} style={{display:'flex',flexDirection:'column'}}>
+              {newDay && <div style={{alignSelf:'center',fontSize:11,color:'var(--muted)',margin:'6px 0'}}>{new Date(m.created_at).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long'})}</div>}
+              <div style={{alignSelf:m.mine?'flex-end':'flex-start',maxWidth:'85%',background:m.mine?'var(--g)':'var(--bg)',color:m.mine?'white':'var(--text)',border:m.mine?'none':'1px solid var(--border)',borderRadius:12,padding:'8px 12px',fontSize:14,wordBreak:'break-word'}}>
+                <div style={{fontSize:12,fontWeight:700,color:nameColor,marginBottom:2}}>{m.mine ? `Du (${m.sender_name})` : m.sender_name}{m.from_kommune ? ' · Kommune' : ''}</div>
+                <div style={{whiteSpace:'pre-wrap'}}>{m.body}</div>
+                <div style={{fontSize:10,opacity:.6,marginTop:2,textAlign:'right'}}>{new Date(m.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</div>
+              </div>
+            </div>
+          )
+        })}
         <div ref={endRef}/>
       </div>
       <form onSubmit={send} style={{display:'flex',gap:8}}>
