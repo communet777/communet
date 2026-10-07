@@ -118,7 +118,7 @@ export default function AppPage() {
           <ul className={styles.list}>
             <li>{en ? 'It is the same Communet: same account, same data.' : 'Es ist dasselbe Communet: gleiches Konto, gleiche Daten.'}</li>
             <li>{en ? 'Map and communities need an internet connection.' : 'Karte und Gemeinschaften brauchen eine Internetverbindung.'}</li>
-            <li>{en ? 'A version for the app stores may follow later.' : 'Eine Version für die App Stores kann später folgen.'}</li>
+            <li>{en ? 'A version for the app stores will follow.' : 'Eine Version für die App Stores folgt.'}</li>
           </ul>
         </div>
       </div>
