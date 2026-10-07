@@ -1,3 +1,4 @@
+import OfferExtraFields,{EMPTY_EXTRA,extraFromOffer,extraToFields} from '../../components/OfferExtraFields'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -92,7 +93,7 @@ export default function KommuneBearbeiten() {
   const [profileStatus, setProfileStatus] = useState('pending')
   const [tab, setTab] = useState('profil')
   const [offers, setOffers] = useState([])
-  const [newOffer, setNewOffer] = useState({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'' })
+  const [newOffer, setNewOffer] = useState({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'', ...EMPTY_EXTRA })
   const [editOfferId, setEditOfferId] = useState(null)
   const [savingOffer, setSavingOffer] = useState(false)
   const [offerError, setOfferError] = useState('')
@@ -161,7 +162,7 @@ export default function KommuneBearbeiten() {
       von: parseDate(newOffer.von),
       bis: parseDate(newOffer.bis),
       datum: parseDate(newOffer.datum),
-      uhrzeit: newOffer.uhrzeit || null }
+      uhrzeit: newOffer.uhrzeit || null, ...extraToFields(newOffer) }
     const { data, error: err } = editOfferId
       ? await supabase.from('offers').update(fields).eq('id', editOfferId).select().single()
       : await supabase.from('offers').insert({ kommune_id: pid, kommune_name: profile.name || '', ...fields }).select().single()
@@ -169,15 +170,15 @@ export default function KommuneBearbeiten() {
     if (err) { setOfferError('Fehler: '+err.message); return }
     setOffers(o => editOfferId ? o.map(x => x.id === editOfferId ? data : x) : [data, ...o])
     setEditOfferId(null)
-    setNewOffer({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'' })
+    setNewOffer({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'', ...EMPTY_EXTRA })
   }
 
   function isoToDe(v) { return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v.split('-').reverse().join('.') : (v || '') }
   function startEditOffer(o) {
-    setNewOffer({ titel:o.titel||'', beschreibung:o.beschreibung||'', typ:o.typ||'Workaway', ort:o.ort||'', von:isoToDe(o.von), bis:isoToDe(o.bis), datum:isoToDe(o.datum), uhrzeit:(o.uhrzeit||'').slice(0,5) })
+    setNewOffer({ titel:o.titel||'', beschreibung:o.beschreibung||'', typ:o.typ||'Workaway', ort:o.ort||'', von:isoToDe(o.von), bis:isoToDe(o.bis), datum:isoToDe(o.datum), uhrzeit:(o.uhrzeit||'').slice(0,5), ...extraFromOffer(o) })
     setEditOfferId(o.id); setOfferError(''); window.scrollTo({ top:0, behavior:'smooth' })
   }
-  function cancelEditOffer() { setEditOfferId(null); setOfferError(''); setNewOffer({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'' }) }
+  function cancelEditOffer() { setEditOfferId(null); setOfferError(''); setNewOffer({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'', ...EMPTY_EXTRA }) }
 
   async function handleDeleteOffer(id) {
     await supabase.from('offers').delete().eq('id', id)
@@ -265,6 +266,7 @@ export default function KommuneBearbeiten() {
                 <div className={styles.field}><label>Datum Veranstaltung (TT.MM.JJJJ)</label><input type="text" value={newOffer.datum} onChange={e=>setNewOffer(n=>({...n,datum:e.target.value}))} placeholder="optional, für Veranstaltungen"/></div>
                 <div className={styles.field}><label>Uhrzeit</label><input type="text" value={newOffer.uhrzeit} onChange={e=>setNewOffer(n=>({...n,uhrzeit:e.target.value}))} placeholder="z.B. 14:00"/></div>
               </div>
+              <OfferExtraFields value={newOffer} onChange={v=>setNewOffer(n=>({...n,...v}))} styles={styles} rowClass={styles.row}/>
               <div className={styles.field}><label>Ort</label><input type="text" value={newOffer.ort} onChange={e=>setNewOffer(n=>({...n,ort:e.target.value}))} placeholder={profile.land||'Wird aus Profil übernommen'}/></div>
               {offerError&&<p className={styles.error}>{offerError}</p>}
               <button type="submit" className={styles.btn} disabled={savingOffer}>{savingOffer?'Speichert...':editOfferId?'Änderungen speichern':'Angebot veröffentlichen'}</button>

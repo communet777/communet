@@ -1,4 +1,5 @@
 import{useState,useEffect,useRef}from'react'
+import OfferExtraFields,{EMPTY_EXTRA,extraFromOffer,extraToFields} from '../components/OfferExtraFields'
 import Icon from'../components/Icon'
 import Link from'next/link'
 import Nav from'../components/Nav'
@@ -193,7 +194,7 @@ const[showForm,setShowForm]=useState(false)
 const[saving,setSaving]=useState(false)
 const[error,setError]=useState('')
 const[editId,setEditId]=useState(null)
-const[newOffer,setNewOffer]=useState({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:''})
+const[newOffer,setNewOffer]=useState({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:'',...EMPTY_EXTRA})
 
 useEffect(()=>{
 supabase.from('profiles').select('name,land,kommune_typ').eq('id',user.id).single().then(({data})=>setProfile(data))
@@ -204,7 +205,7 @@ async function handleAdd(e){
 e.preventDefault()
 if(!newOffer.titel){setError('Titel ist Pflicht.');return}
 setSaving(true);setError('')
-const fields={titel:newOffer.titel,beschreibung:newOffer.beschreibung||null,typ:newOffer.typ,ort:newOffer.ort||profile?.land||null,von:parseDate(newOffer.von),bis:parseDate(newOffer.bis),datum:parseDate(newOffer.datum),uhrzeit:newOffer.uhrzeit||null}
+const fields={titel:newOffer.titel,beschreibung:newOffer.beschreibung||null,typ:newOffer.typ,ort:newOffer.ort||profile?.land||null,von:parseDate(newOffer.von),bis:parseDate(newOffer.bis),datum:parseDate(newOffer.datum),uhrzeit:newOffer.uhrzeit||null,...extraToFields(newOffer)}
 const{data,error:err}=editId
 ?await supabase.from('offers').update(fields).eq('id',editId).select().single()
 :await supabase.from('offers').insert({kommune_id:user.id,kommune_name:profile?.name||'',...fields}).select().single()
@@ -212,13 +213,13 @@ setSaving(false)
 if(err){setError('Fehler: '+err.message);return}
 setOffers(o=>editId?o.map(x=>x.id===editId?data:x):[data,...o])
 setEditId(null)
-setNewOffer({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:''})
+setNewOffer({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:'',...EMPTY_EXTRA})
 setShowForm(false)
 }
 
 function isoToDe(v){return v&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v.split('-').reverse().join('.'):(v||'')}
-function startEdit(o){setNewOffer({titel:o.titel||'',beschreibung:o.beschreibung||'',typ:o.typ||'Workaway',ort:o.ort||'',von:isoToDe(o.von),bis:isoToDe(o.bis),datum:isoToDe(o.datum),uhrzeit:(o.uhrzeit||'').slice(0,5)});setEditId(o.id);setError('');setShowForm(true);if(typeof window!=='undefined')window.scrollTo({top:0,behavior:'smooth'})}
-function cancelForm(){setShowForm(false);setEditId(null);setError('');setNewOffer({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:''})}
+function startEdit(o){setNewOffer({titel:o.titel||'',beschreibung:o.beschreibung||'',typ:o.typ||'Workaway',ort:o.ort||'',von:isoToDe(o.von),bis:isoToDe(o.bis),datum:isoToDe(o.datum),uhrzeit:(o.uhrzeit||'').slice(0,5),...extraFromOffer(o)});setEditId(o.id);setError('');setShowForm(true);if(typeof window!=='undefined')window.scrollTo({top:0,behavior:'smooth'})}
+function cancelForm(){setShowForm(false);setEditId(null);setError('');setNewOffer({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:'',...EMPTY_EXTRA})}
 async function handleDelete(id){await supabase.from('offers').delete().eq('id',id);setOffers(o=>o.filter(x=>x.id!==id))}
 
 return(
@@ -233,6 +234,7 @@ return(
 <div className={styles.field}><label>Beschreibung</label><textarea rows={3}value={newOffer.beschreibung}onChange={e=>setNewOffer(n=>({...n,beschreibung:e.target.value}))}placeholder="Was erwartet die Person?"/></div>
 <div className={styles.formRow}><div className={styles.field}><label>Von (TT.MM.JJJJ)</label><input type="text"value={newOffer.von}onChange={e=>setNewOffer(n=>({...n,von:e.target.value}))}placeholder="optional"/></div><div className={styles.field}><label>Bis (TT.MM.JJJJ)</label><input type="text"value={newOffer.bis}onChange={e=>setNewOffer(n=>({...n,bis:e.target.value}))}placeholder="optional"/></div></div>
 <div className={styles.formRow}><div className={styles.field}><label>Datum Veranstaltung</label><input type="text"value={newOffer.datum}onChange={e=>setNewOffer(n=>({...n,datum:e.target.value}))}placeholder="TT.MM.JJJJ"/></div><div className={styles.field}><label>Uhrzeit</label><input type="text"value={newOffer.uhrzeit}onChange={e=>setNewOffer(n=>({...n,uhrzeit:e.target.value}))}placeholder="z.B. 14:00"/></div></div>
+<OfferExtraFields value={newOffer}onChange={v=>setNewOffer(n=>({...n,...v}))}styles={styles}rowClass={styles.formRow}/>
 <div className={styles.field}><label>Ort</label><input type="text"value={newOffer.ort}onChange={e=>setNewOffer(n=>({...n,ort:e.target.value}))}placeholder={profile?.land||'Wird aus Profil übernommen'}/></div>
 {error&&<p className={styles.error}>{error}</p>}
 <button type="submit"className={styles.btnPrimary}disabled={saving}>{saving?'Speichert...':editId?'Änderungen speichern':'Veröffentlichen'}</button>
