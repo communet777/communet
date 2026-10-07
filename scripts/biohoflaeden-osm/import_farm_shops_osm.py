@@ -88,6 +88,16 @@ def upsert(rows: list) -> None:
             raise RuntimeError("Upload endgültig fehlgeschlagen")
 
 
+
+def drop_way_duplicates(rows: list) -> list:
+    """osmium export liefert geschlossene Wege doppelt: als Fläche a<2n> und als Linie w<n>.
+    Die Linie wird verworfen, wenn die Fläche vorhanden ist."""
+    ids = {r["osm_id"] for r in rows}
+    return [r for r in rows
+            if not (r["osm_id"].startswith("w") and r["osm_id"][1:].isdigit()
+                    and f"a{int(r['osm_id'][1:]) * 2}" in ids)]
+
+
 def process_country(code: str, url: str) -> int:
     os.makedirs(WORKDIR, exist_ok=True)
     pbf = f"{WORKDIR}/{code}.osm.pbf"
@@ -164,6 +174,7 @@ def process_country(code: str, url: str) -> int:
             "imported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         })
 
+    rows = drop_way_duplicates(rows)
     log(f"[{code}] {len(rows)} bio-zertifizierte Hofläden gefunden "
         f"({skipped_not_organic} ohne organic=yes/only, {skipped_no_geom} ohne verwertbare Geometrie übersprungen), speichere …")
     upsert(rows)
