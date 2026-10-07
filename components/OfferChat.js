@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function OfferChat({ offerId }) {
+export default function OfferChat({ offerId, asId }) {
   const [msgs, setMsgs] = useState([])
   const [text, setText] = useState('')
   const [err, setErr] = useState('')
@@ -10,14 +10,14 @@ export default function OfferChat({ offerId }) {
   const lastLen = useRef(0)
 
   async function load() {
-    const { data } = await supabase.rpc('offer_chat_messages', { p_offer: offerId })
+    const { data } = await supabase.rpc('offer_chat_messages', { p_offer: offerId, p_as: asId })
     setMsgs(data || [])
   }
   useEffect(() => {
     load()
     const t = setInterval(load, 8000)
     return () => clearInterval(t)
-  }, [offerId])
+  }, [offerId, asId])
   useEffect(() => {
     if (msgs.length !== lastLen.current) { lastLen.current = msgs.length; endRef.current?.scrollIntoView({ block: 'nearest' }) }
   }, [msgs])
@@ -26,7 +26,7 @@ export default function OfferChat({ offerId }) {
     e.preventDefault()
     if (!text.trim() || busy) return
     setBusy(true); setErr('')
-    const { error } = await supabase.rpc('send_offer_message', { p_offer: offerId, p_body: text })
+    const { error } = await supabase.rpc('send_offer_message', { p_offer: offerId, p_body: text, p_as: asId })
     setBusy(false)
     if (error) { setErr(error.message); return }
     setText(''); load()

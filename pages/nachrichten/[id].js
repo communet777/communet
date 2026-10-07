@@ -11,7 +11,7 @@ export default function Thread() {
   const router = useRouter()
   const { id, as } = router.query
   const { user, loading } = useAuth()
-  const { earlyAccess, refreshUnread } = useActiveProfile()
+  const { earlyAccess, active, refreshUnread } = useActiveProfile()
   const [info, setInfo] = useState(null)
   const [msgs, setMsgs] = useState([])
   const [text, setText] = useState('')
@@ -20,6 +20,7 @@ export default function Thread() {
   const endRef = useRef(null)
 
   useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
+  useEffect(() => { if (info && active && info.my_profile_id !== active.id) router.replace('/nachrichten') }, [active?.id, info?.my_profile_id])
 
   async function load() {
     const { data: convs } = await supabase.rpc('my_conversations')

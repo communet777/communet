@@ -14,7 +14,7 @@ export default function AngebotDetail() {
   const router = useRouter()
   const { id } = router.query
   const { user } = useAuth()
-  const { earlyAccess } = useActiveProfile()
+  const { earlyAccess, active } = useActiveProfile()
   const [interest, setInterest] = useState(null)
   const [offer, setOffer] = useState(null)
   const [kommune, setKommune] = useState(null)
@@ -35,10 +35,10 @@ export default function AngebotDetail() {
   }, [id])
 
   async function loadInterest() {
-    const { data } = await supabase.rpc('offer_interest_info', { p_offer: id })
+    const { data } = await supabase.rpc('offer_interest_info', { p_offer: id, p_as: active?.id })
     setInterest(data || null)
   }
-  useEffect(() => { if (id && user && earlyAccess) loadInterest() }, [id, user, earlyAccess])
+  useEffect(() => { if (id && user && earlyAccess && active) loadInterest() }, [id, user, earlyAccess, active?.id])
   async function toggleInterest() {
     if (interest?.mine) {
       if (interest.my_status === 'angenommen' && !window.confirm('Teilnahme wirklich zurückziehen? Du verlierst den Zugang zum Gruppen-Chat.')) return
@@ -47,7 +47,7 @@ export default function AngebotDetail() {
     loadInterest()
   }
   async function setStatus(uid, status) {
-    await supabase.rpc('offer_set_status', { p_offer: id, p_user: uid, p_status: status })
+    await supabase.rpc('offer_set_status', { p_offer: id, p_user: uid, p_status: status, p_as: active?.id })
     loadInterest()
   }
   const LABEL = { angefragt: '⏳ Angefragt', angenommen: '✓ Angenommen', abgelehnt: '✕ Abgelehnt' }
@@ -145,7 +145,7 @@ export default function AngebotDetail() {
           </div>
         )}
 
-        {interest?.role && <OfferChat offerId={id}/>}
+        {interest?.role && <OfferChat offerId={id} asId={active?.id}/>}
 
         {/* Kommune-Info */}
         {kommune && (
