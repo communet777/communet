@@ -32,3 +32,9 @@ h1[class*="Karte_title__"]::after{width:80px;height:8px;margin-top:6px}
 .btn-primary{border-radius:999px;font-weight:600}
 .btn-secondary{border-radius:999px}
 input,textarea,select,button{font-family:inherit}
+/* iOS zoomt beim Fokus auf Felder mit Schrift < 16px automatisch hinein – auf Touch-Geräten verhindern */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select { font-size: 16px !important; }
+}
