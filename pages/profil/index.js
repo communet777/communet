@@ -13,7 +13,7 @@ import styles from '../../styles/Profil.module.css'
 export default function Profil() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
-  const { active, earlyAccess } = useActiveProfile()
+  const { active, earlyAccess, profiles } = useActiveProfile()
   const [profile, setProfile] = useState(null)
   const [feedOffers, setFeedOffers] = useState([])
   const [feedLoading, setFeedLoading] = useState(true)
@@ -82,7 +82,7 @@ export default function Profil() {
             <div className={styles.actions}>
               {earlyAccess && <Link href="/nachrichten" className={styles.btnSecondary}>✉️ Nachrichten</Link>}
               {earlyAccess && <Link href="/leute" className={styles.btnSecondary}><Icon name="person"/> Leute finden</Link>}
-              {earlyAccess && <Link href="/profil/kommune?neu=1" className={styles.btnSecondary}><Icon name="globus"/> Neue Kommune</Link>}
+              {earlyAccess && !profiles.some(p => p.typ === 'kommune') && <Link href="/profil/kommune?neu=1" className={styles.btnSecondary}><Icon name="globus"/> Neue Kommune</Link>}
               <Link href="/favoriten" className={styles.btnSecondary}><Icon name="stern"/> Favoriten</Link>
               <Link href="/kommunen" className={styles.btnSecondary}><Icon name="globus"/> Gemeinschaften</Link>
               <Link href="/karte" className={styles.btnSecondary}><Icon name="karte"/> Karte</Link>

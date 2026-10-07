@@ -137,6 +137,7 @@ export default function KommuneBearbeiten() {
       if (!profile.name.trim()) { setSaving(false); setError('Bitte gib einen Namen ein.'); return }
       const { data: created, error: e1 } = await supabase.from('profiles').insert({ typ:'kommune', email:user.email, ...payload }).select('id').single()
       saveErr = e1
+      if (e1 && e1.code === '23505') { setSaving(false); setError('Du hast bereits eine Kommune. Pro Login ist eine Kommune möglich.'); return }
       if (!e1 && created) { await reloadProfiles(); setActiveId(created.id); setSaving(false); router.replace(`/profil/kommune?id=${created.id}`); return }
     } else {
       const { error: e2 } = await supabase.from('profiles').update(payload).eq('id', pid)
