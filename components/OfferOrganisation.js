@@ -381,9 +381,9 @@ export default function OfferOrganisation({ offer, asId, role, onOfferChange }) 
   const isOwner = role === 'owner'
   const modus = offer.essen_modus
   const store = useDishes(offer, asId)
+  // Je nach Essensorganisation genau ein Essens-Reiter: Gemeinschaftsessen -> Mahlzeiten, Buffet/keine Angabe -> Mitbringen, versorgt -> keiner
   const tabs = [
-    ...(modus === 'gemeinschaft' ? [['meals', '🍲 Mahlzeiten']] : []),
-    ...(modus === 'versorgt' ? [] : modus === 'gemeinschaft' ? [['essen', '🥙 Mitbringen']] : [['essen', '🥙 Mitbringen']]),
+    ...(modus === 'gemeinschaft' ? [['meals', '🍲 Mahlzeiten']] : modus === 'versorgt' ? [] : [['essen', '🥙 Mitbringen']]),
     ['aufgaben', '✅ Aufgaben'], ['rides', '🚗 Mitfahren'], ['plan', '🕒 Zeitplan'],
   ]
   const [tab, setTab] = useState(tabs[0][0])
