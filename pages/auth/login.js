@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
@@ -14,9 +14,13 @@ export default function Login() {
   const [inviteCode, setInviteCode] = useState('')
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
+  const [website, setWebsite] = useState('')         // Honeypot: für Menschen unsichtbar, Bots füllen es aus
+  const openedAt = useRef(Date.now())
 
   async function handleWaitlist(e) {
     e.preventDefault()
+    // Bot-Schutz: Honeypot befüllt oder Formular in unter 2,5 Sekunden abgeschickt -> nichts speichern, Erfolg vortäuschen
+    if (website || Date.now() - openedAt.current < 2500) { setStatus('waitlisted'); return }
     setStatus('loading')
     setError('')
     const { error } = await supabase.from('waitlist').insert({
@@ -24,7 +28,8 @@ export default function Login() {
       name: name.trim() || null,
       quelle: 'website'
     })
-    if (error && error.code !== '23505') {
+    const doppelt = error && (error.code === '23505' || (error.message || '').includes('schon auf der Warteliste'))
+    if (error && !doppelt) {
       setError('Das hat gerade nicht geklappt. Versuch es bitte nochmal.')
       setStatus('idle')
       return
@@ -123,6 +128,11 @@ export default function Login() {
             <div className={styles.field}>
               <label>Name <span style={{fontWeight:400,color:'var(--muted)'}}>(optional)</span></label>
               <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="Wie sollen wir dich ansprechen?"/>
+            </div>
+            {/* Honeypot: nicht sichtbar, nicht per Tab erreichbar */}
+            <div aria-hidden="true" style={{position:'absolute',left:'-9999px',width:1,height:1,overflow:'hidden'}}>
+              <label>Website</label>
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)}/>
             </div>
             {error && <p className={styles.error}>{error}</p>}
             <button type="submit" className={styles.btn} disabled={status==='loading'}>
