@@ -22,6 +22,18 @@ const{user}=useAuth()
 const{id}=router.query
 const[hof,setHof]=useState(null)
 const[loading,setLoading]=useState(true)
+const[deadWeb,setDeadWeb]=useState(null)
+
+// Qualitätsprüfung: nachweislich tote Website (Domain weg, geparkt, Seite gelöscht) nicht verlinken
+useEffect(()=>{
+if(!user||!id)return
+supabase.from('farm_quality').select('website_url,website_status,website_http,details').eq('farm_id',id).maybeSingle()
+.then(({data:q})=>{
+if(!q)return
+const dead=q.website_status==='geparkt'||(q.website_status==='tot'&&(q.website_http===404||q.website_http===410||q.details?.website_error==='ConnectionError'))
+if(dead)setDeadWeb(q.website_url)
+})
+},[user,id])
 
 useEffect(()=>{
 if(!user||!id)return
@@ -76,6 +88,8 @@ return(
 )
 }
 
+const host=u=>{try{return new URL(/^https?:/i.test(u)?u:'http://'+u).hostname.replace(/^www\./,'').toLowerCase()}catch{return u}}
+const webOk=!!hof.website&&!(deadWeb&&host(deadWeb)===host(hof.website))
 const addr=[hof.strasse,[hof.plz,hof.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ')
 
 return(
@@ -102,13 +116,13 @@ return(
 <div className={styles.sectionTitle}>{t('hof_address')}</div>
 <p className={styles.desc}>{addr||'—'}</p>
 </div>
-{(hof.telefon||hof.email||hof.website)&&
+{(hof.telefon||hof.email||webOk)&&
 <div className={styles.section}>
 <div className={styles.sectionTitle}>{t('hof_contact')}</div>
 <div style={{display:'flex',flexDirection:'column',gap:8,fontSize:13}}>
 {hof.telefon&&<a href={`tel:${hof.telefon}`}style={{color:'var(--g)'}}>📞 {hof.telefon}</a>}
 {hof.email&&<a href={`mailto:${hof.email}`}style={{color:'var(--g)'}}>✉️ {hof.email}</a>}
-{hof.website&&<a href={hof.website}target="_blank"rel="noopener noreferrer"style={{color:'var(--g)'}}>🔗 {hof.website}</a>}
+{webOk&&<a href={hof.website}target="_blank"rel="noopener noreferrer"style={{color:'var(--g)'}}>🔗 {hof.website}</a>}
 </div>
 </div>
 }
