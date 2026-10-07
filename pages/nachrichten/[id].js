@@ -5,6 +5,7 @@ import Nav from '../../components/Nav'
 import { useAuth } from '../../lib/AuthContext'
 import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import { supabase } from '../../lib/supabase'
+import { notifyPush } from '../../lib/push'
 
 export default function Thread() {
   const router = useRouter()
@@ -45,9 +46,10 @@ export default function Thread() {
     e.preventDefault()
     if (!info || !text.trim()) return
     setSending(true); setError('')
-    const { error: err } = await supabase.rpc('send_message', { p_from: info.my_profile_id, p_to: info.other_id, p_body: text })
+    const { data: convId, error: err } = await supabase.rpc('send_message', { p_from: info.my_profile_id, p_to: info.other_id, p_body: text })
     setSending(false)
     if (err) { setError(err.message); return }
+    notifyPush(convId)
     setText(''); load()
   }
 

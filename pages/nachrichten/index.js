@@ -6,6 +6,7 @@ import Icon from '../../components/Icon'
 import { useAuth } from '../../lib/AuthContext'
 import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import { supabase } from '../../lib/supabase'
+import PushToggle from '../../components/PushToggle'
 
 function timeLabel(ts) {
   const d = new Date(ts), now = new Date()
@@ -35,6 +36,7 @@ export default function Nachrichten() {
       <Nav/>
       <div style={{maxWidth:680,margin:'0 auto',padding:'32px 20px 80px'}}>
         <h1 style={{margin:'0 0 16px'}}>Nachrichten</h1>
+        {earlyAccess && <PushToggle/>}
         {profiles.length > 0 && !earlyAccess && <p>Nachrichten sind in der geschlossenen Testphase nur für Early-Access-Mitglieder verfügbar.</p>}
         {earlyAccess && convs && convs.length === 0 && (
           <p style={{color:'var(--muted)'}}>Noch keine Unterhaltungen. <Link href="/leute" style={{color:'var(--g)'}}>Leute finden</Link> oder auf einer Kommunen-Seite schreiben.</p>

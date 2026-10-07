@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useActiveProfile } from '../lib/ActiveProfileContext'
+import { notifyPush } from '../lib/push'
 
 // Startet eine Unterhaltung. Absender ist immer das persönliche Profil (Kommunen dürfen nur antworten).
 export default function MessageBox({ toId, defaultText = '', label = 'Nachricht schreiben' }) {
@@ -21,6 +22,7 @@ export default function MessageBox({ toId, defaultText = '', label = 'Nachricht 
     const { data, error: err } = await supabase.rpc('send_message', { p_from: person.id, p_to: toId, p_body: text })
     setSending(false)
     if (err) { setError(err.message); return }
+    notifyPush(data)
     refreshUnread()
     router.push(`/nachrichten/${data}`)
   }
