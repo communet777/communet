@@ -92,6 +92,8 @@ export default function KommuneBearbeiten() {
   const [error, setError] = useState('')
   const [profileStatus, setProfileStatus] = useState('pending')
   const [tab, setTab] = useState('profil')
+  const [memberMsg, setMemberMsg] = useState('')
+  const [memberLoaded, setMemberLoaded] = useState(false)
   const [offers, setOffers] = useState([])
   const [newOffer, setNewOffer] = useState({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'', ...EMPTY_EXTRA })
   const [editOfferId, setEditOfferId] = useState(null)
@@ -99,6 +101,21 @@ export default function KommuneBearbeiten() {
   const [offerError, setOfferError] = useState('')
 
   useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
+  useEffect(() => { if (router.isReady && router.query.tab === 'mitglieder') setTab('mitglieder') }, [router.isReady, router.query.tab])
+  async function searchMembers(q) {
+    const { data, error } = await supabase.rpc('search_people', { p_q: q })
+    if (error) { setMemberMsg(error.message); return }
+    setMemberMsg('')
+    setMemberHits(data || [])
+    setMemberLoaded(true)
+  }
+  async function addMember(h) {
+    const { error } = await supabase.from('kommune_members').insert({ kommune_id: pid, user_id: h.id })
+    if (error) { setMemberMsg('Hinzufügen fehlgeschlagen: ' + error.message); return }
+    setMemberMsg('')
+    setMembers(m => [...m, { user_id: h.id, name: h.name, avatar_url: h.avatar_url }])
+  }
+  useEffect(() => { if (tab === 'mitglieder' && !isNew && pid) searchMembers(memberQuery) }, [tab, pid])
 
   useEffect(() => {
     if (!user || !router.isReady) return
@@ -240,10 +257,11 @@ export default function KommuneBearbeiten() {
           <div>
             <p style={{fontSize:13,color:'var(--muted)',marginTop:0}}>Diese Personen sehen die versteckte Kommune und ihre Angebote. Suche nach dem Namen und füge sie hinzu.</p>
             <div style={{display:'flex',gap:8,marginBottom:12}}>
-              <input type="text" value={memberQuery} onChange={e=>setMemberQuery(e.target.value)} placeholder="Name der Person" style={{flex:1}}/>
-              <button type="button" className={styles.btn} style={{width:'auto',padding:'8px 18px'}} onClick={async()=>{const {data}=await supabase.rpc('search_people',{p_q:memberQuery});setMemberHits((data||[]).filter(h=>!members.some(m=>m.user_id===h.id)))}}>Suchen</button>
+              <input type="text" value={memberQuery} onChange={e=>{setMemberQuery(e.target.value);searchMembers(e.target.value)}} placeholder="Name suchen" style={{flex:1}}/>
             </div>
-            {memberHits.map(h=>(<div key={h.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--card)',borderRadius:10,padding:'10px 14px',marginBottom:8}}><span>{h.name}</span><button type="button" onClick={async()=>{const {error:e}=await supabase.from('kommune_members').insert({kommune_id:pid,user_id:h.id});if(!e){setMembers(m=>[...m,{user_id:h.id,name:h.name,avatar_url:h.avatar_url}]);setMemberHits(x=>x.filter(y=>y.id!==h.id))}}} style={{border:'none',background:'var(--g)',color:'white',borderRadius:8,padding:'6px 12px',cursor:'pointer'}}>Hinzufügen</button></div>))}
+            {memberMsg&&<p style={{color:'#b3261e',fontSize:13}}>{memberMsg}</p>}
+            {memberLoaded&&memberHits.filter(h=>!members.some(m=>m.user_id===h.id)).length===0&&<p style={{color:'var(--muted)',fontSize:13}}>Keine weiteren Personen gefunden. Deine Freunde müssen sich zuerst mit einem Einladungscode bei Communet registrieren, dann erscheinen sie hier.</p>}
+            {memberHits.filter(h=>!members.some(m=>m.user_id===h.id)).map(h=>(<div key={h.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--card)',borderRadius:10,padding:'10px 14px',marginBottom:8}}><span>{h.name}</span><button type="button" onClick={()=>addMember(h)} style={{border:'none',background:'var(--g)',color:'white',borderRadius:8,padding:'6px 12px',cursor:'pointer'}}>Hinzufügen</button></div>))}
             <div style={{marginTop:16,fontSize:13,fontWeight:600}}>Aktuelle Mitglieder</div>
             {members.length===0&&<p style={{color:'var(--muted)',fontSize:13}}>Noch niemand eingeladen.</p>}
             {members.map(m=>(<div key={m.user_id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--card)',borderRadius:10,padding:'10px 14px',marginTop:8}}><span>{m.name}</span><button type="button" onClick={async()=>{await supabase.from('kommune_members').delete().eq('kommune_id',pid).eq('user_id',m.user_id);setMembers(x=>x.filter(y=>y.user_id!==m.user_id))}} style={{border:'none',background:'none',color:'var(--muted)',cursor:'pointer',fontSize:16}}>×</button></div>))}
