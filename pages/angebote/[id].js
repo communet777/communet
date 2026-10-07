@@ -9,6 +9,9 @@ import { useAuth } from '../../lib/AuthContext'
 import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import MessageBox from '../../components/MessageBox'
 import OfferChat from '../../components/OfferChat'
+import OfferOrganisation from '../../components/OfferOrganisation'
+import OfferWeather from '../../components/OfferWeather'
+import { notifyOfferPush } from '../../lib/push'
 
 export default function AngebotDetail() {
   const router = useRouter()
@@ -43,18 +46,38 @@ export default function AngebotDetail() {
     if (interest?.mine) {
       if (interest.my_status === 'angenommen' && !window.confirm('Teilnahme wirklich zurückziehen? Du verlierst den Zugang zum Gruppen-Chat.')) return
       await supabase.from('offer_interest').delete().eq('offer_id', id).eq('user_id', user.id)
-    } else await supabase.from('offer_interest').insert({ offer_id: id, user_id: user.id })
+    } else {
+      const { error } = await supabase.from('offer_interest').insert({ offer_id: id, user_id: user.id })
+      if (!error) notifyOfferPush(id, active?.id, 'request')
+    }
     loadInterest()
   }
   async function setStatus(uid, status) {
     await supabase.rpc('offer_set_status', { p_offer: id, p_user: uid, p_status: status, p_as: active?.id })
+    if (status === 'angenommen') notifyOfferPush(id, active?.id, 'accepted', uid)
     loadInterest()
   }
+  const [ank, setAnk] = useState('')
+  async function saveAnk() {
+    const { error } = await supabase.from('offers').update({ ankuendigung: ank.trim() || null, ankuendigung_at: new Date().toISOString() }).eq('id', id)
+    if (error) return
+    setOffer(o => ({ ...o, ankuendigung: ank.trim() || null }))
+    if (ank.trim()) notifyOfferPush(id, active?.id, 'announce')
+  }
+  async function saveDates(a, b) {
+    await supabase.rpc('offer_set_my_dates', { p_offer: id, p_anreise: a || null, p_abreise: b || null })
+    loadInterest()
+  }
+  const fmt = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '?'
   const LABEL = { angefragt: '⏳ Angefragt', angenommen: '✓ Angenommen', abgelehnt: '✕ Abgelehnt' }
   const conditions = offer ? [
     ['Vergütung', [offer.verguetung, offer.verguetung_info].filter(Boolean).join(' – ')],
     ['Unterkunft', offer.unterkunft],
     ['Verpflegung', offer.verpflegung],
+    ['Essen', {versorgt:'Für Essen ist gesorgt',gemeinschaft:'Gemeinschaftsessen – Teilnehmende übernehmen Mahlzeiten',buffet:'Buffet – jeder bringt etwas mit'}[offer.essen_modus]],
+    ['Arbeitszeit', offer.stunden_pro_tag],
+    ['Mindestdauer', offer.mindestdauer],
+    ['Freie Plätze', offer.plaetze ? String(offer.plaetze) : ''],
   ].filter(c => c[1]) : []
 
   if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:32,height:32,border:'3px solid #eee',borderTopColor:'#173F4A',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/></div>
@@ -99,11 +122,21 @@ export default function AngebotDetail() {
           </div>
         )}
 
-        {(conditions.length > 0 || offer.kosten_info) && (
+        {offer.ankuendigung && interest?.role && (
+          <div style={{background:'#FFF4DC',border:'1.5px solid var(--gold,#E9AD55)',borderRadius:14,padding:16,marginBottom:24}}>
+            <div style={{fontWeight:700,marginBottom:6}}>📢 Ankündigung</div>
+            <div style={{whiteSpace:'pre-wrap',fontSize:14,color:'#173F4A'}}>{offer.ankuendigung}</div>
+          </div>
+        )}
+
+        <OfferWeather offer={offer}/>
+
+        {(conditions.length > 0 || offer.kosten_info || offer.hausregeln) && (
           <div style={{background:'var(--card)',borderRadius:14,padding:20,marginBottom:24}}>
             <div style={{fontWeight:700,marginBottom:10}}>Konditionen</div>
             {conditions.map(([k, v]) => <div key={k} style={{fontSize:14,marginBottom:6}}><strong>{k}:</strong> {v}</div>)}
             {offer.kosten_info && <div style={{fontSize:14,color:'var(--muted)',whiteSpace:'pre-wrap',marginTop:6}}>{offer.kosten_info}</div>}
+            {offer.hausregeln && <div style={{fontSize:14,marginTop:8}}><strong>Hausregeln:</strong> <span style={{color:'var(--muted)',whiteSpace:'pre-wrap'}}>{offer.hausregeln}</span></div>}
           </div>
         )}
 
@@ -111,11 +144,15 @@ export default function AngebotDetail() {
           <div style={{background:'var(--card)',borderRadius:14,padding:20,marginBottom:24}}>
             {interest.role === 'owner' ? (
               <div>
+                <div style={{fontWeight:700,marginBottom:6}}>📢 Ankündigung an alle Teilnehmenden</div>
+                <textarea rows={2} value={ank} onChange={e=>setAnk(e.target.value)} onFocus={()=>{ if (!ank && offer.ankuendigung) setAnk(offer.ankuendigung) }} placeholder={offer.ankuendigung || 'z.B. Treffpunkt ist um 14 Uhr am Tor'} style={{width:'100%',boxSizing:'border-box',padding:10,borderRadius:10,border:'1.5px solid var(--border)',background:'var(--bg)',color:'var(--text)',fontSize:14,marginBottom:6}}/>
+                <button onClick={saveAnk} style={{padding:'8px 14px',borderRadius:10,border:'none',background:'var(--g)',color:'white',fontWeight:600,fontSize:13,cursor:'pointer',marginBottom:18}}>Senden & anpinnen</button>
                 <div style={{fontWeight:700,marginBottom:10}}>Anfragen ({interest.requests?.length || 0})</div>
                 {(!interest.requests || interest.requests.length === 0) && <div style={{fontSize:13,color:'var(--muted)'}}>Noch keine Anfragen.</div>}
                 {interest.requests?.map(r => (
                   <div key={r.user_id} style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',padding:'8px 0',borderTop:'1px solid var(--border)'}}>
                     <Link href={`/leute/${r.user_id}`} style={{flex:1,minWidth:120,color:'var(--text)',fontWeight:600,textDecoration:'none'}}>{r.name}</Link>
+                    {(r.anreise || r.abreise) && <span style={{fontSize:12,color:'var(--muted)'}}>{fmt(r.anreise)} – {fmt(r.abreise)}</span>}
                     <span style={{fontSize:12,color:'var(--muted)'}}>{LABEL[r.status]}</span>
                     {r.status !== 'angenommen' && <button onClick={()=>setStatus(r.user_id,'angenommen')} style={{padding:'6px 12px',borderRadius:8,border:'none',background:'var(--g)',color:'white',fontSize:12,fontWeight:600,cursor:'pointer'}}>Freischalten</button>}
                     {r.status !== 'abgelehnt' && <button onClick={()=>setStatus(r.user_id,'abgelehnt')} style={{padding:'6px 12px',borderRadius:8,border:'1.5px solid var(--border)',background:'transparent',color:'var(--muted)',fontSize:12,cursor:'pointer'}}>{r.status === 'angenommen' ? 'Entfernen' : 'Ablehnen'}</button>}
@@ -128,6 +165,12 @@ export default function AngebotDetail() {
                   <button onClick={toggleInterest} style={{padding:'10px 18px',borderRadius:10,border:'1.5px solid var(--g)',background:interest.mine?'var(--g)':'transparent',color:interest.mine?'white':'var(--g)',fontWeight:600,cursor:'pointer'}}>{interest.mine ? 'Anfrage zurückziehen' : 'Teilnahme anfragen'}</button>
                   {interest.mine && <span style={{fontSize:13,fontWeight:600}}>{LABEL[interest.my_status]}</span>}
                 </div>
+                {interest.mine && interest.my_status !== 'abgelehnt' && (
+                  <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)',gap:8,marginTop:12}}>
+                    <label style={{fontSize:12,fontWeight:600}}>Anreise<input type="date" defaultValue={interest.my_anreise||''} onChange={e=>saveDates(e.target.value, interest.my_abreise)} style={{width:'100%',boxSizing:'border-box',padding:8,borderRadius:8,border:'1.5px solid var(--border)',background:'var(--bg)',color:'var(--text)'}}/></label>
+                    <label style={{fontSize:12,fontWeight:600}}>Abreise<input type="date" defaultValue={interest.my_abreise||''} onChange={e=>saveDates(interest.my_anreise, e.target.value)} style={{width:'100%',boxSizing:'border-box',padding:8,borderRadius:8,border:'1.5px solid var(--border)',background:'var(--bg)',color:'var(--text)'}}/></label>
+                  </div>
+                )}
                 {interest.my_status === 'abgelehnt' && <div style={{fontSize:13,color:'var(--muted)',marginTop:8}}>Die Kommune hat diese Anfrage leider abgelehnt.</div>}
                 {interest.my_status === 'angefragt' && <div style={{fontSize:13,color:'var(--muted)',marginTop:8}}>Die Kommune muss dich noch freischalten.</div>}
                 {kommune && <div style={{marginTop:14}}><MessageBox toId={kommune.id} label="Der Kommune schreiben" defaultText={`Hallo, ich interessiere mich für „${offer.titel}“. `}/></div>}
@@ -140,10 +183,12 @@ export default function AngebotDetail() {
           <div style={{background:'var(--card)',borderRadius:14,padding:20,marginBottom:24}}>
             <div style={{fontWeight:700,marginBottom:8}}>Teilnehmende ({interest.participants.length})</div>
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              {interest.participants.map(p => <Link key={p.user_id} href={`/leute/${p.user_id}`} style={{fontSize:13,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:20,padding:'4px 12px',color:'var(--text)',textDecoration:'none'}}>{p.name}</Link>)}
+              {interest.participants.map(p => <Link key={p.user_id} href={`/leute/${p.user_id}`} style={{fontSize:13,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:20,padding:'4px 12px',color:'var(--text)',textDecoration:'none'}}>{p.name}{(p.anreise || p.abreise) ? ` · ${fmt(p.anreise)}–${fmt(p.abreise)}` : ''}</Link>)}
             </div>
           </div>
         )}
+
+        {interest?.role && <OfferOrganisation offer={offer} asId={active?.id} role={interest.role}/>}
 
         {interest?.role && <OfferChat offerId={id} asId={active?.id}/>}
 

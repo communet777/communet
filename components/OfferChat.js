@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { notifyOfferPush } from '../lib/push'
 
 export default function OfferChat({ offerId, asId }) {
   const [msgs, setMsgs] = useState([])
@@ -29,7 +30,7 @@ export default function OfferChat({ offerId, asId }) {
     const { error } = await supabase.rpc('send_offer_message', { p_offer: offerId, p_body: text, p_as: asId })
     setBusy(false)
     if (error) { setErr(error.message); return }
-    setText(''); load()
+    setText(''); load(); notifyOfferPush(offerId, asId, 'chat')
   }
 
   return (
