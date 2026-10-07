@@ -9,6 +9,7 @@ export default function PushToggle() {
   const [state, setState] = useState('loading') // loading | unsupported | off | on | denied
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [diag, setDiag] = useState('')
   const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 
   useEffect(() => {
@@ -45,6 +46,17 @@ export default function PushToggle() {
     setBusy(false)
   }
 
+  async function test() {
+    setBusy(true); setDiag('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const r = await fetch('/api/push/test', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } })
+      const j = await r.json()
+      setDiag(JSON.stringify(j, null, 1))
+    } catch (e) { setDiag('Fehler: ' + (e.message || e)) }
+    setBusy(false)
+  }
+
   if (!user || state === 'loading') return null
   const box = { background: 'var(--card)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, fontSize: 13, display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }
   const btn = { padding: '8px 14px', background: 'var(--g)', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer' }
@@ -53,6 +65,8 @@ export default function PushToggle() {
   return (
     <div style={box}>
       <span>{state === 'on' ? '🔔 Du bekommst Mitteilungen bei neuen Nachrichten.' : '🔔 Mitteilungen bei neuen Nachrichten aktivieren?'}{msg && <><br/><span style={{color:'#b3261e'}}>{msg}</span></>}</span>
+      {state === 'on' && <button onClick={test} disabled={busy} style={btn}>Test senden</button>}
+      {diag && <pre style={{width:'100%',fontSize:11,whiteSpace:'pre-wrap',wordBreak:'break-all',background:'var(--bg)',padding:8,borderRadius:8,margin:0}}>{diag}</pre>}
       {state === 'on' ? <button onClick={disable} disabled={busy} style={{...btn, background:'none', color:'var(--muted)', border:'1px solid var(--border)'}}>Ausschalten</button> : <button onClick={enable} disabled={busy} style={btn}>{busy ? '…' : 'Aktivieren'}</button>}
     </div>
   )
