@@ -79,6 +79,7 @@ export default function Profil() {
             <ProfileSwitcher style={{width:'100%',maxWidth:'none',marginBottom:10}}/>
             {profile?.hidden && <div className={styles.meta}>🔒 Versteckt – nur für dich und eingeladene Mitglieder</div>}
             <Link href={isKommune ? `/profil/kommune?id=${active?.id}` : '/profil/bearbeiten'} className={styles.btnPrimary}>Profil bearbeiten</Link>
+            {isKommune && profile?.hidden && <Link href={`/profil/kommune?id=${active?.id}&tab=mitglieder`} className={styles.btnSecondary} style={{marginTop:8}}>👥 Mitglieder hinzufügen</Link>}
             <div className={styles.actions}>
               {earlyAccess && <Link href="/nachrichten" className={styles.btnSecondary}>✉️ Nachrichten</Link>}
               {earlyAccess && <Link href="/leute" className={styles.btnSecondary}><Icon name="person"/> Leute finden</Link>}
