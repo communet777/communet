@@ -5,6 +5,7 @@ import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
 import{useAuth}from'../lib/AuthContext'
 import{supabase}from'../lib/supabase'
+import{useActiveProfile}from'../lib/ActiveProfileContext'
 import TypIcon from'../components/TypIcon'
 import styles from'../styles/Angebote.module.css'
 
@@ -247,18 +248,15 @@ return(
 
 export default function Angebote(){
 const{user,loading}=useAuth()
-const[profile,setProfile]=useState(null)
-useEffect(()=>{
-if(!user)return
-supabase.from('profiles').select('typ').eq('id',user.id).single().then(({data})=>setProfile(data))
-},[user])
+const{active,profiles}=useActiveProfile()
 if(loading)return<div><Nav/></div>
-const isKommune=profile?.typ==='kommune'
+// Aktives Profil entscheidet: Kommune = Angebote verwalten, Person = Angebote entdecken
+const isKommune=active?.typ==='kommune'
 return(
 <div><Nav/>
 {!user&&<AngeboteGuest/>}
-{user&&isKommune&&<AngeboteKommune user={user}/>}
-{user&&!isKommune&&profile&&<AngebotePerson/>}
+{user&&isKommune&&<AngeboteKommune key={active.id} user={{id:active.id}}/>}
+{user&&!isKommune&&profiles.length>0&&<AngebotePerson/>}
 </div>
 )
 }

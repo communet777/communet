@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   if (error) return res.status(200).json({ ...info, error: error.message })
   info.devices = subs.length
   try {
-    webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:communet@outlook.de', pub, priv)
+    webpush.setVapidDetails('mailto:communet@outlook.de', pub, priv)
   } catch (e) { return res.status(200).json({ ...info, error: 'VAPID: ' + e.message }) }
   info.results = await Promise.all(subs.map(async s => {
     try {
