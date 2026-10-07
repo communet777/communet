@@ -8,24 +8,35 @@ const inp = { padding: '9px 12px', borderRadius: 10, border: '1.5px solid var(--
 const btn = { padding: '8px 14px', borderRadius: 10, border: 'none', background: 'var(--g)', color: 'white', fontWeight: 600, fontSize: 13, cursor: 'pointer' }
 const ghost = { padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--muted)', fontSize: 12, cursor: 'pointer' }
 
-function Dishes({ offerId, asId, isOwner }) {
+const SLOTS = ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks']
+const SLOT_CAT = { 'Frühstück': 'Frühstück', 'Snacks': 'Snacks' }
+const dayLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' })
+const dayShort = d => new Date(d + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' })
+
+function offerDays(offer, dishes) {
+  const from = offer.von || offer.datum, to = offer.bis || from
+  const out = []
+  if (from) {
+    const d = new Date(from + 'T12:00:00'), end = new Date((to < from ? from : to) + 'T12:00:00')
+    for (let i = 0; d <= end && i < 31; i++, d.setDate(d.getDate() + 1)) out.push(d.toISOString().slice(0, 10))
+  }
+  for (const x of dishes) if (x.tag && !out.includes(x.tag)) out.push(x.tag)
+  return out.sort()
+}
+
+function useDishes(offer, asId) {
   const [list, setList] = useState([])
-  const [form, setForm] = useState({ name: '', category: CATS[1], note: '', tags: [], wish: false })
   const [err, setErr] = useState('')
   const load = useCallback(async () => {
-    const { data } = await supabase.rpc('offer_dishes_list', { p_offer: offerId, p_as: asId })
+    const { data } = await supabase.rpc('offer_dishes_list2', { p_offer: offer.id, p_as: asId })
     setList(data || [])
-  }, [offerId, asId])
+  }, [offer.id, asId])
   useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t) }, [load])
-
-  const typed = form.name.trim().toLowerCase()
-  const dupe = typed && list.find(d => d.name.trim().toLowerCase() === typed)
-
-  async function add(e) {
-    e.preventDefault(); setErr('')
-    const { error } = await supabase.rpc('dish_add', { p_offer: offerId, p_as: asId, p_category: form.category, p_name: form.name, p_tags: form.tags, p_note: form.note, p_wish: isOwner || form.wish })
-    if (error) { setErr(error.message); load(); return }
-    setForm(f => ({ ...f, name: '', note: '', tags: [] })); load()
+  async function add(fields) {
+    setErr('')
+    const { error } = await supabase.rpc('dish_add2', { p_offer: offer.id, p_as: asId, p_category: fields.category, p_name: fields.name, p_tags: fields.tags || [], p_note: fields.note || '', p_wish: !!fields.wish, p_tag: fields.tag || null, p_slot: fields.slot || null })
+    if (error) { setErr(error.message); return false }
+    load(); return true
   }
   async function act(id, action) {
     setErr('')
@@ -33,11 +44,43 @@ function Dishes({ offerId, asId, isOwner }) {
     if (error) setErr(error.message)
     load()
   }
+  async function move(id, value) {
+    setErr('')
+    const [tag, slot] = value ? value.split('|') : [null, null]
+    const { error } = await supabase.rpc('dish_move', { p_id: id, p_as: asId, p_tag: tag, p_slot: slot })
+    if (error) setErr(error.message)
+    load()
+  }
+  return { list, err, add, act, move }
+}
+
+function MoveSelect({ dish, days, onMove }) {
+  if (!dish.can_move) return null
+  const val = dish.tag && dish.slot ? `${dish.tag}|${dish.slot}` : ''
+  return (
+    <select value={val} onChange={e => onMove(dish.id, e.target.value)} style={{ ...inp, width: 'auto', maxWidth: 190, padding: '5px 8px', fontSize: 12 }} title="Einer Mahlzeit zuordnen">
+      <option value="">Keiner Mahlzeit zugeordnet</option>
+      {days.map(d => <optgroup key={d} label={dayShort(d)}>{SLOTS.map(sl => <option key={sl} value={`${d}|${sl}`}>{dayShort(d)} · {sl}</option>)}</optgroup>)}
+    </select>
+  )
+}
+
+function Dishes({ offer, asId, isOwner, store }) {
+  const { list, err, add, act, move } = store
+  const [form, setForm] = useState({ name: '', category: CATS[1], note: '', tags: [] })
+  const days = offerDays(offer, list)
+  const typed = form.name.trim().toLowerCase()
+  const dupe = typed && list.find(d => d.name.trim().toLowerCase() === typed)
+
+  async function submit(e) {
+    e.preventDefault()
+    if (await add({ ...form, wish: isOwner })) setForm(f => ({ ...f, name: '', note: '', tags: [] }))
+  }
   const cats = [...new Set([...CATS, ...list.map(d => d.category)])].filter(c => list.some(d => d.category === c))
 
   return (
     <div>
-      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Noch nichts eingetragen. {isOwner ? 'Trage hier Wünsche ein, z.B. „Hauptgericht“ oder „Getränke“.' : 'Trag ein, was du mitbringst – bei Doppelungen bekommst du eine Warnung.'}</div>}
+      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Noch nichts eingetragen. {isOwner ? 'Trage hier Wünsche ein, z.B. „Hauptgericht“ oder „Getränke“.' : 'Trag ein, was du mitbringst – bei Doppelungen bekommst du eine Warnung. Unter „Mahlzeiten“ kannst du es einem Tag zuordnen.'}</div>}
       {cats.map(c => (
         <div key={c} style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 4 }}>{c}</div>
@@ -47,19 +90,21 @@ function Dishes({ offerId, asId, isOwner }) {
                 <strong>{d.name}</strong>
                 {d.tags?.map(t => <span key={t} style={{ marginLeft: 6, fontSize: 11, background: '#E1ECEE', color: 'var(--g)', borderRadius: 10, padding: '1px 8px' }}>{t}</span>)}
                 {d.note && <div style={{ fontSize: 12, color: 'var(--muted)' }}>{d.note}</div>}
+                {d.tag && d.slot && <div style={{ fontSize: 12, color: 'var(--g)' }}>🍲 {dayShort(d.tag)} · {d.slot}</div>}
               </div>
               <span style={{ fontSize: 12, color: d.claimed_by ? 'var(--text)' : 'var(--muted)' }}>{d.claimed_by ? (d.mine ? '✓ Du bringst mit' : `✓ ${d.claimed_name || 'Jemand'}`) : '🙋 Gesucht'}</span>
               {!d.claimed_by && !isOwner && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
               {d.mine && <button style={ghost} onClick={() => act(d.id, 'release')}>Zurückziehen</button>}
               {isOwner && !d.mine && <button style={ghost} onClick={() => act(d.id, 'delete')}>Entfernen</button>}
+              {offer.essen_modus === 'gemeinschaft' && <MoveSelect dish={d} days={days} onMove={move}/>}
             </div>
           ))}
         </div>
       ))}
-      <form onSubmit={add} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 8 }}>
           <input style={inp} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="z.B. Hummus" maxLength={80}/>
-          <select style={inp} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>{CATS.map(c => <option key={c}>{c}</option>)}</select>
+          <select style={inp} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>{[...CATS, 'Frühstück', 'Snacks'].map(c => <option key={c}>{c}</option>)}</select>
         </div>
         {dupe && <div style={{ fontSize: 13, color: '#b3261e' }}>⚠️ „{dupe.name}“ steht schon in der Liste{dupe.claimed_by ? ` – ${dupe.mine ? 'du bringst es mit' : (dupe.claimed_name || 'jemand') + ' bringt es mit'}` : ' auf der Wunschliste'}.</div>}
         <input style={inp} value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} placeholder="Notiz (optional), z.B. für 8 Personen" maxLength={200}/>
@@ -171,69 +216,68 @@ function Schedule({ offerId, isOwner, offer }) {
   )
 }
 
-const MAHL = ['Frühstück', 'Mittagessen', 'Abendessen']
-const dayLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' })
+function Meals({ offer, isOwner, store }) {
+  const { list, err, add, act, move } = store
+  const days = offerDays(offer, list)
+  const [quick, setQuick] = useState(null) // { tag, slot }
+  const [name, setName] = useState('')
+  const unplaced = list.filter(d => d.can_move && !(d.tag && d.slot))
 
-function Meals({ offer, asId, isOwner }) {
-  const [list, setList] = useState([])
-  const [err, setErr] = useState('')
-  const [f, setF] = useState({ von: offer.von || offer.datum || '', bis: offer.bis || offer.datum || '', arten: ['Mittagessen', 'Abendessen'] })
-  const load = useCallback(async () => {
-    const { data } = await supabase.rpc('offer_meals_list', { p_offer: offer.id, p_as: asId })
-    setList(data || [])
-  }, [offer.id, asId])
-  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t) }, [load])
-  async function act(id, action, titel) {
-    setErr('')
-    const { error } = await supabase.rpc('meal_act', { p_id: id, p_as: asId, p_action: action, p_titel: titel || null })
-    if (error) setErr(error.message)
-    load()
+  async function submitQuick(e) {
+    e.preventDefault()
+    const ok = await add({ name, category: SLOT_CAT[quick.slot] || 'Hauptgericht', wish: isOwner, tag: quick.tag, slot: quick.slot })
+    if (ok) { setName(''); setQuick(null) }
   }
-  async function add(e) {
-    e.preventDefault(); setErr('')
-    const { error } = await supabase.rpc('meals_add', { p_offer: offer.id, p_as: asId, p_von: f.von, p_bis: f.bis, p_arten: f.arten })
-    if (error) setErr(error.message)
-    load()
-  }
-  let last = null
+  if (days.length === 0) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Für die Tagesansicht braucht das Angebot ein Von-/Bis-Datum oder ein Veranstaltungsdatum. Trage es beim Bearbeiten des Angebots ein.</div>
   return (
     <div>
-      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>{isOwner ? 'Lege unten die Mahlzeiten an. Danach tragen sich Teilnehmende als Köche ein.' : 'Noch keine Mahlzeiten angelegt.'}</div>}
-      {list.map(m => {
-        const head = m.tag !== last ? (last = m.tag, dayLabel(m.tag)) : null
-        return (
-          <div key={m.id}>
-            {head && <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', margin: '10px 0 4px' }}>{head}</div>}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '6px 0', borderTop: '1px solid var(--border)' }}>
-              <span style={{ width: 96, fontWeight: 700, flexShrink: 0 }}>{m.mahlzeit}</span>
-              <div style={{ flex: 1, minWidth: 140 }}>
-                {m.titel && <div style={{ fontSize: 14 }}>{m.titel}</div>}
-                <div style={{ fontSize: 12, color: m.cooks.length ? 'var(--text)' : 'var(--muted)' }}>{m.cooks.length ? `👩‍🍳 ${m.cooks.join(', ')}` : '🙋 Noch niemand – wer kocht?'}</div>
-              </div>
-              {m.mine
-                ? <><button style={ghost} onClick={() => { const t = window.prompt('Was gibt es? (Menü)', m.titel || ''); if (t !== null) act(m.id, 'title', t) }}>Menü</button><button style={ghost} onClick={() => act(m.id, 'uncook')}>Abgeben</button></>
-                : (!isOwner && <button style={btn} onClick={() => act(m.id, 'cook')}>Ich koche</button>)}
-              {isOwner && <button style={ghost} onClick={() => act(m.id, 'delete')}>×</button>}
+      {unplaced.length > 0 && (
+        <div style={{ background: 'var(--bg)', borderRadius: 10, padding: '8px 12px', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Noch keiner Mahlzeit zugeordnet</div>
+          {unplaced.map(d => (
+            <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '4px 0' }}>
+              <span style={{ flex: 1, minWidth: 120 }}>{d.name} <span style={{ fontSize: 11, color: 'var(--muted)' }}>({d.category})</span></span>
+              <MoveSelect dish={d} days={days} onMove={move}/>
             </div>
-          </div>
-        )
-      })}
-      {isOwner && (
-        <form onSubmit={add} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>Mahlzeiten anlegen</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 8 }}>
-            <input style={inp} type="date" value={f.von} onChange={e => setF(x => ({ ...x, von: e.target.value }))}/>
-            <input style={inp} type="date" value={f.bis} onChange={e => setF(x => ({ ...x, bis: e.target.value }))}/>
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {MAHL.map(a => {
-              const on = f.arten.includes(a)
-              return <button type="button" key={a} onClick={() => setF(x => ({ ...x, arten: on ? x.arten.filter(y => y !== a) : [...x.arten, a] }))} style={{ ...ghost, background: on ? 'var(--g)' : 'transparent', color: on ? 'white' : 'var(--muted)' }}>{a}</button>
-            })}
-          </div>
-          <div><button type="submit" style={btn} disabled={!f.von || !f.bis || f.arten.length === 0}>Anlegen</button></div>
-        </form>
+          ))}
+        </div>
       )}
+      {days.map(day => (
+        <div key={day} style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, margin: '4px 0 6px' }}>{dayLabel(day)}</div>
+          {SLOTS.map(sl => {
+            const items = list.filter(d => d.tag === day && d.slot === sl)
+            const isQuick = quick && quick.tag === day && quick.slot === sl
+            return (
+              <div key={sl} style={{ display: 'flex', gap: 10, padding: '6px 0', borderTop: '1px solid var(--border)', alignItems: 'flex-start' }}>
+                <span style={{ width: 96, fontWeight: 600, fontSize: 13, flexShrink: 0 }}>{sl}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {items.map(d => (
+                    <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
+                      <span style={{ flex: 1, minWidth: 110 }}>
+                        <strong>{d.name}</strong> <span style={{ fontSize: 11, color: 'var(--muted)' }}>{d.category}</span>
+                        {d.tags?.map(t => <span key={t} style={{ marginLeft: 6, fontSize: 11, background: '#E1ECEE', color: 'var(--g)', borderRadius: 10, padding: '1px 8px' }}>{t}</span>)}
+                        <div style={{ fontSize: 12, color: d.claimed_by ? 'var(--muted)' : '#b3261e' }}>{d.claimed_by ? (d.mine ? '👩‍🍳 Du' : `👩‍🍳 ${d.claimed_name || 'Jemand'}`) : '🙋 Gesucht'}</div>
+                      </span>
+                      {!d.claimed_by && !isOwner && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
+                      <MoveSelect dish={d} days={days} onMove={move}/>
+                    </div>
+                  ))}
+                  {isQuick ? (
+                    <form onSubmit={submitQuick} style={{ display: 'flex', gap: 6 }}>
+                      <input autoFocus style={inp} value={name} onChange={e => setName(e.target.value)} placeholder={isOwner ? 'Was wird gesucht?' : 'Was kochst/bringst du?'} maxLength={80}/>
+                      <button type="submit" style={btn} disabled={!name.trim()}>OK</button>
+                      <button type="button" style={ghost} onClick={() => setQuick(null)}>×</button>
+                    </form>
+                  ) : (
+                    <button style={{ ...ghost, border: '1.5px dashed var(--border)' }} onClick={() => { setQuick({ tag: day, slot: sl }); setName('') }}>＋ {isOwner ? 'Wunsch' : 'Gericht'}</button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ))}
       {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
     </div>
   )
@@ -310,6 +354,7 @@ function Rides({ offer, asId, isOwner }) {
 export default function OfferOrganisation({ offer, asId, role, onOfferChange }) {
   const isOwner = role === 'owner'
   const modus = offer.essen_modus
+  const store = useDishes(offer, asId)
   const tabs = [
     ...(modus === 'gemeinschaft' ? [['meals', '🍲 Mahlzeiten']] : []),
     ...(modus === 'versorgt' ? [] : modus === 'gemeinschaft' ? [['essen', '🥙 Mitbringen']] : [['essen', '🥙 Mitbringen']]),
@@ -337,9 +382,9 @@ export default function OfferOrganisation({ offer, asId, role, onOfferChange }) 
         {tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} style={{ ...ghost, fontSize: 13, padding: '7px 12px', background: cur === k ? 'var(--g)' : 'transparent', color: cur === k ? 'white' : 'var(--text)', fontWeight: 600 }}>{l}</button>)}
       </div>
       {modus === 'versorgt' && <div style={{ fontSize: 13, marginBottom: 12, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>🍽️ Für das Essen ist gesorgt – du musst nichts mitbringen.</div>}
-      {cur === 'meals' && <Meals offer={offer} asId={asId} isOwner={isOwner}/>}
+      {cur === 'meals' && <Meals offer={offer} isOwner={isOwner} store={store}/>}
       {cur === 'rides' && <Rides offer={offer} asId={asId} isOwner={isOwner}/>}
-      {cur === 'essen' && <Dishes offerId={offer.id} asId={asId} isOwner={isOwner}/>}
+      {cur === 'essen' && <Dishes offer={offer} asId={asId} isOwner={isOwner} store={store}/>}
       {cur === 'aufgaben' && <Tasks offerId={offer.id} asId={asId} isOwner={isOwner}/>}
       {cur === 'plan' && <Schedule offerId={offer.id} isOwner={isOwner} offer={offer}/>}
     </div>

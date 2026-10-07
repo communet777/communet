@@ -1,2 +1,3 @@
 -- Bereits angewendet (offer_access_as_profile, offer_interest_status_update_guard):
 -- Angebots-Funktionen kennen jetzt das aktive Profil (p_as); offer_interest.status ist per Update-Trigger gegen Selbstfreischaltung geschützt.
+-- Bereits angewendet (dishes_meal_slots): offer_dishes.tag/slot, offer_dishes_list2, dish_add2, dish_move (Gerichte Mahlzeiten zuordnen).
