@@ -8,6 +8,7 @@ import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{useActiveProfile}from'../lib/ActiveProfileContext'
 import ProfileSwitcher from'./ProfileSwitcher'
+import ThemeSwitch from'./ThemeSwitch'
 import styles from'./Nav.module.css'
 export default function Nav(){
 const router=useRouter()
@@ -32,9 +33,12 @@ return(
 ?<Link href="/profil"className={`${styles.cta}${router.pathname.startsWith('/profil')?' '+styles.active:''}`}><Icon name="person"/> Profil</Link>
 :<Link href="/auth/login"className={styles.cta}>Anmelden</Link>
 }
+<div className={styles.switchCol}>
 <div className={styles.langSwitch}>
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={()=>setLang('de')}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={()=>setLang('en')}>EN</button>
+</div>
+<ThemeSwitch/>
 </div>
 </div>
 <button className={styles.hamburger}onClick={()=>setOpen(o=>!o)}aria-label="Menu">
@@ -54,6 +58,7 @@ return(
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('de')}}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('en')}}>EN</button>
 </div>
+<div className={styles.mobileLang}><ThemeSwitch/></div>
 {user&&<div style={{padding:'4px 16px'}}><ProfileSwitcher style={{width:'100%',maxWidth:'none'}}/></div>}
 {user
 ?<Link href="/profil"className={styles.mobileCta}><Icon name="person"/> Profil</Link>

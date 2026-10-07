@@ -3,7 +3,9 @@
 .logoText{display:flex;flex-direction:column;line-height:1.05}
 .logoName{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:21px;letter-spacing:.09em}
 .logoClaim{font-size:9px;letter-spacing:.22em;color:#7A5114;margin-top:2px}
-@media(prefers-color-scheme:dark){.logo{color:#F0E6D2}.logoClaim{color:#E9AD55}}
+:global(:root[data-theme="dark"]) .logo{color:#F0E6D2}
+:global(:root[data-theme="dark"]) .logoClaim{color:#E9AD55}
+@media(prefers-color-scheme:dark){:global(:root[data-theme="auto"]) .logo{color:#F0E6D2}:global(:root[data-theme="auto"]) .logoClaim{color:#E9AD55}}
 .links{display:flex;align-items:center;gap:4px}
 .link{padding:7px 14px;border-radius:8px;font-size:13px;color:var(--muted);transition:all .15s}
 .link:hover{background:rgba(233,173,85,.12);color:var(--g)}
@@ -18,8 +20,11 @@
 .langBtn{padding:5px 10px;border:none;background:none;font-size:12px;cursor:pointer;color:var(--muted);font-weight:500}
 .langBtn:hover{background:var(--gl);color:var(--g)}
 .langActive{background:var(--g)!important;color:#fff!important}
+.switchCol{display:flex;flex-direction:column;gap:3px;margin-left:4px}
+.switchCol .langSwitch{margin-left:0}
+.switchCol .langBtn{padding:2px 9px;font-size:11px;line-height:1.5}
 .hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px 8px}
-.mobileMenu{position:fixed;top:63px;left:0;right:0;bottom:0;background:var(--sand);z-index:99;display:flex;flex-direction:column;padding:24px 28px;gap:4px;border-top:.5px solid var(--border)}
+.mobileMenu{position:fixed;top:63px;left:0;right:0;bottom:0;background:var(--sand);z-index:99;display:flex;flex-direction:column;padding:24px 28px;gap:4px;border-top:.5px solid var(--border);overflow-y:auto}
 .mobileLink{font-size:16px;color:var(--text);padding:14px 0;border-bottom:.5px solid var(--border);display:block}
 .mobileLang{display:flex;gap:8px;padding:16px 0;border-bottom:.5px solid var(--border)}
 .mobileCta{margin-top:16px;padding:12px 20px;border-radius:10px;background:var(--g);color:#fff;font-size:15px;font-weight:600;text-align:center;display:block}
