@@ -23,7 +23,7 @@ function Dishes({ offerId, asId, isOwner }) {
 
   async function add(e) {
     e.preventDefault(); setErr('')
-    const { error } = await supabase.rpc('dish_add', { p_offer: offerId, p_as: asId, p_category: form.category, p_name: form.name, p_tags: form.tags, p_note: form.note, p_wish: form.wish })
+    const { error } = await supabase.rpc('dish_add', { p_offer: offerId, p_as: asId, p_category: form.category, p_name: form.name, p_tags: form.tags, p_note: form.note, p_wish: isOwner || form.wish })
     if (error) { setErr(error.message); load(); return }
     setForm(f => ({ ...f, name: '', note: '', tags: [] })); load()
   }
@@ -37,7 +37,7 @@ function Dishes({ offerId, asId, isOwner }) {
 
   return (
     <div>
-      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Noch nichts eingetragen. Trag ein, was du mitbringst – bei Doppelungen bekommst du eine Warnung.</div>}
+      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Noch nichts eingetragen. {isOwner ? 'Trage hier Wünsche ein, z.B. „Hauptgericht“ oder „Getränke“.' : 'Trag ein, was du mitbringst – bei Doppelungen bekommst du eine Warnung.'}</div>}
       {cats.map(c => (
         <div key={c} style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 4 }}>{c}</div>
@@ -49,7 +49,7 @@ function Dishes({ offerId, asId, isOwner }) {
                 {d.note && <div style={{ fontSize: 12, color: 'var(--muted)' }}>{d.note}</div>}
               </div>
               <span style={{ fontSize: 12, color: d.claimed_by ? 'var(--text)' : 'var(--muted)' }}>{d.claimed_by ? (d.mine ? '✓ Du bringst mit' : `✓ ${d.claimed_name || 'Jemand'}`) : '🙋 Gesucht'}</span>
-              {!d.claimed_by && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
+              {!d.claimed_by && !isOwner && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
               {d.mine && <button style={ghost} onClick={() => act(d.id, 'release')}>Zurückziehen</button>}
               {isOwner && !d.mine && <button style={ghost} onClick={() => act(d.id, 'delete')}>Entfernen</button>}
             </div>
@@ -69,8 +69,8 @@ function Dishes({ offerId, asId, isOwner }) {
             return <button type="button" key={t} onClick={() => setForm(f => ({ ...f, tags: on ? f.tags.filter(x => x !== t) : [...f.tags, t] }))} style={{ ...ghost, background: on ? 'var(--g)' : 'transparent', color: on ? 'white' : 'var(--muted)' }}>{t}</button>
           })}
         </div>
-        {isOwner && <label style={{ fontSize: 13 }}><input type="checkbox" checked={form.wish} onChange={e => setForm(f => ({ ...f, wish: e.target.checked }))}/> Als Wunsch eintragen (andere übernehmen es mit „Ich bring’s“)</label>}
-        <div><button type="submit" style={btn} disabled={!form.name.trim()}>{form.wish ? 'Wunsch eintragen' : dupe ? 'Trotzdem eintragen' : 'Ich bringe mit'}</button></div>
+        {isOwner && <div style={{ fontSize: 12, color: 'var(--muted)' }}>Als Kommune trägst du Wünsche ein – Teilnehmende übernehmen sie mit „Ich bring’s“. Selbst etwas mitbringen kannst du mit deinem persönlichen Profil.</div>}
+        <div><button type="submit" style={btn} disabled={!form.name.trim()}>{isOwner ? 'Wunsch eintragen' : dupe ? 'Trotzdem eintragen' : 'Ich bringe mit'}</button></div>
       </form>
       {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
     </div>
@@ -105,7 +105,7 @@ function Tasks({ offerId, asId, isOwner }) {
         <div key={t.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '6px 0', borderTop: '1px solid var(--border)' }}>
           <span style={{ flex: 1, minWidth: 140, textDecoration: t.done ? 'line-through' : 'none', color: t.done ? 'var(--muted)' : 'var(--text)' }}>{t.title}</span>
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>{t.assignee ? (t.mine ? 'Du' : t.assignee_name) : 'offen'}</span>
-          {!t.assignee && <button style={btn} onClick={() => act(t.id, 'take')}>Übernehmen</button>}
+          {!t.assignee && !isOwner && <button style={btn} onClick={() => act(t.id, 'take')}>Übernehmen</button>}
           {(t.mine || isOwner) && t.assignee && <button style={ghost} onClick={() => act(t.id, 'toggle')}>{t.done ? 'Wieder öffnen' : '✓ Erledigt'}</button>}
           {(t.mine || isOwner) && t.assignee && !t.done && <button style={ghost} onClick={() => act(t.id, 'release')}>Abgeben</button>}
           {isOwner && <button style={ghost} onClick={() => act(t.id, 'delete')}>Löschen</button>}
@@ -212,7 +212,7 @@ function Meals({ offer, asId, isOwner }) {
               </div>
               {m.mine
                 ? <><button style={ghost} onClick={() => { const t = window.prompt('Was gibt es? (Menü)', m.titel || ''); if (t !== null) act(m.id, 'title', t) }}>Menü</button><button style={ghost} onClick={() => act(m.id, 'uncook')}>Abgeben</button></>
-                : <button style={btn} onClick={() => act(m.id, 'cook')}>Ich koche</button>}
+                : (!isOwner && <button style={btn} onClick={() => act(m.id, 'cook')}>Ich koche</button>)}
               {isOwner && <button style={ghost} onClick={() => act(m.id, 'delete')}>×</button>}
             </div>
           </div>
@@ -239,7 +239,7 @@ function Meals({ offer, asId, isOwner }) {
   )
 }
 
-function Rides({ offer, asId }) {
+function Rides({ offer, asId, isOwner }) {
   const [list, setList] = useState([])
   const [err, setErr] = useState('')
   const [open, setOpen] = useState(false)
@@ -281,15 +281,16 @@ function Rides({ offer, asId }) {
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{free > 0 ? `${free} von ${r.plaetze} Plätzen frei` : 'voll'}</div>
               </div>
-              {!r.mine && !r.i_ride && free > 0 && <button style={btn} onClick={() => act(r.id, 'join')}>{list.some(x => x.i_ride) ? 'Wechseln' : 'Mitfahren'}</button>}
+              {!isOwner && !r.mine && !r.i_ride && free > 0 && <button style={btn} onClick={() => act(r.id, 'join')}>{list.some(x => x.i_ride) ? 'Wechseln' : 'Mitfahren'}</button>}
               {r.i_ride && <button style={ghost} onClick={() => act(r.id, 'leave')}>Aussteigen</button>}
-              {r.mine && <button style={ghost} onClick={() => act(r.id, 'delete')}>Löschen</button>}
+              {(r.mine || isOwner) && <button style={ghost} onClick={() => act(r.id, 'delete')}>{r.mine ? 'Löschen' : 'Entfernen'}</button>}
             </div>
             {(r.notiz || r.riders.length > 0) && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4, marginLeft: 38 }}>{r.notiz}{r.notiz && r.riders.length ? ' · ' : ''}{r.riders.length ? `Mit: ${r.riders.join(', ')}` : ''}</div>}
           </div>
         )
       })}
-      {!hasOwn && !open && <button style={{ ...btn, marginTop: 12 }} onClick={() => setOpen(true)}>🚗 Ich komme mit dem Auto</button>}
+      {isOwner && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>Als Kommune kannst du keine Fahrt anbieten. Wechsle zu deinem persönlichen Profil, um selbst mitzufahren.</div>}
+      {!isOwner && !hasOwn && !open && <button style={{ ...btn, marginTop: 12 }} onClick={() => setOpen(true)}>🚗 Ich komme mit dem Auto</button>}
       {open && (
         <form onSubmit={add} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 8 }}>
@@ -306,7 +307,7 @@ function Rides({ offer, asId }) {
   )
 }
 
-export default function OfferOrganisation({ offer, asId, role }) {
+export default function OfferOrganisation({ offer, asId, role, onOfferChange }) {
   const isOwner = role === 'owner'
   const modus = offer.essen_modus
   const tabs = [
@@ -315,17 +316,32 @@ export default function OfferOrganisation({ offer, asId, role }) {
     ['aufgaben', '✅ Aufgaben'], ['rides', '🚗 Mitfahren'], ['plan', '🕒 Zeitplan'],
   ]
   const [tab, setTab] = useState(tabs[0][0])
+  const cur = tabs.some(t => t[0] === tab) ? tab : tabs[0][0]
+  async function setModus(v) {
+    const { error } = await supabase.from('offers').update({ essen_modus: v || null }).eq('id', offer.id)
+    if (!error && onOfferChange) onOfferChange({ essen_modus: v || null })
+  }
   return (
     <div style={card}>
+      {isOwner && (
+        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 14 }}>🍽️ Essensorganisation (nur du als Kommune stellst das ein)
+          <select value={modus || ''} onChange={e => setModus(e.target.value)} style={{ ...inp, marginTop: 4 }}>
+            <option value="">– noch nicht festgelegt –</option>
+            <option value="versorgt">Für Essen ist gesorgt (Veranstalter)</option>
+            <option value="gemeinschaft">Gemeinschaftsessen (mehrere Mahlzeiten, wechselnde Köche)</option>
+            <option value="buffet">Buffet (jeder bringt etwas mit)</option>
+          </select>
+        </label>
+      )}
       <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-        {tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} style={{ ...ghost, fontSize: 13, padding: '7px 12px', background: tab === k ? 'var(--g)' : 'transparent', color: tab === k ? 'white' : 'var(--text)', fontWeight: 600 }}>{l}</button>)}
+        {tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} style={{ ...ghost, fontSize: 13, padding: '7px 12px', background: cur === k ? 'var(--g)' : 'transparent', color: cur === k ? 'white' : 'var(--text)', fontWeight: 600 }}>{l}</button>)}
       </div>
       {modus === 'versorgt' && <div style={{ fontSize: 13, marginBottom: 12, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>🍽️ Für das Essen ist gesorgt – du musst nichts mitbringen.</div>}
-      {tab === 'meals' && <Meals offer={offer} asId={asId} isOwner={isOwner}/>}
-      {tab === 'rides' && <Rides offer={offer} asId={asId}/>}
-      {tab === 'essen' && <Dishes offerId={offer.id} asId={asId} isOwner={isOwner}/>}
-      {tab === 'aufgaben' && <Tasks offerId={offer.id} asId={asId} isOwner={isOwner}/>}
-      {tab === 'plan' && <Schedule offerId={offer.id} isOwner={isOwner} offer={offer}/>}
+      {cur === 'meals' && <Meals offer={offer} asId={asId} isOwner={isOwner}/>}
+      {cur === 'rides' && <Rides offer={offer} asId={asId} isOwner={isOwner}/>}
+      {cur === 'essen' && <Dishes offerId={offer.id} asId={asId} isOwner={isOwner}/>}
+      {cur === 'aufgaben' && <Tasks offerId={offer.id} asId={asId} isOwner={isOwner}/>}
+      {cur === 'plan' && <Schedule offerId={offer.id} isOwner={isOwner} offer={offer}/>}
     </div>
   )
 }

@@ -172,7 +172,8 @@ export default function AngebotDetail() {
                   </div>
                 )}
                 {interest.my_status === 'abgelehnt' && <div style={{fontSize:13,color:'var(--muted)',marginTop:8}}>Die Kommune hat diese Anfrage leider abgelehnt.</div>}
-                {interest.my_status === 'angefragt' && <div style={{fontSize:13,color:'var(--muted)',marginTop:8}}>Die Kommune muss dich noch freischalten.</div>}
+                {interest.my_status === 'angefragt' && <div style={{fontSize:13,color:'var(--muted)',marginTop:8}}>Die Kommune muss dich noch freischalten. Danach kannst du hier eintragen, was du mitbringst, ob du mit dem Auto kommst, und Aufgaben übernehmen.</div>}
+                {!interest.mine && <div style={{fontSize:13,color:'var(--muted)',marginTop:8}}>Nach der Freischaltung durch die Kommune kannst du Mitbringsel, Mitfahrten und Aufgaben eintragen und im Gruppen-Chat schreiben.</div>}
                 {kommune && <div style={{marginTop:14}}><MessageBox toId={kommune.id} label="Der Kommune schreiben" defaultText={`Hallo, ich interessiere mich für „${offer.titel}“. `}/></div>}
               </div>
             )}
@@ -188,7 +189,7 @@ export default function AngebotDetail() {
           </div>
         )}
 
-        {interest?.role && <OfferOrganisation offer={offer} asId={active?.id} role={interest.role}/>}
+        {interest?.role && <OfferOrganisation offer={offer} asId={active?.id} role={interest.role} onOfferChange={p => setOffer(o => ({ ...o, ...p }))}/>}
 
         {interest?.role && <OfferChat offerId={id} asId={active?.id}/>}
 
