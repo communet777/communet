@@ -11,6 +11,11 @@ return(
 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin=""/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <meta name="theme-color" content="#173F4A"/>
+<link rel="manifest" href="/manifest.webmanifest"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Communet"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta property="og:title" content="communet — Gemeinschaft neu gedacht"/>
 <meta property="og:description" content="Weltkarte alternativer Gemeinschaften. Ökodörfer, Kommunen und Kollektive weltweit — kostenlos, werbefrei, ohne Algorithmus."/>
 <meta property="og:image" content="https://www.communet.net/api/og?v=petrol"/>
