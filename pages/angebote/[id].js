@@ -6,11 +6,15 @@ import Link from 'next/link'
 import Nav from '../../components/Nav'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
+import { useActiveProfile } from '../../lib/ActiveProfileContext'
+import MessageBox from '../../components/MessageBox'
 
 export default function AngebotDetail() {
   const router = useRouter()
   const { id } = router.query
   const { user } = useAuth()
+  const { earlyAccess } = useActiveProfile()
+  const [interest, setInterest] = useState(null)
   const [offer, setOffer] = useState(null)
   const [kommune, setKommune] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -28,6 +32,17 @@ export default function AngebotDetail() {
         setLoading(false)
       })
   }, [id])
+
+  async function loadInterest() {
+    const { data } = await supabase.rpc('offer_interest_info', { p_offer: id })
+    setInterest(data || null)
+  }
+  useEffect(() => { if (id && user && earlyAccess) loadInterest() }, [id, user, earlyAccess])
+  async function toggleInterest() {
+    if (interest?.mine) await supabase.from('offer_interest').delete().eq('offer_id', id).eq('user_id', user.id)
+    else await supabase.from('offer_interest').insert({ offer_id: id, user_id: user.id })
+    loadInterest()
+  }
 
   if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:32,height:32,border:'3px solid #eee',borderTopColor:'#173F4A',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/></div>
   if (!offer) return <div><Nav/><div style={{padding:48,textAlign:'center',color:'var(--muted)'}}>— Angebot nicht gefunden. <Link href="/angebote" style={{color:'var(--g)'}}>Zurück</Link></div></div>
@@ -68,6 +83,18 @@ export default function AngebotDetail() {
         {offer.beschreibung && (
           <div style={{background:'var(--card)',borderRadius:14,padding:24,marginBottom:24}}>
             <p style={{fontSize:15,color:'var(--text)',lineHeight:1.7,margin:0,whiteSpace:'pre-wrap'}}>{offer.beschreibung}</p>
+          </div>
+        )}
+
+        {/* Interesse & Nachricht (nur Early-Access) */}
+        {user && earlyAccess && interest && (
+          <div style={{background:'var(--card)',borderRadius:14,padding:20,marginBottom:24}}>
+            <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+              <button onClick={toggleInterest} style={{padding:'10px 18px',borderRadius:10,border:'1.5px solid var(--g)',background:interest.mine?'var(--g)':'transparent',color:interest.mine?'white':'var(--g)',fontWeight:600,cursor:'pointer'}}>{interest.mine ? '✓ Ich bin interessiert' : 'Ich bin interessiert'}</button>
+              <span style={{fontSize:13,color:'var(--muted)'}}>{interest.count} {interest.count === 1 ? 'Person interessiert' : 'Personen interessiert'}</span>
+            </div>
+            {interest.people?.length > 0 && <div style={{fontSize:13,marginTop:12}}><strong>Interessiert:</strong> {interest.people.map(p => p.name).join(', ')}</div>}
+            {kommune && <div style={{marginTop:14}}><MessageBox toId={kommune.id} label="Der Kommune schreiben" defaultText={`Hallo, ich interessiere mich für „${offer.titel}“. `}/></div>}
           </div>
         )}
 

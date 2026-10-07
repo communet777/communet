@@ -8,6 +8,7 @@ import { getTypBadge } from '../../../data/communities'
 import TypIcon from '../../../components/TypIcon'
 import { getTypBg } from '../../../lib/typColors'
 import FavoriteBtn from '../../../components/FavoriteBtn'
+import MessageBox from '../../../components/MessageBox'
 import styles from '../../../styles/KommuneProfil.module.css'
 
 export default function OeffentlichesKommuneProfil() {
@@ -51,6 +52,7 @@ export default function OeffentlichesKommuneProfil() {
           <h1 className={styles.name}>{k.name}</h1>
           <div className={styles.meta}>
             <span className={`badge ${getTypBadge(typ)}`}>{typ}</span>
+            {k.hidden && <span className={styles.loc}>🔒 Versteckt</span>}
             {k.land && <span className={styles.loc}><Icon name="standort"/> {k.land}</span>}
             {k.gruendungsjahr && <span className={styles.founded}>Gegründet {k.gruendungsjahr}</span>}
           </div>
@@ -101,6 +103,7 @@ export default function OeffentlichesKommuneProfil() {
           <div className={styles.sideCard}>
             <div className={styles.sideTitle}><Icon name="stern"/> Folgen</div>
             <FavoriteBtn communityId={String(id)}/>
+            <div style={{marginTop:12}}><MessageBox toId={String(id)} label="Nachricht schreiben"/></div>
             {k.website && <a href={k.website} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:13,color:'var(--g)',marginTop:8}}>🔗 Zur Website</a>}
             {k.instagram && <a href={`https://instagram.com/${k.instagram}`} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:13,color:'var(--g)',marginTop:4}}>📸 @{k.instagram}</a>}
           </div>
