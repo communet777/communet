@@ -1,0 +1,4 @@
+Startet die Qualitätsprüfung der Bio-Hofläden (GitHub Actions: .github/workflows/hoflaeden-pruefung.yml).
+Jede Änderung an dieser Datei auf main löst einen neuen Lauf aus.
+
+Lauf 1: 2026-10-07 – Websites aller Hofläden und DE-Quellseiten (bio-hof-direkt.de) prüfen
