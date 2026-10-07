@@ -241,4 +241,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    log("Prüfung gestartet")
+    try:
+        main()
+    except Exception as e:
+        log(f"Abbruch: {type(e).__name__}: {str(e)[:500]}")
+        raise

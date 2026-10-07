@@ -2,3 +2,4 @@ Startet die Qualitätsprüfung der Bio-Hofläden (GitHub Actions: .github/workfl
 Jede Änderung an dieser Datei auf main löst einen neuen Lauf aus.
 
 Lauf 1: 2026-10-07 – Websites aller Hofläden und DE-Quellseiten (bio-hof-direkt.de) prüfen
+Lauf 2: 2026-10-07 – Neustart mit Start-/Fehlerprotokoll
