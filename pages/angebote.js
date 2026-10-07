@@ -192,6 +192,7 @@ const[profile,setProfile]=useState(null)
 const[showForm,setShowForm]=useState(false)
 const[saving,setSaving]=useState(false)
 const[error,setError]=useState('')
+const[editId,setEditId]=useState(null)
 const[newOffer,setNewOffer]=useState({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:''})
 
 useEffect(()=>{
@@ -203,21 +204,28 @@ async function handleAdd(e){
 e.preventDefault()
 if(!newOffer.titel){setError('Titel ist Pflicht.');return}
 setSaving(true);setError('')
-const{data,error:err}=await supabase.from('offers').insert({kommune_id:user.id,kommune_name:profile?.name||'',titel:newOffer.titel,beschreibung:newOffer.beschreibung||null,typ:newOffer.typ,ort:newOffer.ort||profile?.land||null,von:parseDate(newOffer.von),bis:parseDate(newOffer.bis),datum:parseDate(newOffer.datum),uhrzeit:newOffer.uhrzeit||null}).select().single()
+const fields={titel:newOffer.titel,beschreibung:newOffer.beschreibung||null,typ:newOffer.typ,ort:newOffer.ort||profile?.land||null,von:parseDate(newOffer.von),bis:parseDate(newOffer.bis),datum:parseDate(newOffer.datum),uhrzeit:newOffer.uhrzeit||null}
+const{data,error:err}=editId
+?await supabase.from('offers').update(fields).eq('id',editId).select().single()
+:await supabase.from('offers').insert({kommune_id:user.id,kommune_name:profile?.name||'',...fields}).select().single()
 setSaving(false)
 if(err){setError('Fehler: '+err.message);return}
-setOffers(o=>[data,...o])
+setOffers(o=>editId?o.map(x=>x.id===editId?data:x):[data,...o])
+setEditId(null)
 setNewOffer({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:''})
 setShowForm(false)
 }
 
+function isoToDe(v){return v&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v.split('-').reverse().join('.'):(v||'')}
+function startEdit(o){setNewOffer({titel:o.titel||'',beschreibung:o.beschreibung||'',typ:o.typ||'Workaway',ort:o.ort||'',von:isoToDe(o.von),bis:isoToDe(o.bis),datum:isoToDe(o.datum),uhrzeit:(o.uhrzeit||'').slice(0,5)});setEditId(o.id);setError('');setShowForm(true);if(typeof window!=='undefined')window.scrollTo({top:0,behavior:'smooth'})}
+function cancelForm(){setShowForm(false);setEditId(null);setError('');setNewOffer({titel:'',beschreibung:'',typ:'Workaway',ort:'',von:'',bis:'',datum:'',uhrzeit:''})}
 async function handleDelete(id){await supabase.from('offers').delete().eq('id',id);setOffers(o=>o.filter(x=>x.id!==id))}
 
 return(
 <div className={styles.personWrap}>
 <div className={styles.header}>
 <div><h1 className={styles.title}>Eure Angebote</h1><p className={styles.sub}>Sichtbar für alle eingeloggten Nutzer</p></div>
-<button className={styles.btnPrimary}onClick={()=>setShowForm(f=>!f)}>{showForm?'Abbrechen':'+ Neues Angebot'}</button>
+<button className={styles.btnPrimary}onClick={()=>showForm?cancelForm():setShowForm(true)}>{showForm?'Abbrechen':'+ Neues Angebot'}</button>
 </div>
 {showForm&&(
 <form onSubmit={handleAdd}className={styles.form}>
@@ -227,7 +235,7 @@ return(
 <div className={styles.formRow}><div className={styles.field}><label>Datum Veranstaltung</label><input type="text"value={newOffer.datum}onChange={e=>setNewOffer(n=>({...n,datum:e.target.value}))}placeholder="TT.MM.JJJJ"/></div><div className={styles.field}><label>Uhrzeit</label><input type="text"value={newOffer.uhrzeit}onChange={e=>setNewOffer(n=>({...n,uhrzeit:e.target.value}))}placeholder="z.B. 14:00"/></div></div>
 <div className={styles.field}><label>Ort</label><input type="text"value={newOffer.ort}onChange={e=>setNewOffer(n=>({...n,ort:e.target.value}))}placeholder={profile?.land||'Wird aus Profil übernommen'}/></div>
 {error&&<p className={styles.error}>{error}</p>}
-<button type="submit"className={styles.btnPrimary}disabled={saving}>{saving?'Speichert...':'Veröffentlichen'}</button>
+<button type="submit"className={styles.btnPrimary}disabled={saving}>{saving?'Speichert...':editId?'Änderungen speichern':'Veröffentlichen'}</button>
 </form>
 )}
 {offers.length===0&&!showForm&&(
@@ -238,6 +246,7 @@ return(
 <div key={o.id}style={{position:'relative'}}>
 <OfferCard o={{...o,kommune_typ:profile?.kommune_typ}}href={`/angebote/${o.id}`}/>
 <button className={styles.deleteBtn}style={{position:'absolute',top:12,right:12,zIndex:1}}onClick={()=>handleDelete(o.id)}>×</button>
+<button className={styles.deleteBtn}style={{position:'absolute',top:12,right:44,zIndex:1,fontSize:12,width:'auto',padding:'2px 10px'}}onClick={()=>startEdit(o)}>Bearbeiten</button>
 </div>
 ))}
 </div>
