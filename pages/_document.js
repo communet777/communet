@@ -1,8 +1,10 @@
 import{Html,Head,Main,NextScript}from'next/document'
+const THEME_SCRIPT="try{var t=localStorage.getItem('communet_theme');document.documentElement.setAttribute('data-theme',t==='dark'||t==='auto'?t:'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}"
 export default function Document(){
 return(
 <Html lang="de">
 <Head>
+<script dangerouslySetInnerHTML={{__html:THEME_SCRIPT}}/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
