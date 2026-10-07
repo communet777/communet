@@ -93,6 +93,7 @@ export default function KommuneBearbeiten() {
   const [tab, setTab] = useState('profil')
   const [offers, setOffers] = useState([])
   const [newOffer, setNewOffer] = useState({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'' })
+  const [editOfferId, setEditOfferId] = useState(null)
   const [savingOffer, setSavingOffer] = useState(false)
   const [offerError, setOfferError] = useState('')
 
@@ -153,23 +154,30 @@ export default function KommuneBearbeiten() {
   async function handleAddOffer(e) {
     e.preventDefault(); setSavingOffer(true); setOfferError('')
     if (!newOffer.titel) { setOfferError('Titel ist Pflicht.'); setSavingOffer(false); return }
-    const { data, error: err } = await supabase.from('offers').insert({
-      kommune_id: pid,
-      kommune_name: profile.name || '',
-      titel: newOffer.titel,
+    const fields = { titel: newOffer.titel,
       beschreibung: newOffer.beschreibung || null,
       typ: newOffer.typ,
       ort: newOffer.ort || profile.land || null,
       von: parseDate(newOffer.von),
       bis: parseDate(newOffer.bis),
       datum: parseDate(newOffer.datum),
-      uhrzeit: newOffer.uhrzeit || null,
-    }).select().single()
+      uhrzeit: newOffer.uhrzeit || null }
+    const { data, error: err } = editOfferId
+      ? await supabase.from('offers').update(fields).eq('id', editOfferId).select().single()
+      : await supabase.from('offers').insert({ kommune_id: pid, kommune_name: profile.name || '', ...fields }).select().single()
     setSavingOffer(false)
     if (err) { setOfferError('Fehler: '+err.message); return }
-    setOffers(o => [data, ...o])
+    setOffers(o => editOfferId ? o.map(x => x.id === editOfferId ? data : x) : [data, ...o])
+    setEditOfferId(null)
     setNewOffer({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'' })
   }
+
+  function isoToDe(v) { return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v.split('-').reverse().join('.') : (v || '') }
+  function startEditOffer(o) {
+    setNewOffer({ titel:o.titel||'', beschreibung:o.beschreibung||'', typ:o.typ||'Workaway', ort:o.ort||'', von:isoToDe(o.von), bis:isoToDe(o.bis), datum:isoToDe(o.datum), uhrzeit:(o.uhrzeit||'').slice(0,5) })
+    setEditOfferId(o.id); setOfferError(''); window.scrollTo({ top:0, behavior:'smooth' })
+  }
+  function cancelEditOffer() { setEditOfferId(null); setOfferError(''); setNewOffer({ titel:'', beschreibung:'', typ:'Workaway', ort:'', von:'', bis:'', datum:'', uhrzeit:'' }) }
 
   async function handleDeleteOffer(id) {
     await supabase.from('offers').delete().eq('id', id)
@@ -259,7 +267,8 @@ export default function KommuneBearbeiten() {
               </div>
               <div className={styles.field}><label>Ort</label><input type="text" value={newOffer.ort} onChange={e=>setNewOffer(n=>({...n,ort:e.target.value}))} placeholder={profile.land||'Wird aus Profil übernommen'}/></div>
               {offerError&&<p className={styles.error}>{offerError}</p>}
-              <button type="submit" className={styles.btn} disabled={savingOffer}>{savingOffer?'Speichert...':'Angebot veröffentlichen'}</button>
+              <button type="submit" className={styles.btn} disabled={savingOffer}>{savingOffer?'Speichert...':editOfferId?'Änderungen speichern':'Angebot veröffentlichen'}</button>
+              {editOfferId&&<button type="button" onClick={cancelEditOffer} style={{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:14}}>Bearbeiten abbrechen</button>}
             </form>
 
             {offers.length===0&&<p style={{color:'var(--muted)',fontSize:14,textAlign:'center',padding:24}}>Noch keine Angebote.</p>}
@@ -274,6 +283,7 @@ export default function KommuneBearbeiten() {
                 {o.ort&&<div style={{fontSize:12,color:'var(--muted)',marginTop:2}}><Icon name="standort"/> {o.ort}</div>}
                 {o.beschreibung&&<p style={{fontSize:13,color:'var(--muted)',marginTop:6,lineHeight:1.5,margin:'6px 0 0'}}>{o.beschreibung}</p>}
                 <button onClick={()=>handleDeleteOffer(o.id)} style={{position:'absolute',top:12,right:12,background:'none',border:'none',color:'var(--muted)',fontSize:16,cursor:'pointer'}}>×</button>
+                <button onClick={()=>startEditOffer(o)} style={{position:'absolute',top:12,right:40,background:'none',border:'none',color:'var(--g)',fontSize:13,fontWeight:600,cursor:'pointer'}}>Bearbeiten</button>
               </div>
             ))}
           </div>
