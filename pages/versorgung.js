@@ -149,6 +149,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.popupLoc}><Icon name="standort"/> {selectedFarm.ort}{selectedFarm.ort&&selectedFarm.bundesland?' · ':''}{selectedFarm.bundesland}</div>
 {selectedFarm.bio_verband&&<div className={styles.popupDesc}>{t('hof_verband')}: {selectedFarm.bio_verband}</div>}
 {selectedFarm.produits&&selectedFarm.produits.length>0&&<div className={styles.popupDesc}>🛒 {selectedFarm.produits.join(' · ')}</div>}
+{selectedFarm.ungefaehr&&<div className={styles.popupLoc}>📍 Lage ungefähr (Ortsmitte) – genaue Adresse beim Hof erfragen</div>}
 {selectedFarm.hinweis&&<div className={styles.popupLoc}>ℹ️ {selectedFarm.hinweis}</div>}
 <FarmCommunityLink farmId={selectedFarm.id}/>
 <a href={`/hoflaeden/${encodeURIComponent(selectedFarm.id)}`}className={`${styles.popupBtn} ${styles.popupBtnFarm}`}>{t('map_view_profile')}</a>
