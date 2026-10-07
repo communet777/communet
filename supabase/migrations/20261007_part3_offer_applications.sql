@@ -1,0 +1,4 @@
+-- Bereits angewendet (Migration offer_conditions_applications_chat):
+-- offers: verguetung, verguetung_info, unterkunft, verpflegung, kosten_info
+-- offer_interest.status (angefragt/angenommen/abgelehnt), offer_messages (nur per RPC),
+-- Funktionen: offer_access, offer_interest_info, offer_set_status, offer_chat_messages, send_offer_message
