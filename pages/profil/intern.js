@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
+import IcalPanel from '../../components/IcalPanel'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/ProfilBearbeiten.module.css'
@@ -117,6 +118,7 @@ export default function Intern() {
   const [msg, setMsg] = useState('')
 
   useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
+  useEffect(() => { const t = router.query.tab; if (t === 'karte' || t === 'aufgaben' || t === 'kalender') setTab(t) }, [router.query.tab])
 
   useEffect(() => {
     if (!user || !pid) return
@@ -158,7 +160,7 @@ export default function Intern() {
             </div>
             {msg && <p style={{ color: '#b3261e', fontSize: 13 }}>{msg}</p>}
             {tab === 'kalender' && <Kalender pid={pid} bewohner={bewohner} versteckt={versteckt} setMsg={setMsg}/>}
-            {tab === 'karte' && bewohner && <Karte pid={pid} setMsg={setMsg}/>}
+            {tab === 'karte' && bewohner && <Karte pid={pid} setMsg={setMsg} startOrt={typeof router.query.ort === 'string' ? router.query.ort : null}/>}
             {tab === 'aufgaben' && bewohner && <Aufgaben pid={pid} user={user} members={members} setMsg={setMsg}/>}
           </div>
         )}
@@ -408,12 +410,14 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
           <div style={{ fontSize: 13, color: 'var(--muted)' }}>{t.art === 'anwesenheit' ? 'Anwesend' : 'Termin'} · {datum(t.s)}{t.e > t.s ? ' bis ' + datum(t.e) : ''}{t.art === 'termin' && t.s.getTime() === t.e.getTime() ? ' · ' + zeit(t) + ' Uhr' : ''}</div>
         </button>
       ))}
+
+      {bewohner && <IcalPanel pid={pid} onSynced={load} setMsg={setMsg}/>}
     </div>
   )
 }
 
 // ---------------------------------------------------------------- Karte
-function Karte({ pid, setMsg }) {
+function Karte({ pid, setMsg, startOrt }) {
   const [karten, setKarten] = useState([])
   const [urls, setUrls] = useState({})
   const [aktiv, setAktiv] = useState(null)
@@ -425,6 +429,8 @@ function Karte({ pid, setMsg }) {
   const [pf, setPf] = useState({ titel: '', beschreibung: '' })
   const [up, setUp] = useState({ titel: '', datei: null, busy: false })
   const [vorlage, setVorlage] = useState('')
+  const [offen, setOffen] = useState({})
+  const [startDone, setStartDone] = useState(false)
 
   async function loadKarten(waehle) {
     const { data, error } = await supabase.from('kommune_karten').select('*').eq('kommune_id', pid).order('sort').order('created_at')
@@ -448,6 +454,26 @@ function Karte({ pid, setMsg }) {
     setOrte(data || [])
   }
   useEffect(() => { loadOrte(aktiv); setSel(null); setPin(null); setSetzen(false); setVorlage('') }, [aktiv])
+
+  // Rücksprung von der Raumseite: richtige Karte öffnen und den Raum auswählen
+  useEffect(() => {
+    if (!startOrt || startDone) return
+    ;(async () => {
+      const { data } = await supabase.from('kommune_orte').select('id,karte_id').eq('id', startOrt).maybeSingle()
+      setStartDone(true)
+      if (data) { setAktiv(data.karte_id); setTimeout(() => setSel(data.id), 400) }
+    })()
+  }, [startOrt])
+
+  // Offene Aufgaben je Raum für die Infobox
+  useEffect(() => {
+    if (!orte.length) { setOffen({}); return }
+    supabase.from('kommune_aufgaben').select('ort_id').eq('kommune_id', pid).neq('status', 'fertig').not('ort_id', 'is', null).then(({ data }) => {
+      const m = {}
+      ;(data || []).forEach(a => { m[a.ort_id] = (m[a.ort_id] || 0) + 1 })
+      setOffen(m)
+    })
+  }, [orte])
 
   async function hochladen(e) {
     e.preventDefault()
@@ -525,6 +551,27 @@ function Karte({ pid, setMsg }) {
       {k && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
           <div style={{ flex: '3 1 480px', minWidth: 0 }}>
+            {gewaehlt && !pin && (
+              <div style={{ ...card, border: '2px solid var(--g)', marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+                  <strong style={{ fontSize: 16 }}>{gewaehlt.titel}</strong>
+                  <button type="button" aria-label="Infobox schließen" onClick={() => setSel(null)} style={{ border: 'none', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 20, minHeight: 36, minWidth: 36 }}>×</button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, margin: '8px 0' }}>
+                  <div><span style={label}>Größe</span><strong>{gewaehlt.flaeche_m2 ? `${String(gewaehlt.flaeche_m2).replace('.', ',')} m²` : '–'}</strong></div>
+                  <div><span style={label}>Höhe</span><strong>{gewaehlt.hoehe_m ? `${String(gewaehlt.hoehe_m).replace('.', ',')} m` : '–'}</strong></div>
+                  <div><span style={label}>Offene Aufgaben</span><strong>{offen[gewaehlt.id] || 0}</strong></div>
+                </div>
+                <div style={{ fontSize: 14, margin: '4px 0 10px', color: gewaehlt.probleme ? '#b3261e' : 'var(--muted)' }}>
+                  <span style={label}>Probleme</span>{gewaehlt.probleme || 'Keine eingetragen'}
+                </div>
+                {gewaehlt.beschreibung && <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--muted)' }}>{gewaehlt.beschreibung}</p>}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <Link href={`/profil/raum?id=${gewaehlt.id}`} style={{ ...btn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Raumseite öffnen →</Link>
+                  <button type="button" style={btnLight} onClick={() => ortLoeschen(gewaehlt.id)}>Markierung löschen</button>
+                </div>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center' }}>
               <button type="button" style={btnLight} onClick={() => setZoom(z => Math.max(100, z - 50))} aria-label="Verkleinern">−</button>
               <span style={{ fontSize: 13, minWidth: 44, textAlign: 'center' }}>{zoom}%</span>
@@ -538,7 +585,7 @@ function Karte({ pid, setMsg }) {
                 {bild ? <img src={bild} alt={k.titel} style={{ display: 'block', width: '100%', height: 'auto', userSelect: 'none' }} draggable={false}/> : <div style={{ padding: 40, color: 'var(--muted)' }}>Bild wird geladen…</div>}
                 {orte.map((o, i) => (
                   <button key={o.id} type="button" aria-label={o.titel} title={o.titel} onClick={ev => { ev.stopPropagation(); setSel(o.id); setPin(null); setSetzen(false) }}
-                    style={{ position: 'absolute', left: `${o.x}%`, top: `${o.y}%`, transform: 'translate(-50%,-50%)', minWidth: 34, height: 34, padding: '0 8px', borderRadius: 17, border: sel === o.id ? '3px solid #17251D' : '2px solid #fff', background: sel === o.id ? '#B7791F' : '#2F5D46', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>{kurz(o, i)}</button>
+                    style={{ position: 'absolute', left: `${o.x}%`, top: `${o.y}%`, transform: 'translate(-50%,-50%)', minWidth: 34, height: 34, padding: '0 8px', borderRadius: 17, border: sel === o.id ? '3px solid #17251D' : '2px solid #fff', background: sel === o.id ? '#B7791F' : (o.probleme ? '#B3261E' : '#2F5D46'), color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>{kurz(o, i)}</button>
                 ))}
                 {pin && <span style={{ position: 'absolute', left: `${pin.x}%`, top: `${pin.y}%`, transform: 'translate(-50%,-50%)', width: 26, height: 26, borderRadius: '50%', background: '#B7791F', border: '3px solid #fff' }}/>}
               </div>
@@ -553,13 +600,6 @@ function Karte({ pid, setMsg }) {
                 <div><label style={label}>Notiz</label><textarea style={{ ...input, minHeight: 70 }} value={pf.beschreibung} onChange={e => setPf({ ...pf, beschreibung: e.target.value })}/></div>
                 <div><button type="submit" style={btn}>Speichern</button></div>
               </form>
-            )}
-            {gewaehlt && !pin && (
-              <div style={card}>
-                <strong>{gewaehlt.titel}</strong>
-                {gewaehlt.beschreibung && <p style={{ margin: '6px 0 10px', fontSize: 14 }}>{gewaehlt.beschreibung}</p>}
-                <button type="button" style={btnLight} onClick={() => ortLoeschen(gewaehlt.id)}>Markierung löschen</button>
-              </div>
             )}
             {orte.length === 0 && (
               <div style={card}>
@@ -596,33 +636,37 @@ function Karte({ pid, setMsg }) {
 function Aufgaben({ pid, user, members, setMsg }) {
   const [projekte, setProjekte] = useState([])
   const [aufgaben, setAufgaben] = useState([])
+  const [raeume, setRaeume] = useState([])
   const [pf, setPf] = useState('alle')
-  const [neuProjekt, setNeuProjekt] = useState({ titel: '', laufend: false })
-  const [f, setF] = useState({ titel: '', projekt_id: '', zustaendig: '', faellig: '', intervall: 0 })
+  const [neuProjekt, setNeuProjekt] = useState({ titel: '', laufend: false, ort_id: '' })
+  const [f, setF] = useState({ titel: '', projekt_id: '', zustaendig: '', faellig: '', intervall: 0, ort_id: '' })
   const heute = dayKey(new Date())
 
   async function load() {
-    const [p, a] = await Promise.all([
+    const [p, a, o] = await Promise.all([
       supabase.from('kommune_projekte').select('*').eq('kommune_id', pid).order('created_at'),
       supabase.from('kommune_aufgaben').select('*').eq('kommune_id', pid).order('created_at'),
+      supabase.from('kommune_orte').select('id,titel').eq('kommune_id', pid).order('titel'),
     ])
     if (p.error || a.error) { setMsg((p.error || a.error).message); return }
     setProjekte(p.data || [])
     setAufgaben(a.data || [])
+    setRaeume(o.data || [])
   }
   useEffect(() => { load() }, [pid])
 
   const personen = [{ user_id: user.id, name: 'Ich' }, ...members.filter(m => m.rolle === 'bewohner' && m.user_id !== user.id)]
   const wer = id => id === user.id ? 'Ich' : (members.find(m => m.user_id === id)?.name || (id ? 'Bewohner' : 'frei'))
   const projektName = id => projekte.find(p => p.id === id)?.titel || 'Ohne Projekt'
+  const raumName = id => raeume.find(r => r.id === id)?.titel || ''
   const kurzDatum = s => new Date(s + 'T12:00').toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })
 
   async function projektAnlegen(e) {
     e.preventDefault()
     if (!neuProjekt.titel.trim()) return
-    const { error } = await supabase.from('kommune_projekte').insert({ kommune_id: pid, titel: neuProjekt.titel.trim(), laufend: neuProjekt.laufend })
+    const { error } = await supabase.from('kommune_projekte').insert({ kommune_id: pid, titel: neuProjekt.titel.trim(), laufend: neuProjekt.laufend, ort_id: neuProjekt.ort_id || null })
     if (error) { setMsg('Speichern fehlgeschlagen: ' + error.message); return }
-    setNeuProjekt({ titel: '', laufend: false })
+    setNeuProjekt({ titel: '', laufend: false, ort_id: '' })
     load()
   }
 
@@ -631,10 +675,10 @@ function Aufgaben({ pid, user, members, setMsg }) {
     if (!f.titel.trim()) return
     const iv = Number(f.intervall) || null
     const faellig = f.faellig || (iv ? dayKey(addDays(new Date(), iv)) : null)
-    const { error } = await supabase.from('kommune_aufgaben').insert({ kommune_id: pid, titel: f.titel.trim(), projekt_id: f.projekt_id || null, zustaendig: f.zustaendig || null, faellig, intervall_tage: iv })
+    const { error } = await supabase.from('kommune_aufgaben').insert({ kommune_id: pid, titel: f.titel.trim(), projekt_id: f.projekt_id || null, zustaendig: f.zustaendig || null, faellig, intervall_tage: iv, ort_id: f.ort_id || null })
     if (error) { setMsg('Speichern fehlgeschlagen: ' + error.message); return }
     setMsg('')
-    setF({ titel: '', projekt_id: f.projekt_id, zustaendig: '', faellig: '', intervall: 0 })
+    setF({ titel: '', projekt_id: f.projekt_id, zustaendig: '', faellig: '', intervall: 0, ort_id: f.ort_id })
     load()
   }
 
@@ -674,6 +718,7 @@ function Aufgaben({ pid, user, members, setMsg }) {
         <form onSubmit={projektAnlegen} style={{ ...card, flex: '1 1 260px', margin: 0, display: 'grid', gap: 8 }}>
           <strong>Neues Projekt</strong>
           <input style={input} placeholder="z. B. Dach Scheune oder Garten & Hof" value={neuProjekt.titel} onChange={e => setNeuProjekt({ ...neuProjekt, titel: e.target.value })}/>
+          <select style={input} value={neuProjekt.ort_id} onChange={e => setNeuProjekt({ ...neuProjekt, ort_id: e.target.value })} aria-label="Raum oder Ort"><option value="">Kein bestimmter Raum</option>{raeume.map(r => <option key={r.id} value={r.id}>{r.titel}</option>)}</select>
           <label style={{ fontSize: 13, display: 'flex', gap: 8, alignItems: 'center', minHeight: 36 }}><input type="checkbox" checked={neuProjekt.laufend} onChange={e => setNeuProjekt({ ...neuProjekt, laufend: e.target.checked })}/> Laufendes Projekt (ohne Ende, für Daueraufgaben)</label>
           <div><button type="submit" style={btn}>Projekt anlegen</button></div>
         </form>
@@ -682,6 +727,7 @@ function Aufgaben({ pid, user, members, setMsg }) {
           <input style={input} required placeholder="Was ist zu tun?" value={f.titel} onChange={e => setF({ ...f, titel: e.target.value })}/>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
             <select style={input} value={f.projekt_id} onChange={e => setF({ ...f, projekt_id: e.target.value })} aria-label="Projekt"><option value="">Ohne Projekt</option>{projekte.map(p => <option key={p.id} value={p.id}>{p.titel}</option>)}</select>
+            <select style={input} value={f.ort_id} onChange={e => setF({ ...f, ort_id: e.target.value })} aria-label="Raum oder Ort"><option value="">Kein bestimmter Raum</option>{raeume.map(r => <option key={r.id} value={r.id}>{r.titel}</option>)}</select>
             <select style={input} value={f.zustaendig} onChange={e => setF({ ...f, zustaendig: e.target.value })} aria-label="Wer macht es"><option value="">Noch frei</option>{personen.map(p => <option key={p.user_id} value={p.user_id}>{p.name}</option>)}</select>
             <select style={input} value={f.intervall} onChange={e => setF({ ...f, intervall: e.target.value })} aria-label="Wiederholung">{INTERVALLE.map(i => <option key={i[0]} value={i[0]}>{i[1]}</option>)}</select>
             <input style={input} type="date" value={f.faellig} onChange={e => setF({ ...f, faellig: e.target.value })} aria-label="Fällig am"/>
@@ -701,7 +747,7 @@ function Aufgaben({ pid, user, members, setMsg }) {
                 return (
                   <div key={a.id} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: 10, marginBottom: 8 }}>
                     <div style={{ fontWeight: 600 }}>{a.intervall_tage ? '↻ ' : ''}{a.titel}</div>
-                    <div style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 2px' }}>{projektName(a.projekt_id)} · {wer(a.zustaendig)}</div>
+                    <div style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 2px' }}>{projektName(a.projekt_id)}{a.ort_id && raumName(a.ort_id) ? ' · ' + raumName(a.ort_id) : ''} · {wer(a.zustaendig)}</div>
                     {a.intervall_tage ? <div style={{ fontSize: 12, color: 'var(--muted)' }}>{intervallLabel(a.intervall_tage)}{a.zuletzt_erledigt ? ' · zuletzt erledigt ' + kurzDatum(a.zuletzt_erledigt) : ''}</div> : null}
                     {a.faellig && <div style={{ fontSize: 13, fontWeight: ueberfaellig ? 600 : 400, color: ueberfaellig ? '#b3261e' : 'var(--muted)' }}>{ueberfaellig ? 'Überfällig seit ' : 'Fällig '}{kurzDatum(a.faellig)}</div>}
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
