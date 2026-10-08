@@ -297,7 +297,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
   const angebotTermine = angebote.map(o => {
     const a = o.von || o.datum, b = o.bis || o.datum
     const einTag = !o.von && o.datum
-    return { id: 'ang-' + o.id, angebot: o.id, art: 'termin', titel: o.titel, beschreibung: o.typ ? `Angebot (${o.typ})` : 'Angebot', gruppe: ANGEBOT_GRUPPE, sichtbarkeit: 'oeffentlich', ort: o.ort,
+    return { id: 'ang-' + o.id, angebot: o.id, art: 'termin', titel: o.titel, beschreibung: o.typ ? `Angebot (${o.typ})` : 'Angebot', gruppe: ANGEBOT_GRUPPE, sichtbarkeit: versteckt ? 'gast' : 'oeffentlich', ort: o.ort,
       beginn: new Date(`${a}T${einTag && o.uhrzeit ? o.uhrzeit.slice(0, 5) : '00:00'}`).toISOString(), ende: new Date(`${b}T23:59`).toISOString() }
   })
   // Die importierten deutschen Feiertage aus kalender.digital werden nicht angezeigt
