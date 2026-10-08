@@ -18,9 +18,9 @@ const VIS = [
   { value: 'oeffentlich', label: 'Öffentlich' },
 ]
 const VIS_STYLE = {
-  bewohner: { bg: '#D6E6DB', fg: '#16402D', tag: 'B' },
-  gast: { bg: '#D4E2F2', fg: '#143A60', tag: 'G' },
-  oeffentlich: { bg: '#F4E0B3', fg: '#5E3F06', tag: 'Ö' },
+  bewohner: { bg: '#E4E4E4', fg: '#222222', tag: 'B' },
+  gast: { bg: '#CFCFCF', fg: '#222222', tag: 'G' },
+  oeffentlich: { bg: '#B8B8B8', fg: '#111111', tag: 'Ö' },
 }
 // Farben für Gruppen (z. B. Familien oder Haushalte), die im Anwesenheitskalender gemeinsam erscheinen
 const PALETTE = [
