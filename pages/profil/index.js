@@ -17,6 +17,7 @@ export default function Profil() {
   const [profile, setProfile] = useState(null)
   const [feedOffers, setFeedOffers] = useState([])
   const [feedLoading, setFeedLoading] = useState(true)
+  const [internAktiv, setInternAktiv] = useState(false)
 
   useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
 
@@ -24,6 +25,14 @@ export default function Profil() {
     if (!user || !active) return
     supabase.from('profiles').select('*').eq('id', active.id).single()
       .then(({ data }) => { if (data) setProfile(data) })
+  }, [user, active?.id])
+
+  // Interner Bereich: nur sichtbar, wenn für diese Gemeinschaft freigeschaltet
+  useEffect(() => {
+    setInternAktiv(false)
+    if (!user || !active || active.typ !== 'kommune') return
+    supabase.from('kommune_intern').select('aktiv').eq('kommune_id', active.id).maybeSingle()
+      .then(({ data }) => setInternAktiv(!!data?.aktiv))
   }, [user, active?.id])
 
   useEffect(() => {
@@ -80,6 +89,7 @@ export default function Profil() {
             {profile?.hidden && <div className={styles.meta}>🔒 Versteckt – nur für dich und eingeladene Mitglieder</div>}
             <Link href={isKommune ? `/profil/kommune?id=${active?.id}` : '/profil/bearbeiten'} className={styles.btnPrimary}>Profil bearbeiten</Link>
             {isKommune && <Link href={`/profil/mitglieder?id=${active?.id}`} className={styles.btnSecondary} style={{marginTop:8}}>👥 Mitglieder &amp; Rollen</Link>}
+            {isKommune && internAktiv && <Link href={`/profil/intern?id=${active?.id}`} className={styles.btnSecondary} style={{marginTop:8}}>🏡 Interner Bereich</Link>}
             <div className={styles.actions}>
               {earlyAccess && <Link href="/nachrichten" className={styles.btnSecondary}>✉️ Nachrichten</Link>}
               {earlyAccess && <Link href="/leute" className={styles.btnSecondary}><Icon name="person"/> Leute finden</Link>}
