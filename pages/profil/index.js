@@ -7,6 +7,7 @@ import TypIcon from '../../components/TypIcon'
 import { useAuth } from '../../lib/AuthContext'
 import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import ProfileSwitcher from '../../components/ProfileSwitcher'
+import { InternInhalt } from './intern'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/Profil.module.css'
 
@@ -89,20 +90,16 @@ export default function Profil() {
             {profile?.hidden && <div className={styles.meta}>🔒 Versteckt – nur für dich und eingeladene Mitglieder</div>}
             <Link href={isKommune ? `/profil/kommune?id=${active?.id}` : '/profil/bearbeiten'} className={styles.btnPrimary}>Profil bearbeiten</Link>
             {isKommune && <Link href={`/profil/mitglieder?id=${active?.id}`} className={styles.btnSecondary} style={{marginTop:8}}>👥 Mitglieder &amp; Rollen</Link>}
-            {isKommune && internAktiv && <Link href={`/profil/intern?id=${active?.id}`} className={styles.btnSecondary} style={{marginTop:8}}>🏡 Interner Bereich</Link>}
             <div className={styles.actions}>
-              {earlyAccess && <Link href="/nachrichten" className={styles.btnSecondary}>✉️ Nachrichten</Link>}
-              {earlyAccess && <Link href="/leute" className={styles.btnSecondary}><Icon name="person"/> Leute finden</Link>}
               {earlyAccess && !profiles.some(p => p.typ === 'kommune' && !p.managed) && <Link href="/profil/kommune?neu=1" className={styles.btnSecondary}><Icon name="globus"/> Neue Kommune</Link>}
               <Link href="/favoriten" className={styles.btnSecondary}><Icon name="stern"/> Favoriten</Link>
-              <Link href="/kommunen" className={styles.btnSecondary}><Icon name="globus"/> Gemeinschaften</Link>
-              <Link href="/karte" className={styles.btnSecondary}><Icon name="karte"/> Karte</Link>
             </div>
             <button className={styles.signOut} onClick={handleSignOut}>Abmelden</button>
           </div>
         </aside>
 
         <main className={styles.feed}>
+          {isKommune && internAktiv ? <><h1 className={styles.feedTitle} style={{marginTop:0}}>Interner Bereich</h1><InternInhalt pid={active.id} user={user}/></> : (<>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:12,flexWrap:'wrap'}}>
 <h2 className={styles.feedTitle}>Dein Feed</h2>
 <Link href="/feed" style={{fontSize:12,color:'var(--g)'}}>Als eigene Seite öffnen →</Link>
@@ -133,6 +130,7 @@ export default function Profil() {
               </div>
             </Link>
           ))}
+          </>)}
         </main>
       </div>
     </div>
