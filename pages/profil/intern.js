@@ -120,8 +120,8 @@ function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x }
 function diffDays(a, b) { return Math.round((startOfDay(b) - startOfDay(a)) / 86400000) }
 function hash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h }
-function farbeFuer(t) {
-  if (t.gruppe) return PALETTE[hash(t.gruppe.toLowerCase()) % PALETTE.length]
+function farbeFuer(t, farbeGruppe) {
+  if (t.gruppe) return farbeGruppe(t.gruppe)
   return [VIS_STYLE[t.sichtbarkeit].bg, VIS_STYLE[t.sichtbarkeit].fg]
 }
 function intervallLabel(n) { return INTERVALLE.find(i => i[0] === n)?.[1] || `Alle ${n} Tage` }
@@ -213,8 +213,9 @@ const LEER = { art: 'anwesenheit', titel: '', gruppe: '', datum: '', datumBis: '
 function Kalender({ pid, bewohner, versteckt, setMsg }) {
   const [monat, setMonat] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const [termine, setTermine] = useState([])
-  const [artFilter, setArtFilter] = useState('alle')
-  const [visFilter, setVisFilter] = useState('alle')
+  const [artFilter, setArtFilter] = useState('anwesenheit')
+  const [visFilter, setVisFilter] = useState('bewohner')
+  const [gruppenAlle, setGruppenAlle] = useState([])
   const [ausgeblendet, setAusgeblendet] = useState([])
   const [sel, setSel] = useState(null)
   const [neu, setNeu] = useState(false)
@@ -237,6 +238,18 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
     setTermine(data || [])
   }
   useEffect(() => { load() }, [pid, monat])
+
+  // Alle Gruppen der Gemeinschaft (verknüpfte Kalender zuerst, in fester Reihenfolge), unabhängig vom sichtbaren Monat
+  useEffect(() => {
+    ;(async () => {
+      const [fd, tm] = await Promise.all([
+        supabase.from('kommune_ical_feeds').select('gruppe,name').eq('kommune_id', pid).order('created_at'),
+        supabase.from('kommune_termine').select('gruppe').eq('kommune_id', pid).not('gruppe', 'is', null).limit(3000),
+      ])
+      const aus = [...(fd.data || []).map(x => x.gruppe || x.name), ...[...new Set((tm.data || []).map(x => x.gruppe))].sort()]
+      setGruppenAlle([...new Set(aus)].filter(g => g && g !== 'Feiertage' && g !== FEIERTAG_GRUPPE))
+    })()
+  }, [pid, termine.length])
 
   async function speichern(e) {
     e.preventDefault()
@@ -266,6 +279,10 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
     setSel(null)
   }
 
+  // Feste Farbe je Gruppe: nach Reihenfolge der Gruppen der Gemeinschaft, ändert sich nicht mit dem Monat
+  const farbeGruppe = g => g === FEIERTAG_GRUPPE ? ['#E6E1D3', '#4A4636']
+    : (gruppenAlle.indexOf(g) >= 0 ? PALETTE[gruppenAlle.indexOf(g) % PALETTE.length] : PALETTE[hash(g.toLowerCase()) % PALETTE.length])
+
   // Termine auf Tage abbilden
   const feiertage = [...new Set([rasterStart.getFullYear(), rasterEnde.getFullYear()])].flatMap(y => frFeiertage(y))
     .filter(([, d]) => d >= rasterStart && d < rasterEnde)
@@ -275,9 +292,9 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
     const s = startOfDay(new Date(t.beginn))
     let e = t.ende ? startOfDay(new Date(t.ende)) : s
     if (e < s) e = s
-    return { ...t, s, e, farbe: farbeFuer(t) }
+    return { ...t, s, e, farbe: farbeFuer(t, farbeGruppe) }
   })
-  const gruppen = [...new Set(alle.map(t => t.gruppe).filter(Boolean))].sort()
+  const gruppen = [...new Set([...gruppenAlle, FEIERTAG_GRUPPE, ...alle.map(t => t.gruppe).filter(Boolean)])]
   const sichtbar = alle.filter(t =>
     (artFilter === 'alle' || t.art === artFilter) &&
     (visFilter === 'alle' || t.sichtbarkeit === visFilter) &&
@@ -372,7 +389,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12, alignItems: 'center' }}>
           <span style={{ fontSize: 13, fontWeight: 600 }}>Gruppen:</span>
           {gruppen.map(g => {
-            const c = PALETTE[hash(g.toLowerCase()) % PALETTE.length]
+            const c = farbeGruppe(g)
             const an = !ausgeblendet.includes(g)
             return (
               <button key={g} type="button" aria-pressed={an} onClick={() => setAusgeblendet(a => an ? [...a, g] : a.filter(x => x !== g))}
