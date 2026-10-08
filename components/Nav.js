@@ -3,28 +3,19 @@ import Icon from'./Icon'
 import{ICONS}from'../lib/typIcons'
 import Link from'next/link'
 import{useRouter}from'next/router'
-import{useState,useEffect}from'react'
+import{useState}from'react'
 import{useLang}from'../lib/LanguageContext'
 import{useAuth}from'../lib/AuthContext'
 import{useActiveProfile}from'../lib/ActiveProfileContext'
 import ProfileSwitcher from'./ProfileSwitcher'
 import ThemeSwitch from'./ThemeSwitch'
-import{supabase}from'../lib/supabase'
 import styles from'./Nav.module.css'
 export default function Nav(){
 const router=useRouter()
 const{lang,setLang,t}=useLang()
 const{user}=useAuth()
-const{earlyAccess,unread,active}=useActiveProfile()
+const{earlyAccess,unread}=useActiveProfile()
 const[open,setOpen]=useState(false)
-const[internId,setInternId]=useState(null)
-useEffect(()=>{
-setInternId(null)
-if(!user||!active||active.typ!=='kommune')return
-let alive=true
-supabase.from('kommune_intern').select('aktiv').eq('kommune_id',active.id).maybeSingle().then(({data})=>{if(alive&&data?.aktiv)setInternId(active.id)})
-return()=>{alive=false}
-},[user,active?.id,active?.typ])
 return(
 <>
 <nav className={styles.nav}>
@@ -38,7 +29,6 @@ return(
 {user&&earlyAccess&&<Link href="/nachrichten"className={`${styles.link}${router.pathname.startsWith('/nachrichten')?' '+styles.active:''}`}>Nachrichten{unread>0&&<span style={{marginLeft:6,background:'var(--gold,#E9AD55)',color:'#173F4A',borderRadius:10,padding:'1px 7px',fontSize:11,fontWeight:700}}>{unread}</span>}</Link>}
 {user&&<Link href="/app"className={`${styles.link}${router.pathname==='/app'?' '+styles.active:''}`}>App</Link>}
 {user&&<ProfileSwitcher/>}
-{user&&internId&&<Link href={`/profil/intern?id=${internId}`}className={`${styles.link}${router.pathname.startsWith('/profil/intern')||router.pathname.startsWith('/profil/raum')?' '+styles.active:''}`}>🏡 Intern</Link>}
 {user
 ?<Link href="/profil"className={`${styles.cta}${router.pathname.startsWith('/profil')?' '+styles.active:''}`}><Icon name="person"/> Profil</Link>
 :<Link href="/auth/login"className={styles.cta}>Anmelden</Link>
@@ -64,7 +54,6 @@ return(
 {user&&earlyAccess&&<Link href="/leute"className={styles.mobileLink}><Icon name="person"/> Leute</Link>}
 {user&&earlyAccess&&<Link href="/nachrichten"className={styles.mobileLink}><Icon name="stern"/> Nachrichten{unread>0?` (${unread})`:''}</Link>}
 {user&&<Link href="/app"className={styles.mobileLink}><Icon name="stern"/> App</Link>}
-{user&&internId&&<Link href={`/profil/intern?id=${internId}`}className={styles.mobileLink}>🏡 Intern</Link>}
 <div className={styles.mobileLang}>
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('de')}}>DE</button>
 <button className={`${styles.langBtn}${lang==='en'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('en')}}>EN</button>

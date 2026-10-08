@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 // Kalender-Abgleich für den Internen Bereich:
@@ -10,7 +10,31 @@ const btn = { border: 'none', background: 'var(--g)', color: 'white', borderRadi
 const btnLight = { ...btn, background: 'none', color: 'var(--g)', border: '1px solid var(--border)' }
 const input = { padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: 14, width: '100%', boxSizing: 'border-box' }
 const label = { fontSize: 12, color: 'var(--muted)', display: 'block', marginBottom: 4 }
-const AUTO_MIN = 30
+const AUTO_MIN = 15
+
+async function syncFeed(feed) {
+  try {
+    const { data: s } = await supabase.auth.getSession()
+    const r = await fetch('/api/ical-import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${s?.session?.access_token || ''}` },
+      body: JSON.stringify({ feedId: feed.id }),
+    })
+    const j = await r.json().catch(() => ({}))
+    return j.ok ? { ok: true } : { ok: false, error: j.error || String(r.status) }
+  } catch (e) {
+    return { ok: false, error: e.message }
+  }
+}
+
+// Läuft automatisch beim Öffnen des Internen Bereichs: liest alle verknüpften Kalender neu ein,
+// deren letzter Abgleich länger als AUTO_MIN Minuten her ist. Gibt die Zahl der abgeglichenen Feeds zurück.
+export async function syncFaellige(pid) {
+  const { data } = await supabase.from('kommune_ical_feeds').select('*').eq('kommune_id', pid)
+  const faellig = (data || []).filter(x => !x.letzter_abruf || Date.now() - new Date(x.letzter_abruf).getTime() > AUTO_MIN * 60000)
+  for (const x of faellig) await syncFeed(x)
+  return faellig.length
+}
 
 function vor(ts) {
   if (!ts) return 'noch nie'
@@ -27,23 +51,11 @@ export default function IcalPanel({ pid, onSynced, setMsg }) {
   const [busy, setBusy] = useState('')
   const [f, setF] = useState({ name: '', url: '', gruppe: '', art: 'anwesenheit' })
   const [kopiert, setKopiert] = useState(false)
-  const autoGelaufen = useRef(false)
 
   async function sync(feed) {
     setBusy(feed.id)
-    try {
-      const { data: s } = await supabase.auth.getSession()
-      const r = await fetch('/api/ical-import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${s?.session?.access_token || ''}` },
-        body: JSON.stringify({ feedId: feed.id }),
-      })
-      const j = await r.json().catch(() => ({}))
-      if (!j.ok) setMsg(`Abgleich "${feed.name}" fehlgeschlagen: ${j.error || r.status}`)
-      else setMsg('')
-    } catch (e) {
-      setMsg('Abgleich fehlgeschlagen: ' + e.message)
-    }
+    const r = await syncFeed(feed)
+    setMsg(r.ok ? '' : `Abgleich "${feed.name}" fehlgeschlagen: ${r.error}`)
     setBusy('')
   }
 
@@ -58,17 +70,7 @@ export default function IcalPanel({ pid, onSynced, setMsg }) {
     setExp(data?.token || null)
   }
 
-  useEffect(() => {
-    ;(async () => {
-      const list = await laden()
-      ladenExport()
-      if (autoGelaufen.current) return
-      autoGelaufen.current = true
-      const faellig = list.filter(x => !x.letzter_abruf || Date.now() - new Date(x.letzter_abruf).getTime() > AUTO_MIN * 60000)
-      for (const x of faellig) await sync(x)
-      if (faellig.length) { await laden(); onSynced && onSynced() }
-    })()
-  }, [pid])
+  useEffect(() => { laden(); ladenExport() }, [pid])
 
   async function hinzufuegen(e) {
     e.preventDefault()
@@ -114,7 +116,7 @@ export default function IcalPanel({ pid, onSynced, setMsg }) {
       <div style={{ marginTop: 12 }}>
         <div style={{ fontWeight: 600, marginBottom: 4 }}>Einlesen (z. B. kalender.digital)</div>
         <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 10px' }}>
-          Füge den iCal-Link eines Kalenders ein. Er wird jedes Mal neu eingelesen, wenn jemand den Kalender öffnet und der letzte Abgleich länger als {AUTO_MIN} Minuten her ist. Änderungen am Original erscheinen hier, Änderungen hier nicht im Original.
+          Füge den iCal-Link eines Kalenders ein. Danach läuft der Abgleich von selbst: Er wird jedes Mal neu eingelesen, sobald jemand den Internen Bereich öffnet und der letzte Abgleich länger als {AUTO_MIN} Minuten her ist. Änderungen am Original erscheinen hier, Änderungen hier nicht im Original.
         </p>
         {feeds.map(x => (
           <div key={x.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 10, marginBottom: 8, background: 'var(--bg)' }}>

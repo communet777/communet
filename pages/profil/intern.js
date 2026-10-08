@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
-import IcalPanel from '../../components/IcalPanel'
+import IcalPanel, { syncFaellige } from '../../components/IcalPanel'
 import InternUebersicht from '../../components/InternUebersicht'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
@@ -116,6 +116,7 @@ export function InternInhalt({ pid, user, mitUebersicht = false, onName }) {
   const [members, setMembers] = useState([])
   const [tab, setTab] = useState('kalender')
   const [msg, setMsg] = useState('')
+  const [refresh, setRefresh] = useState(0)
 
   useEffect(() => { const t = router.query.tab; if (t === 'karte' || t === 'aufgaben' || t === 'kalender') setTab(t) }, [router.query.tab])
 
@@ -133,6 +134,8 @@ export function InternInhalt({ pid, user, mitUebersicht = false, onName }) {
       const isB = p.owner_id === user.id || (list || []).some(m => m.user_id === user.id && m.rolle === 'bewohner')
       setBewohner(isB)
       setState('ok')
+      // Verknüpfte Kalender (iCal) automatisch aktualisieren, dann Ansicht neu laden
+      if (isB) syncFaellige(pid).then(n => { if (n) setRefresh(r => r + 1) }).catch(() => {})
     })()
   }, [user, pid])
 
@@ -145,12 +148,12 @@ export function InternInhalt({ pid, user, mitUebersicht = false, onName }) {
       {state === 'nein' && <p style={{ color: 'var(--muted)' }}>Dieser Bereich ist für diese Gemeinschaft nicht freigeschaltet, oder du hast keinen Zugriff.</p>}
       {state === 'ok' && (
         <div>
-          {mitUebersicht && bewohner && <InternUebersicht pid={pid} userId={user.id} onTab={setTab}/>}
+          {mitUebersicht && bewohner && <InternUebersicht key={'u' + refresh} pid={pid} userId={user.id} onTab={setTab}/>}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             {tabs.map(([v, l]) => <button key={v} type="button" onClick={() => setTab(v)} aria-pressed={tab === v} style={tabStyle(tab === v)}>{l}</button>)}
           </div>
           {msg && <p style={{ color: '#b3261e', fontSize: 13 }}>{msg}</p>}
-          {tab === 'kalender' && <Kalender pid={pid} bewohner={bewohner} versteckt={versteckt} setMsg={setMsg}/>}
+          {tab === 'kalender' && <Kalender key={'k' + refresh} pid={pid} bewohner={bewohner} versteckt={versteckt} setMsg={setMsg}/>}
           {tab === 'karte' && bewohner && <Karte pid={pid} setMsg={setMsg} startOrt={typeof router.query.ort === 'string' ? router.query.ort : null}/>}
           {tab === 'aufgaben' && bewohner && <Aufgaben pid={pid} user={user} members={members} setMsg={setMsg}/>}
         </div>
