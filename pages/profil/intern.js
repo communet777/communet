@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
 import IcalPanel from '../../components/IcalPanel'
+import InternUebersicht from '../../components/InternUebersicht'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/ProfilBearbeiten.module.css'
@@ -105,11 +106,10 @@ function farbeFuer(t) {
 }
 function intervallLabel(n) { return INTERVALLE.find(i => i[0] === n)?.[1] || `Alle ${n} Tage` }
 
-export default function Intern() {
-  const { user, loading } = useAuth()
+// Inhalt des Internen Bereichs (Reiter Kalender, Karte, Aufgaben). Wird auf der Profilseite der Gemeinschaft
+// und auf der eigenen Seite /profil/intern verwendet.
+export function InternInhalt({ pid, user, mitUebersicht = false, onName }) {
   const router = useRouter()
-  const pid = typeof router.query.id === 'string' ? router.query.id : null
-  const [name, setName] = useState('')
   const [versteckt, setVersteckt] = useState(false)
   const [state, setState] = useState('lade') // lade | nein | ok
   const [bewohner, setBewohner] = useState(false)
@@ -117,16 +117,16 @@ export default function Intern() {
   const [tab, setTab] = useState('kalender')
   const [msg, setMsg] = useState('')
 
-  useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
   useEffect(() => { const t = router.query.tab; if (t === 'karte' || t === 'aufgaben' || t === 'kalender') setTab(t) }, [router.query.tab])
 
   useEffect(() => {
     if (!user || !pid) return
+    setState('lade')
     ;(async () => {
       const { data: p } = await supabase.from('profiles').select('name,owner_id,hidden').eq('id', pid).eq('typ', 'kommune').maybeSingle()
       const { data: flag } = await supabase.from('kommune_intern').select('aktiv').eq('kommune_id', pid).maybeSingle()
       if (!p || !flag?.aktiv) { setState('nein'); return }
-      setName(p.name || '')
+      onName && onName(p.name || '')
       setVersteckt(!!p.hidden)
       const { data: list } = await supabase.rpc('kommune_members_roles', { p_kommune: pid })
       setMembers(list || [])
@@ -136,10 +136,38 @@ export default function Intern() {
     })()
   }, [user, pid])
 
-  if (loading || !user) return <div className={styles.loading}><div className={styles.spinner}/></div>
-
   const tabs = bewohner ? [['kalender', 'Kalender'], ['karte', 'Karte'], ['aufgaben', 'Aufgaben & Projekte']] : [['kalender', 'Kalender']]
   const tabStyle = on => ({ ...btn, background: on ? 'var(--text)' : 'var(--card)', color: on ? 'var(--bg)' : 'var(--text)', border: '1px solid var(--border)', borderRadius: 999, padding: '8px 16px' })
+
+  return (
+    <div>
+      {state === 'lade' && <p style={{ color: 'var(--muted)' }}>Lädt…</p>}
+      {state === 'nein' && <p style={{ color: 'var(--muted)' }}>Dieser Bereich ist für diese Gemeinschaft nicht freigeschaltet, oder du hast keinen Zugriff.</p>}
+      {state === 'ok' && (
+        <div>
+          {mitUebersicht && bewohner && <InternUebersicht pid={pid} userId={user.id} onTab={setTab}/>}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            {tabs.map(([v, l]) => <button key={v} type="button" onClick={() => setTab(v)} aria-pressed={tab === v} style={tabStyle(tab === v)}>{l}</button>)}
+          </div>
+          {msg && <p style={{ color: '#b3261e', fontSize: 13 }}>{msg}</p>}
+          {tab === 'kalender' && <Kalender pid={pid} bewohner={bewohner} versteckt={versteckt} setMsg={setMsg}/>}
+          {tab === 'karte' && bewohner && <Karte pid={pid} setMsg={setMsg} startOrt={typeof router.query.ort === 'string' ? router.query.ort : null}/>}
+          {tab === 'aufgaben' && bewohner && <Aufgaben pid={pid} user={user} members={members} setMsg={setMsg}/>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function Intern() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+  const pid = typeof router.query.id === 'string' ? router.query.id : null
+  const [name, setName] = useState('')
+
+  useEffect(() => { if (!loading && !user) router.replace('/auth/login') }, [user, loading])
+
+  if (loading || !user) return <div className={styles.loading}><div className={styles.spinner}/></div>
 
   return (
     <div className={styles.page}>
@@ -149,21 +177,7 @@ export default function Intern() {
           <Link href="/profil" className={styles.back}>← Profil</Link>
           <h1 className={styles.title}>Interner Bereich{name ? ` – ${name}` : ''}</h1>
         </div>
-
-        {state === 'lade' && <p style={{ color: 'var(--muted)' }}>Lädt…</p>}
-        {state === 'nein' && <p style={{ color: 'var(--muted)' }}>Dieser Bereich ist für diese Gemeinschaft nicht freigeschaltet, oder du hast keinen Zugriff.</p>}
-
-        {state === 'ok' && (
-          <div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-              {tabs.map(([v, l]) => <button key={v} type="button" onClick={() => setTab(v)} aria-pressed={tab === v} style={tabStyle(tab === v)}>{l}</button>)}
-            </div>
-            {msg && <p style={{ color: '#b3261e', fontSize: 13 }}>{msg}</p>}
-            {tab === 'kalender' && <Kalender pid={pid} bewohner={bewohner} versteckt={versteckt} setMsg={setMsg}/>}
-            {tab === 'karte' && bewohner && <Karte pid={pid} setMsg={setMsg} startOrt={typeof router.query.ort === 'string' ? router.query.ort : null}/>}
-            {tab === 'aufgaben' && bewohner && <Aufgaben pid={pid} user={user} members={members} setMsg={setMsg}/>}
-          </div>
-        )}
+        {pid && <InternInhalt pid={pid} user={user} onName={setName}/>}
       </div>
     </div>
   )

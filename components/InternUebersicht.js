@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 
 // Startansicht des Profils einer Gemeinschaft mit Internem Bereich:
@@ -10,7 +9,7 @@ const pad = n => String(n).padStart(2, '0')
 const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 const kurz = s => new Date(s).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: 'short' })
 
-export default function InternUebersicht({ pid, userId }) {
+export default function InternUebersicht({ pid, userId, onTab }) {
   const [da, setDa] = useState(null)
   const [bald, setBald] = useState(null)
   const [termine, setTermine] = useState(null)
@@ -34,14 +33,12 @@ export default function InternUebersicht({ pid, userId }) {
   const heute = dayKey(new Date())
   const faellig = (aufg || []).filter(x => x.faellig && x.faellig <= dayKey(new Date(Date.now() + 7 * 86400000)))
   const meine = (aufg || []).filter(x => x.zustaendig === userId)
-  const href = tab => `/profil/intern?id=${pid}&tab=${tab}`
-  const link = { color: 'var(--g)', fontSize: 13 }
+  const link = { color: 'var(--g)', fontSize: 13, background: 'none', border: 'none', padding: 0, cursor: 'pointer', minHeight: 32 }
+  const nach = (tab, text) => <button type="button" style={link} onClick={() => onTab && onTab(tab)}>{text}</button>
 
   return (
-    <div>
-      <h2 style={{ fontSize: 22, margin: '0 0 14px' }}>Interner Bereich</h2>
-
-      <div style={card}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div style={{ ...card, marginBottom: 0 }}>
         <h3 style={h3}>👥 Heute da</h3>
         {da === null ? <span style={{ color: 'var(--muted)', fontSize: 13 }}>Lädt…</span>
           : da.length === 0 ? <span style={{ color: 'var(--muted)', fontSize: 13 }}>Niemand eingetragen.</span>
@@ -51,17 +48,17 @@ export default function InternUebersicht({ pid, userId }) {
             Als Nächstes: {bald.slice(0, 4).map(x => `${x.gruppe || x.titel} ab ${kurz(x.beginn)}`).join(' · ')}
           </div>
         )}
-        <div style={{ marginTop: 10 }}><Link href={href('kalender')} style={link}>Zum Kalender →</Link></div>
+        <div style={{ marginTop: 8 }}>{nach('kalender', 'Zum Kalender →')}</div>
       </div>
 
-      <div style={card}>
+      <div style={{ ...card, marginBottom: 0 }}>
         <h3 style={h3}>📅 Nächste Termine</h3>
         {termine === null ? <span style={{ color: 'var(--muted)', fontSize: 13 }}>Lädt…</span>
           : termine.length === 0 ? <span style={{ color: 'var(--muted)', fontSize: 13 }}>Keine anstehenden Termine.</span>
           : termine.map(x => <div key={x.id} style={{ padding: '4px 0', fontSize: 14 }}><strong>{kurz(x.beginn)}</strong> · {x.titel}{x.ort ? ` · ${x.ort}` : ''}</div>)}
       </div>
 
-      <div style={card}>
+      <div style={{ ...card, marginBottom: 0 }}>
         <h3 style={h3}>✅ Aufgaben</h3>
         {aufg === null ? <span style={{ color: 'var(--muted)', fontSize: 13 }}>Lädt…</span> : (
           <>
@@ -73,13 +70,9 @@ export default function InternUebersicht({ pid, userId }) {
             ))}
           </>
         )}
-        <div style={{ marginTop: 10 }}><Link href={href('aufgaben')} style={link}>Alle Aufgaben und Projekte →</Link></div>
+        <div style={{ marginTop: 8 }}>{nach('aufgaben', 'Alle Aufgaben und Projekte →')}</div>
       </div>
 
-      <Link href={href('karte')} style={{ ...card, display: 'block', textDecoration: 'none', color: 'var(--text)' }}>
-        <h3 style={h3}>🗺️ Karte des Hauses</h3>
-        <span style={{ fontSize: 14, color: 'var(--muted)' }}>Grundrisse mit allen Räumen, Raumseiten mit Problemen, Projekten und Entscheidungen →</span>
-      </Link>
     </div>
   )
 }
