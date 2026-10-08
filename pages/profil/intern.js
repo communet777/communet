@@ -490,6 +490,43 @@ function Karte({ pid, setMsg, startOrt }) {
     loadKarten(data.id)
   }
 
+  // Alle vier Grundrisse auf einmal: Stockwerk wird am Dateinamen erkannt, Karte und Räume werden automatisch angelegt
+  const [alle, setAlle] = useState({ busy: false, info: '' })
+  function stockwerk(name) {
+    const n = name.toLowerCase()
+    if (n.includes('roh')) return null
+    if (/3-2|2\.\s*ober|2og|og2/.test(n)) return 'og2'
+    if (/unter|ug/.test(n)) return 'ug'
+    if (/erd|eg/.test(n)) return 'eg'
+    if (/ober|og/.test(n)) return 'og'
+    return null
+  }
+  async function alleHochladen(e) {
+    const files = Array.from(e.target.files || [])
+    e.target.value = ''
+    const paare = ['ug', 'eg', 'og', 'og2'].map(k => [k, files.find(f => stockwerk(f.name) === k)]).filter(x => x[1])
+    if (!paare.length) { setMsg('Keine passenden Dateien erkannt. Die Namen müssen Untergeschoss, Erdgeschoss, Obergeschoss oder 2-Obergeschoss enthalten.'); return }
+    setAlle({ busy: true, info: '' })
+    let erster = null
+    for (let i = 0; i < paare.length; i++) {
+      const [key, datei] = paare[i]
+      setAlle({ busy: true, info: `${RAUM_VORLAGEN[key].label} (${i + 1} von ${paare.length})…` })
+      const ext = (datei.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '')
+      const pfad = `${pid}/${crypto.randomUUID()}.${ext}`
+      const up1 = await supabase.storage.from('kommune-karten').upload(pfad, datei, { contentType: datei.type || undefined })
+      if (up1.error) { setMsg('Hochladen fehlgeschlagen: ' + up1.error.message); setAlle({ busy: false, info: '' }); return }
+      const ins = await supabase.from('kommune_karten').insert({ kommune_id: pid, titel: RAUM_VORLAGEN[key].label, bild_pfad: pfad, sort: i }).select().single()
+      if (ins.error) { setMsg('Speichern fehlgeschlagen: ' + ins.error.message); setAlle({ busy: false, info: '' }); return }
+      const rows = RAUM_VORLAGEN[key].raeume.map(r => ({ karte_id: ins.data.id, kommune_id: pid, titel: r.t, beschreibung: r.b, kategorie: 'raum', x: r.x, y: r.y }))
+      const ro = await supabase.from('kommune_orte').insert(rows)
+      if (ro.error) { setMsg('Räume anlegen fehlgeschlagen: ' + ro.error.message); setAlle({ busy: false, info: '' }); return }
+      if (!erster) erster = ins.data.id
+    }
+    setMsg('')
+    setAlle({ busy: false, info: '' })
+    loadKarten(erster)
+  }
+
   async function karteLoeschen(k) {
     if (!window.confirm(`Karte "${k.titel}" mit allen Markierungen löschen?`)) return
     if (k.bild_pfad) await supabase.storage.from('kommune-karten').remove([k.bild_pfad])
@@ -618,6 +655,15 @@ function Karte({ pid, setMsg, startOrt }) {
               {orte.map((o, i) => <button key={o.id} type="button" onClick={() => { setSel(o.id); setPin(null) }} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: sel === o.id ? 'var(--bg)' : 'none', color: 'var(--text)', padding: '8px 6px', borderRadius: 8, cursor: 'pointer', fontSize: 14, minHeight: 36 }}>{o.titel.includes(' · ') ? o.titel : `${i + 1} · ${o.titel}`}</button>)}
             </div>
           </div>
+        </div>
+      )}
+
+      {karten.length === 0 && (
+        <div style={{ ...card, border: '2px solid var(--g)', maxWidth: 520 }}>
+          <strong>Arnaville: alle Grundrisse auf einmal</strong>
+          <p style={{ fontSize: 13, color: 'var(--muted)', margin: '6px 0 10px' }}>Wähle die vier Dateien Grundriss-0-Untergeschoss, -1-Erdgeschoss, -2-Obergeschoss und -3-2-Obergeschoss gemeinsam aus (Dateien mit "roh" im Namen werden übersprungen). Die Karten mit allen Räumen entstehen automatisch.</p>
+          <input type="file" multiple accept="image/png,image/jpeg,image/webp" disabled={alle.busy} onChange={alleHochladen}/>
+          {alle.busy && <p style={{ fontSize: 13, margin: '8px 0 0' }}>Lädt hoch: {alle.info}</p>}
         </div>
       )}
 
