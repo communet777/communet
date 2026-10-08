@@ -38,52 +38,52 @@ const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'A
 // Räume aus der Bachelorarbeit (Landhaus Arnaville), Position in Prozent auf dem zugeschnittenen Grundriss
 const RAUM_VORLAGEN = {
   ug: { label: 'Untergeschoss', raeume: [
-    { t: 'UG I · Untere Küche', x: 23, y: 70, b: 'Unteres Haus' },
-    { t: 'UG II · Kaminzimmer', x: 47, y: 70, b: 'Unteres Haus' },
-    { t: 'UG III · Eingangsbereich', x: 73, y: 79, b: 'Unteres Haus' },
-    { t: 'UG IV · Treppenhaus', x: 71, y: 62, b: 'Unteres Haus' },
-    { t: 'UG V · Flur', x: 47, y: 59, b: 'Unteres Haus' },
-    { t: 'UG VI · Heizungskeller', x: 46, y: 44, b: '3. Haus' },
-    { t: 'UG VII · Flur', x: 63, y: 44, b: '3. Haus, Pflaster am Boden' },
-    { t: 'UG VIII · Öltankkeller', x: 75, y: 44, b: '3. Haus, Gewölbedecke' },
-    { t: 'UG IX · Gewölbekeller', x: 58, y: 22, b: '4. Haus' },
+    { t: 'UG I · Untere Küche', x: 21.2, y: 70.0, b: 'Unteres Haus', p: [[13.5,61.0],[28.9,63.4],[28.9,77.7],[13.5,77.7]] },
+    { t: 'UG II · Kaminzimmer', x: 46.2, y: 71.2, b: 'Unteres Haus', p: [[33.7,63.0],[58.8,63.0],[58.8,79.9],[33.7,78.8]] },
+    { t: 'UG III · Eingangsbereich', x: 71.8, y: 79.0, b: 'Unteres Haus', p: [[61.7,72.7],[81.9,72.7],[81.9,85.2],[61.7,85.2]] },
+    { t: 'UG IV · Treppenhaus', x: 71.1, y: 63.8, b: 'Unteres Haus', p: [[60.2,54.8],[81.9,54.8],[81.9,72.7],[60.2,72.7]] },
+    { t: 'UG V · Flur', x: 45.8, y: 58.9, b: 'Unteres Haus', p: [[32.8,54.8],[58.8,54.8],[58.8,63.0],[32.8,63.0]] },
+    { t: 'UG VI · Heizungskeller', x: 45.3, y: 43.5, b: '3. Haus', p: [[32.8,36.2],[57.8,36.2],[57.8,50.9],[32.8,50.9]] },
+    { t: 'UG VII · Flur', x: 63.2, y: 44.6, b: '3. Haus, Pflaster am Boden', p: [[59.0,36.2],[67.4,36.2],[67.4,53.0],[59.2,53.0]] },
+    { t: 'UG VIII · Öltankkeller', x: 75.8, y: 44.0, b: '3. Haus, Gewölbedecke', p: [[69.8,36.2],[81.9,36.2],[81.9,51.9],[69.8,51.9]] },
+    { t: 'UG IX · Gewölbekeller', x: 57.4, y: 22.8, b: '4. Haus', p: [[33.2,14.7],[80.9,14.7],[82.4,30.8],[33.2,30.8]] },
   ] },
   eg: { label: 'Erdgeschoss', raeume: [
-    { t: 'EG I · Chambre Christophe', x: 24, y: 73, b: 'Unteres Haus' },
-    { t: 'EG II · Salon', x: 45, y: 73, b: 'Unteres Haus' },
-    { t: 'EG III · Chambre Bretagne', x: 72, y: 80, b: 'Unteres Haus' },
-    { t: 'EG IV · Treppenhaus', x: 72, y: 66, b: 'Unteres Haus' },
-    { t: 'EG V · Flur', x: 65, y: 54, b: '3. Haus' },
-    { t: 'EG VI · Badezimmer', x: 45, y: 54, b: '3. Haus' },
-    { t: 'EG VII · Büro de Bon Papa', x: 40, y: 45, b: '3. Haus' },
-    { t: 'EG VIII · Chambre de Omamin', x: 71, y: 45, b: '3. Haus' },
-    { t: 'EG IX · Treppenflur', x: 45, y: 32, b: '4. Haus' },
-    { t: 'EG X · Küche', x: 45, y: 26, b: '4. Haus' },
-    { t: 'EG XI · Esszimmer', x: 71, y: 29, b: '4. Haus' },
-    { t: 'EG XII · Cave', x: 79, y: 13, b: '5. Haus' },
+    { t: 'EG I · Chambre Christophe', x: 22.4, y: 73.3, b: 'Unteres Haus', p: [[14.6,65.2],[30.3,65.2],[30.3,81.4],[14.3,81.4]] },
+    { t: 'EG II · Salon', x: 46.5, y: 72.2, b: 'Unteres Haus', p: [[33.1,59.2],[60.0,59.5],[60.0,85.8],[33.1,84.5]] },
+    { t: 'EG III · Chambre Bretagne', x: 72.0, y: 80.3, b: 'Unteres Haus', p: [[62.5,73.3],[82.0,73.3],[81.6,87.1],[62.0,87.4]] },
+    { t: 'EG IV · Treppenhaus', x: 71.6, y: 66.1, b: 'Unteres Haus', p: [[61.6,59.2],[81.6,59.5],[81.6,72.8],[61.6,72.8]] },
+    { t: 'EG V · Flur', x: 64.2, y: 50.7, b: '3. Haus', p: [[52.2,39.8],[58.3,39.8],[58.3,52.2],[83.6,52.2],[83.6,57.3],[61.1,57.3],[52.2,56.0]] },
+    { t: 'EG VI · Badezimmer', x: 41.3, y: 52.8, b: '3. Haus', p: [[33.1,52.1],[39.0,52.1],[39.0,50.3],[51.9,50.3],[51.9,55.7],[33.1,56.2]] },
+    { t: 'EG VII · Büro de Bon Papa', x: 42.6, y: 44.8, b: '3. Haus', p: [[32.9,39.6],[52.2,39.6],[52.2,50.0],[33.1,50.0]] },
+    { t: 'EG VIII · Chambre de Omamin', x: 71.0, y: 45.8, b: '3. Haus', p: [[58.5,39.6],[83.5,39.6],[83.5,51.9],[58.5,51.9]] },
+    { t: 'EG IX · Treppenflur', x: 43.7, y: 34.0, b: '4. Haus', p: [[32.4,29.9],[55.0,29.9],[55.0,38.0],[32.4,38.0]] },
+    { t: 'EG X · Küche', x: 43.0, y: 25.1, b: '4. Haus', p: [[32.4,20.3],[53.6,20.3],[53.6,29.9],[32.4,29.9]] },
+    { t: 'EG XI · Esszimmer', x: 69.5, y: 29.1, b: '4. Haus', p: [[55.9,20.1],[83.2,20.1],[83.2,38.0],[55.9,38.0]] },
+    { t: 'EG XII · Cave', x: 76.8, y: 13.4, b: '5. Haus', p: [[68.1,8.9],[85.5,8.9],[85.5,17.9],[68.1,17.9]] },
   ] },
   og: { label: 'Obergeschoss', raeume: [
-    { t: 'OG I · Speicher 1', x: 25, y: 74, b: 'Unteres Haus, über dem Chambre Christophe' },
-    { t: 'OG II · Speicher 2', x: 48, y: 74, b: 'Unteres Haus, über dem Salon' },
-    { t: 'OG III · Speicher 3', x: 70, y: 81, b: 'Unteres Haus, über dem Chambre Bretagne' },
-    { t: 'OG IV · Treppenhaus', x: 72, y: 71, b: 'Unteres Haus, mit Lichtschacht' },
-    { t: 'OG V · Flur', x: 57, y: 62, b: '3. Haus' },
-    { t: 'OG VI · Oberes Bad', x: 41, y: 62, b: '3. Haus' },
-    { t: 'OG VII · Chambre Ruelle', x: 42, y: 54, b: '3. Haus' },
-    { t: 'OG VIII · Chambre Jaune', x: 71, y: 54, b: '3. Haus' },
-    { t: 'OG IX · Flur mit Treppe', x: 53, y: 46, b: '4. Haus' },
-    { t: 'OG X · Chambre de Bebe', x: 41, y: 38, b: '4. Haus' },
-    { t: 'OG XI · Grande Chambre', x: 72, y: 38, b: '4. Haus' },
-    { t: 'OG XII · Salon d\'été', x: 76, y: 24, b: '5. Haus' },
-    { t: 'OG XIII · Gartenkabuff', x: 79, y: 12, b: '5. Haus' },
+    { t: 'OG I · Speicher 1', x: 23.1, y: 77.5, b: 'Unteres Haus, über dem Chambre Christophe', p: [[14.8,70.3],[31.4,70.3],[31.4,85.3],[15.0,84.0]] },
+    { t: 'OG II · Speicher 2', x: 46.7, y: 76.3, b: 'Unteres Haus, über dem Salon', p: [[33.5,65.2],[59.9,65.3],[59.9,88.8],[33.5,85.8]] },
+    { t: 'OG III · Speicher 3', x: 71.9, y: 83.5, b: 'Unteres Haus, über dem Chambre Bretagne', p: [[61.8,77.3],[82.2,77.3],[82.2,90.7],[61.3,88.5]] },
+    { t: 'OG IV · Treppenhaus', x: 71.2, y: 72.3, b: 'Unteres Haus, mit Lichtschacht', p: [[61.8,65.3],[82.2,65.3],[82.2,77.3],[67.9,77.3],[61.8,76.2]] },
+    { t: 'OG V · Flur', x: 57.5, y: 57.6, b: '3. Haus', p: [[52.4,48.8],[60.9,48.8],[60.9,58.7],[67.9,58.7],[67.9,63.8],[48.7,63.8],[48.7,59.3],[52.4,59.3]] },
+    { t: 'OG VI · Oberes Bad', x: 39.5, y: 61.8, b: '3. Haus', p: [[32.3,59.8],[46.8,59.8],[46.8,63.8],[32.3,63.8]] },
+    { t: 'OG VII · Chambre Ruelle', x: 42.1, y: 53.2, b: '3. Haus', p: [[32.3,48.3],[52.0,48.3],[52.0,58.2],[32.3,58.2]] },
+    { t: 'OG VIII · Chambre Jaune', x: 72.3, y: 56.4, b: '3. Haus', p: [[61.8,49.1],[82.9,49.1],[82.9,63.7],[61.8,63.7]] },
+    { t: 'OG IX · Flur mit Treppe', x: 48.2, y: 40.9, b: '4. Haus', p: [[49.4,32.5],[57.6,32.5],[57.6,47.5],[37.5,47.5],[37.5,42.7],[49.4,42.7]] },
+    { t: 'OG X · Chambre de Bebe', x: 40.8, y: 37.5, b: '4. Haus', p: [[32.3,32.5],[49.2,32.5],[49.2,42.4],[32.3,42.4]] },
+    { t: 'OG XI · Grande Chambre', x: 71.9, y: 39.5, b: '4. Haus', p: [[60.9,31.8],[82.9,31.8],[82.9,47.2],[60.9,47.2]] },
+    { t: 'OG XII · Salon d\'été', x: 70.3, y: 23.7, b: '5. Haus', p: [[65.5,18.5],[85.4,18.5],[85.4,29.5],[59.9,29.5],[59.9,23.1],[65.5,23.1]] },
+    { t: 'OG XIII · Gartenkabuff', x: 78.2, y: 11.8, b: '5. Haus', p: [[70.7,9.4],[85.7,9.4],[85.7,14.1],[70.7,14.1]] },
   ] },
   og2: { label: '2. Obergeschoss', raeume: [
-    { t: '2.OG I · Speicher 4', x: 35, y: 77, b: '3. Haus, keine Stehhöhe' },
-    { t: '2.OG II · Treppenflur', x: 49, y: 85, b: '3. Haus' },
-    { t: '2.OG III · Chambre des Garçons', x: 66, y: 77, b: '3. Haus, bewohnbar' },
-    { t: '2.OG IV · Großer Speicher', x: 37, y: 57, b: '4. Haus' },
-    { t: '2.OG V · Speicher 6', x: 67, y: 36, b: '5. Haus' },
-    { t: '2.OG VI · Dachboden über dem Salon d\'été', x: 73, y: 20, b: '5. Haus' },
+    { t: '2.OG I · Speicher 4', x: 30.9, y: 76.6, b: '3. Haus, keine Stehhöhe', p: [[18.2,66.4],[43.6,66.4],[43.6,87.4],[18.2,86.3]] },
+    { t: '2.OG II · Treppenflur', x: 46.7, y: 78.6, b: '3. Haus', p: [[43.9,67.0],[53.5,67.0],[53.5,88.1],[42.8,88.1],[42.8,80.8],[43.9,80.8]] },
+    { t: '2.OG III · Chambre des Garçons', x: 67.8, y: 77.7, b: '3. Haus, bewohnbar', p: [[54.6,67.2],[81.1,67.2],[81.1,88.1],[54.6,88.1]] },
+    { t: '2.OG IV · Großer Speicher', x: 48.6, y: 53.5, b: '4. Haus', p: [[18.2,43.0],[78.9,43.0],[78.9,63.9],[18.2,63.9]] },
+    { t: '2.OG V · Speicher 6', x: 66.2, y: 35.8, b: '5. Haus', p: [[52.1,31.4],[81.9,31.4],[81.9,40.2],[49.1,40.2]] },
+    { t: '2.OG VI · Dachboden über dem Salon d\'été', x: 74.8, y: 20.0, b: '5. Haus', p: [[66.0,11.6],[82.2,11.6],[82.2,28.3],[68.7,28.5]] },
   ] },
 }
 
@@ -430,6 +430,7 @@ function Karte({ pid, setMsg, startOrt }) {
   const [up, setUp] = useState({ titel: '', datei: null, busy: false })
   const [vorlage, setVorlage] = useState('')
   const [offen, setOffen] = useState({})
+  const [hover, setHover] = useState(null)
   const [startDone, setStartDone] = useState(false)
 
   async function loadKarten(waehle) {
@@ -517,7 +518,7 @@ function Karte({ pid, setMsg, startOrt }) {
       if (up1.error) { setMsg('Hochladen fehlgeschlagen: ' + up1.error.message); setAlle({ busy: false, info: '' }); return }
       const ins = await supabase.from('kommune_karten').insert({ kommune_id: pid, titel: RAUM_VORLAGEN[key].label, bild_pfad: pfad, sort: i }).select().single()
       if (ins.error) { setMsg('Speichern fehlgeschlagen: ' + ins.error.message); setAlle({ busy: false, info: '' }); return }
-      const rows = RAUM_VORLAGEN[key].raeume.map(r => ({ karte_id: ins.data.id, kommune_id: pid, titel: r.t, beschreibung: r.b, kategorie: 'raum', x: r.x, y: r.y }))
+      const rows = RAUM_VORLAGEN[key].raeume.map(r => ({ karte_id: ins.data.id, kommune_id: pid, titel: r.t, beschreibung: r.b, kategorie: 'raum', x: r.x, y: r.y, umriss: r.p || null }))
       const ro = await supabase.from('kommune_orte').insert(rows)
       if (ro.error) { setMsg('Räume anlegen fehlgeschlagen: ' + ro.error.message); setAlle({ busy: false, info: '' }); return }
       if (!erster) erster = ins.data.id
@@ -565,7 +566,7 @@ function Karte({ pid, setMsg, startOrt }) {
   async function raeumeAnlegen() {
     const v = RAUM_VORLAGEN[vorlage]
     if (!v || !aktiv) return
-    const rows = v.raeume.map(r => ({ karte_id: aktiv, kommune_id: pid, titel: r.t, beschreibung: r.b, kategorie: 'raum', x: r.x, y: r.y }))
+    const rows = v.raeume.map(r => ({ karte_id: aktiv, kommune_id: pid, titel: r.t, beschreibung: r.b, kategorie: 'raum', x: r.x, y: r.y, umriss: r.p || null }))
     const { error } = await supabase.from('kommune_orte').insert(rows)
     if (error) { setMsg('Räume anlegen fehlgeschlagen: ' + error.message); return }
     setMsg('')
@@ -620,7 +621,26 @@ function Karte({ pid, setMsg, startOrt }) {
             <div style={{ overflow: 'auto', maxHeight: '78vh', border: '1px solid var(--border)', borderRadius: 12, background: '#fff' }}>
               <div style={{ position: 'relative', width: `${zoom}%`, cursor: setzen ? 'crosshair' : 'default' }} onClick={klick}>
                 {bild ? <img src={bild} alt={k.titel} style={{ display: 'block', width: '100%', height: 'auto', userSelect: 'none' }} draggable={false}/> : <div style={{ padding: 40, color: 'var(--muted)' }}>Bild wird geladen…</div>}
-                {orte.map((o, i) => (
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' }}>
+                  {orte.filter(o => Array.isArray(o.umriss)).map(o => {
+                    const on = sel === o.id, hov = hover === o.id
+                    const farbe = on ? '183,121,31' : (o.probleme ? '179,38,30' : '47,93,70')
+                    return (
+                      <polygon key={o.id} points={o.umriss.map(q => q.join(',')).join(' ')} tabIndex={0} role="button" aria-label={o.titel}
+                        fill={`rgba(${farbe},${on ? 0.5 : hov ? 0.38 : o.probleme ? 0.22 : 0.14})`} stroke={`rgb(${farbe})`} strokeWidth={on ? 3 : 1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round"
+                        style={{ cursor: setzen ? 'crosshair' : 'pointer', outline: 'none' }}
+                        onMouseEnter={() => setHover(o.id)} onMouseLeave={() => setHover(h => h === o.id ? null : h)}
+                        onClick={ev => { if (setzen) return; ev.stopPropagation(); setSel(o.id); setPin(null) }}
+                        onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setSel(o.id); setPin(null) } }}>
+                        <title>{o.titel}</title>
+                      </polygon>
+                    )
+                  })}
+                </svg>
+                {orte.filter(o => Array.isArray(o.umriss)).map((o, i) => (
+                  <span key={'l' + o.id} style={{ position: 'absolute', left: `${o.x}%`, top: `${o.y}%`, transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontWeight: 700, fontSize: 12, color: '#fff', background: sel === o.id ? '#B7791F' : (o.probleme ? '#B3261E' : '#2F5D46'), borderRadius: 10, padding: '1px 7px', boxShadow: '0 1px 3px rgba(0,0,0,0.35)', whiteSpace: 'nowrap' }}>{kurz(o, i)}</span>
+                ))}
+                {orte.filter(o => !Array.isArray(o.umriss)).map((o, i) => (
                   <button key={o.id} type="button" aria-label={o.titel} title={o.titel} onClick={ev => { ev.stopPropagation(); setSel(o.id); setPin(null); setSetzen(false) }}
                     style={{ position: 'absolute', left: `${o.x}%`, top: `${o.y}%`, transform: 'translate(-50%,-50%)', minWidth: 34, height: 34, padding: '0 8px', borderRadius: 17, border: sel === o.id ? '3px solid #17251D' : '2px solid #fff', background: sel === o.id ? '#B7791F' : (o.probleme ? '#B3261E' : '#2F5D46'), color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>{kurz(o, i)}</button>
                 ))}
