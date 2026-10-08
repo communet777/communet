@@ -3,6 +3,8 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
 import { syncFaellige } from '../../lib/icalSync'
+import Dokumente from '../../components/Dokumente'
+import Raeume from '../../components/Raeume'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/ProfilBearbeiten.module.css'
@@ -93,6 +95,25 @@ const btnLight = { ...btn, background: 'none', color: 'var(--g)', border: '1px s
 const input = { padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: 14, width: '100%', boxSizing: 'border-box' }
 const label = { fontSize: 12, color: 'var(--muted)', display: 'block', marginBottom: 4 }
 
+// Gesetzliche Feiertage in Frankreich (ohne die Sonderregeln für Elsass und Moselle)
+function ostern(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1
+  return new Date(y, mo - 1, da)
+}
+function frFeiertage(y) {
+  const o = ostern(y)
+  const plus = n => { const x = new Date(o); x.setDate(x.getDate() + n); return x }
+  return [
+    ['Neujahr', new Date(y, 0, 1)], ['Ostermontag', plus(1)], ['Tag der Arbeit', new Date(y, 4, 1)], ['Tag des Sieges 1945', new Date(y, 4, 8)],
+    ['Christi Himmelfahrt', plus(39)], ['Pfingstmontag', plus(50)], ['Nationalfeiertag', new Date(y, 6, 14)], ['Mariä Himmelfahrt', new Date(y, 7, 15)],
+    ['Allerheiligen', new Date(y, 10, 1)], ['Waffenstillstand 1918', new Date(y, 10, 11)], ['Weihnachten', new Date(y, 11, 25)],
+  ]
+}
+const FEIERTAG_GRUPPE = 'Feiertage Frankreich'
+
 function pad(n) { return String(n).padStart(2, '0') }
 function dayKey(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` }
 function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x }
@@ -117,7 +138,7 @@ export function InternInhalt({ pid, user, onName }) {
   const [msg, setMsg] = useState('')
   const [refresh, setRefresh] = useState(0)
 
-  useEffect(() => { const t = router.query.tab; if (t === 'karte' || t === 'aufgaben' || t === 'kalender') setTab(t) }, [router.query.tab])
+  useEffect(() => { const t = router.query.tab; if (['karte', 'aufgaben', 'kalender', 'raeume', 'dokumente'].includes(t)) setTab(t) }, [router.query.tab])
 
   useEffect(() => {
     if (!user || !pid) return
@@ -138,7 +159,7 @@ export function InternInhalt({ pid, user, onName }) {
     })()
   }, [user, pid])
 
-  const tabs = bewohner ? [['kalender', 'Kalender'], ['karte', 'Karte'], ['aufgaben', 'Aufgaben & Projekte']] : [['kalender', 'Kalender']]
+  const tabs = bewohner ? [['kalender', 'Kalender'], ['karte', 'Karte'], ['raeume', 'Räume'], ['aufgaben', 'Aufgaben & Projekte'], ['dokumente', 'Dokumente']] : [['kalender', 'Kalender']]
   const tabStyle = on => ({ ...btn, background: on ? 'var(--text)' : 'var(--card)', color: on ? 'var(--bg)' : 'var(--text)', border: '1px solid var(--border)', borderRadius: 999, padding: '8px 16px' })
 
   return (
@@ -153,6 +174,8 @@ export function InternInhalt({ pid, user, onName }) {
           {msg && <p style={{ color: '#b3261e', fontSize: 13 }}>{msg}</p>}
           {tab === 'kalender' && <Kalender key={'k' + refresh} pid={pid} bewohner={bewohner} versteckt={versteckt} setMsg={setMsg}/>}
           {tab === 'karte' && bewohner && <Karte pid={pid} setMsg={setMsg} startOrt={typeof router.query.ort === 'string' ? router.query.ort : null}/>}
+          {tab === 'raeume' && bewohner && <Raeume pid={pid} setMsg={setMsg}/>}
+          {tab === 'dokumente' && bewohner && <Dokumente pid={pid} setMsg={setMsg}/>}
           {tab === 'aufgaben' && bewohner && <Aufgaben pid={pid} user={user} members={members} setMsg={setMsg}/>}
         </div>
       )}
@@ -244,7 +267,11 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
   }
 
   // Termine auf Tage abbilden
-  const alle = termine.map(t => {
+  const feiertage = [...new Set([rasterStart.getFullYear(), rasterEnde.getFullYear()])].flatMap(y => frFeiertage(y))
+    .filter(([, d]) => d >= rasterStart && d < rasterEnde)
+    .map(([name, d]) => ({ id: 'fr-' + dayKey(d), art: 'anwesenheit', feiertag: true, titel: name, gruppe: FEIERTAG_GRUPPE, sichtbarkeit: 'bewohner', beginn: d.toISOString(), ende: d.toISOString(), beschreibung: null, ort: null }))
+  // Die importierten deutschen Feiertage aus kalender.digital werden nicht angezeigt
+  const alle = [...termine.filter(t => t.gruppe !== 'Feiertage'), ...feiertage].map(t => {
     const s = startOfDay(new Date(t.beginn))
     let e = t.ende ? startOfDay(new Date(t.ende)) : s
     if (e < s) e = s
@@ -396,7 +423,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600 }}>{gewaehlt.titel}</div>
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-              {gewaehlt.art === 'anwesenheit' ? 'Anwesenheit' : 'Termin'} · {datum(gewaehlt.s)}{gewaehlt.e > gewaehlt.s ? ' bis ' + datum(gewaehlt.e) : ''}{gewaehlt.art === 'termin' && gewaehlt.s.getTime() === gewaehlt.e.getTime() ? ' · ' + zeit(gewaehlt) + ' Uhr' : ''}{gewaehlt.ort ? ' · ' + gewaehlt.ort : ''}
+              {gewaehlt.feiertag ? 'Feiertag in Frankreich' : gewaehlt.art === 'anwesenheit' ? 'Anwesenheit' : 'Termin'} · {datum(gewaehlt.s)}{gewaehlt.e > gewaehlt.s ? ' bis ' + datum(gewaehlt.e) : ''}{gewaehlt.art === 'termin' && gewaehlt.s.getTime() === gewaehlt.e.getTime() ? ' · ' + zeit(gewaehlt) + ' Uhr' : ''}{gewaehlt.ort ? ' · ' + gewaehlt.ort : ''}
             </div>
             <div style={{ fontSize: 12, marginTop: 4 }}>
               <span style={{ padding: '2px 8px', borderRadius: 6, background: VIS_STYLE[gewaehlt.sichtbarkeit].bg, color: VIS_STYLE[gewaehlt.sichtbarkeit].fg }}>{VIS.find(v => v.value === gewaehlt.sichtbarkeit)?.label}</span>
@@ -405,7 +432,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
             {gewaehlt.beschreibung && <div style={{ fontSize: 14, marginTop: 6 }}>{gewaehlt.beschreibung}</div>}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            {bewohner && <button type="button" style={btnLight} onClick={() => loeschen(gewaehlt.id)}>Löschen</button>}
+            {bewohner && !gewaehlt.feiertag && <button type="button" style={btnLight} onClick={() => loeschen(gewaehlt.id)}>Löschen</button>}
             <button type="button" style={btnLight} onClick={() => setSel(null)}>Schließen</button>
           </div>
         </div>
@@ -422,7 +449,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
       {liste.map(t => (
         <button key={t.id} type="button" onClick={() => setSel(t.id)} style={{ ...card, display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer', color: 'var(--text)', borderLeft: `6px solid ${t.farbe[1]}` }}>
           <div style={{ fontWeight: 600 }}>{t.titel}</div>
-          <div style={{ fontSize: 13, color: 'var(--muted)' }}>{t.art === 'anwesenheit' ? 'Anwesend' : 'Termin'} · {datum(t.s)}{t.e > t.s ? ' bis ' + datum(t.e) : ''}{t.art === 'termin' && t.s.getTime() === t.e.getTime() ? ' · ' + zeit(t) + ' Uhr' : ''}</div>
+          <div style={{ fontSize: 13, color: 'var(--muted)' }}>{t.feiertag ? 'Feiertag' : t.art === 'anwesenheit' ? 'Anwesend' : 'Termin'} · {datum(t.s)}{t.e > t.s ? ' bis ' + datum(t.e) : ''}{t.art === 'termin' && t.s.getTime() === t.e.getTime() ? ' · ' + zeit(t) + ' Uhr' : ''}</div>
         </button>
       ))}
 
@@ -797,6 +824,7 @@ function Aufgaben({ pid, user, members, setMsg }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
         <form onSubmit={projektAnlegen} style={{ ...card, flex: '1 1 260px', margin: 0, display: 'grid', gap: 8 }}>
           <strong>Neues Projekt</strong>
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>Ein größeres Vorhaben mit mehreren Schritten, z. B. Dach Scheune neu decken. Dazu gehören dann mehrere Aufgaben.</span>
           <input style={input} placeholder="z. B. Dach Scheune oder Garten & Hof" value={neuProjekt.titel} onChange={e => setNeuProjekt({ ...neuProjekt, titel: e.target.value })}/>
           <select style={input} value={neuProjekt.ort_id} onChange={e => setNeuProjekt({ ...neuProjekt, ort_id: e.target.value })} aria-label="Raum oder Ort"><option value="">Kein bestimmter Raum</option>{raeume.map(r => <option key={r.id} value={r.id}>{r.titel}</option>)}</select>
           <label style={{ fontSize: 13, display: 'flex', gap: 8, alignItems: 'center', minHeight: 36 }}><input type="checkbox" checked={neuProjekt.laufend} onChange={e => setNeuProjekt({ ...neuProjekt, laufend: e.target.checked })}/> Laufendes Projekt (ohne Ende, für Daueraufgaben)</label>
@@ -804,6 +832,7 @@ function Aufgaben({ pid, user, members, setMsg }) {
         </form>
         <form onSubmit={aufgabeAnlegen} style={{ ...card, flex: '2 1 380px', margin: 0, display: 'grid', gap: 8 }}>
           <strong>Neue Aufgabe</strong>
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>Eine einzelne Tätigkeit, z. B. Ziegel bestellen oder Kompost wenden. Sie kann zu einem Projekt gehören und sich regelmäßig wiederholen.</span>
           <input style={input} required placeholder="Was ist zu tun?" value={f.titel} onChange={e => setF({ ...f, titel: e.target.value })}/>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
             <select style={input} value={f.projekt_id} onChange={e => setF({ ...f, projekt_id: e.target.value })} aria-label="Projekt"><option value="">Ohne Projekt</option>{projekte.map(p => <option key={p.id} value={p.id}>{p.titel}</option>)}</select>

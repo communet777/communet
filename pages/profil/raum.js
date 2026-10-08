@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Nav from '../../components/Nav'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
+import Dokumente from '../../components/Dokumente'
 import styles from '../../styles/ProfilBearbeiten.module.css'
 
 // Eigene Seite pro Raum im Internen Bereich: Maße, Probleme, Notizen, Projekte, Aufgaben und Entscheidungen.
@@ -147,7 +148,9 @@ export default function Raum() {
       <div className={styles.container} style={{ maxWidth: 860 }}>
         <div className={styles.header}>
           {kommune.id
-            ? <Link href={`/profil/intern?id=${kommune.id}&tab=karte&ort=${oid}`} className={styles.back}>← Zurück zur Karte</Link>
+            ? (ort?.karte_id
+              ? <Link href={`/profil/intern?id=${kommune.id}&tab=karte&ort=${oid}`} className={styles.back}>← Zurück zur Karte</Link>
+              : <Link href={`/profil/intern?id=${kommune.id}&tab=raeume`} className={styles.back}>← Zurück zu den Räumen</Link>)
             : <Link href="/profil" className={styles.back}>← Profil</Link>}
           <h1 className={styles.title}>{ort ? ort.titel : 'Raum'}</h1>
         </div>
@@ -217,6 +220,11 @@ export default function Raum() {
                 </div>
                 <div><button type="submit" style={btn}>Aufgabe anlegen</button></div>
               </form>
+            </div>
+
+            <div style={card}>
+              <h2 style={h2}>Dokumente</h2>
+              <Dokumente pid={kommune.id} ortId={oid} setMsg={setMsg}/>
             </div>
 
             <div style={card}>
