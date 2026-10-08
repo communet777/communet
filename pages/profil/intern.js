@@ -113,6 +113,7 @@ function frFeiertage(y) {
   ]
 }
 const FEIERTAG_GRUPPE = 'Feiertage Frankreich'
+const ANGEBOT_GRUPPE = 'Angebote'
 
 function pad(n) { return String(n).padStart(2, '0') }
 function dayKey(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` }
@@ -216,6 +217,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
   const [artFilter, setArtFilter] = useState('anwesenheit')
   const [visFilter, setVisFilter] = useState('bewohner')
   const [gruppenAlle, setGruppenAlle] = useState([])
+  const [angebote, setAngebote] = useState([])
   const [ausgeblendet, setAusgeblendet] = useState([])
   const [sel, setSel] = useState(null)
   const [neu, setNeu] = useState(false)
@@ -236,6 +238,11 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
       .lt('beginn', b).or(`ende.gte.${a},beginn.gte.${a}`).order('beginn')
     if (error) { setMsg(error.message); return }
     setTermine(data || [])
+    // Eigene Angebote der Gemeinschaft (z. B. Workaway) erscheinen automatisch als Termine
+    const von = dayKey(rasterStart), bis = dayKey(rasterEnde)
+    const { data: off } = await supabase.from('offers').select('id,titel,typ,von,bis,datum,uhrzeit,ort').eq('kommune_id', pid)
+      .or(`and(von.lte.${bis},bis.gte.${von}),and(datum.gte.${von},datum.lte.${bis})`)
+    setAngebote(off || [])
   }
   useEffect(() => { load() }, [pid, monat])
 
@@ -280,24 +287,30 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
   }
 
   // Feste Farbe je Gruppe: nach Reihenfolge der Gruppen der Gemeinschaft, ändert sich nicht mit dem Monat
-  const farbeGruppe = g => g === FEIERTAG_GRUPPE ? ['#E6E1D3', '#4A4636']
+  const farbeGruppe = g => g === FEIERTAG_GRUPPE ? ['#E6E1D3', '#4A4636'] : g === ANGEBOT_GRUPPE ? ['#D9E8C8', '#2F4A18']
     : (gruppenAlle.indexOf(g) >= 0 ? PALETTE[gruppenAlle.indexOf(g) % PALETTE.length] : PALETTE[hash(g.toLowerCase()) % PALETTE.length])
 
   // Termine auf Tage abbilden
   const feiertage = [...new Set([rasterStart.getFullYear(), rasterEnde.getFullYear()])].flatMap(y => frFeiertage(y))
     .filter(([, d]) => d >= rasterStart && d < rasterEnde)
     .map(([name, d]) => ({ id: 'fr-' + dayKey(d), art: 'anwesenheit', feiertag: true, titel: name, gruppe: FEIERTAG_GRUPPE, sichtbarkeit: 'bewohner', beginn: d.toISOString(), ende: d.toISOString(), beschreibung: null, ort: null }))
+  const angebotTermine = angebote.map(o => {
+    const a = o.von || o.datum, b = o.bis || o.datum
+    const einTag = !o.von && o.datum
+    return { id: 'ang-' + o.id, angebot: o.id, art: 'termin', titel: o.titel, beschreibung: o.typ ? `Angebot (${o.typ})` : 'Angebot', gruppe: ANGEBOT_GRUPPE, sichtbarkeit: 'oeffentlich', ort: o.ort,
+      beginn: new Date(`${a}T${einTag && o.uhrzeit ? o.uhrzeit.slice(0, 5) : '00:00'}`).toISOString(), ende: new Date(`${b}T23:59`).toISOString() }
+  })
   // Die importierten deutschen Feiertage aus kalender.digital werden nicht angezeigt
-  const alle = [...termine.filter(t => t.gruppe !== 'Feiertage'), ...feiertage].map(t => {
+  const alle = [...termine.filter(t => t.gruppe !== 'Feiertage'), ...feiertage, ...angebotTermine].map(t => {
     const s = startOfDay(new Date(t.beginn))
     let e = t.ende ? startOfDay(new Date(t.ende)) : s
     if (e < s) e = s
     return { ...t, s, e, farbe: farbeFuer(t, farbeGruppe) }
   })
-  const gruppen = [...new Set([...gruppenAlle, FEIERTAG_GRUPPE, ...alle.map(t => t.gruppe).filter(Boolean)])]
+  const gruppen = [...new Set([...gruppenAlle, FEIERTAG_GRUPPE, ANGEBOT_GRUPPE, ...alle.map(t => t.gruppe).filter(Boolean)])]
   const sichtbar = alle.filter(t =>
     (artFilter === 'alle' || t.art === artFilter) &&
-    (visFilter === 'alle' || t.sichtbarkeit === visFilter) &&
+    (visFilter === 'alle' || t.sichtbarkeit === visFilter || t.angebot) &&
     !(t.gruppe && ausgeblendet.includes(t.gruppe)))
   const heute = dayKey(new Date())
   const zeit = t => new Date(t.beginn).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
@@ -440,7 +453,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600 }}>{gewaehlt.titel}</div>
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-              {gewaehlt.feiertag ? 'Feiertag in Frankreich' : gewaehlt.art === 'anwesenheit' ? 'Anwesenheit' : 'Termin'} · {datum(gewaehlt.s)}{gewaehlt.e > gewaehlt.s ? ' bis ' + datum(gewaehlt.e) : ''}{gewaehlt.art === 'termin' && gewaehlt.s.getTime() === gewaehlt.e.getTime() ? ' · ' + zeit(gewaehlt) + ' Uhr' : ''}{gewaehlt.ort ? ' · ' + gewaehlt.ort : ''}
+              {gewaehlt.angebot ? 'Angebot' : gewaehlt.feiertag ? 'Feiertag in Frankreich' : gewaehlt.art === 'anwesenheit' ? 'Anwesenheit' : 'Termin'} · {datum(gewaehlt.s)}{gewaehlt.e > gewaehlt.s ? ' bis ' + datum(gewaehlt.e) : ''}{gewaehlt.art === 'termin' && gewaehlt.s.getTime() === gewaehlt.e.getTime() ? ' · ' + zeit(gewaehlt) + ' Uhr' : ''}{gewaehlt.ort ? ' · ' + gewaehlt.ort : ''}
             </div>
             <div style={{ fontSize: 12, marginTop: 4 }}>
               <span style={{ padding: '2px 8px', borderRadius: 6, background: VIS_STYLE[gewaehlt.sichtbarkeit].bg, color: VIS_STYLE[gewaehlt.sichtbarkeit].fg }}>{VIS.find(v => v.value === gewaehlt.sichtbarkeit)?.label}</span>
@@ -449,7 +462,8 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
             {gewaehlt.beschreibung && <div style={{ fontSize: 14, marginTop: 6 }}>{gewaehlt.beschreibung}</div>}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            {bewohner && !gewaehlt.feiertag && <button type="button" style={btnLight} onClick={() => loeschen(gewaehlt.id)}>Löschen</button>}
+            {gewaehlt.angebot && <Link href={`/angebote/${gewaehlt.angebot}`} style={{ ...btn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Angebot öffnen</Link>}
+            {bewohner && !gewaehlt.feiertag && !gewaehlt.angebot && <button type="button" style={btnLight} onClick={() => loeschen(gewaehlt.id)}>Löschen</button>}
             <button type="button" style={btnLight} onClick={() => setSel(null)}>Schließen</button>
           </div>
         </div>
@@ -466,7 +480,7 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
       {liste.map(t => (
         <button key={t.id} type="button" onClick={() => setSel(t.id)} style={{ ...card, display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer', color: 'var(--text)', borderLeft: `6px solid ${t.farbe[1]}` }}>
           <div style={{ fontWeight: 600 }}>{t.titel}</div>
-          <div style={{ fontSize: 13, color: 'var(--muted)' }}>{t.feiertag ? 'Feiertag' : t.art === 'anwesenheit' ? 'Anwesend' : 'Termin'} · {datum(t.s)}{t.e > t.s ? ' bis ' + datum(t.e) : ''}{t.art === 'termin' && t.s.getTime() === t.e.getTime() ? ' · ' + zeit(t) + ' Uhr' : ''}</div>
+          <div style={{ fontSize: 13, color: 'var(--muted)' }}>{t.angebot ? 'Angebot' : t.feiertag ? 'Feiertag' : t.art === 'anwesenheit' ? 'Anwesend' : 'Termin'} · {datum(t.s)}{t.e > t.s ? ' bis ' + datum(t.e) : ''}{t.art === 'termin' && t.s.getTime() === t.e.getTime() ? ' · ' + zeit(t) + ' Uhr' : ''}</div>
         </button>
       ))}
 
