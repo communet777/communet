@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Nav from '../../components/Nav'
-import IcalPanel, { syncFaellige } from '../../components/IcalPanel'
-import InternUebersicht from '../../components/InternUebersicht'
+import { syncFaellige } from '../../lib/icalSync'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/ProfilBearbeiten.module.css'
@@ -108,7 +107,7 @@ function intervallLabel(n) { return INTERVALLE.find(i => i[0] === n)?.[1] || `Al
 
 // Inhalt des Internen Bereichs (Reiter Kalender, Karte, Aufgaben). Wird auf der Profilseite der Gemeinschaft
 // und auf der eigenen Seite /profil/intern verwendet.
-export function InternInhalt({ pid, user, mitUebersicht = false, onName }) {
+export function InternInhalt({ pid, user, onName }) {
   const router = useRouter()
   const [versteckt, setVersteckt] = useState(false)
   const [state, setState] = useState('lade') // lade | nein | ok
@@ -148,7 +147,6 @@ export function InternInhalt({ pid, user, mitUebersicht = false, onName }) {
       {state === 'nein' && <p style={{ color: 'var(--muted)' }}>Dieser Bereich ist für diese Gemeinschaft nicht freigeschaltet, oder du hast keinen Zugriff.</p>}
       {state === 'ok' && (
         <div>
-          {mitUebersicht && bewohner && <InternUebersicht key={'u' + refresh} pid={pid} userId={user.id} onTab={setTab}/>}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             {tabs.map(([v, l]) => <button key={v} type="button" onClick={() => setTab(v)} aria-pressed={tab === v} style={tabStyle(tab === v)}>{l}</button>)}
           </div>
@@ -428,7 +426,6 @@ function Kalender({ pid, bewohner, versteckt, setMsg }) {
         </button>
       ))}
 
-      {bewohner && <IcalPanel pid={pid} onSynced={load} setMsg={setMsg}/>}
     </div>
   )
 }

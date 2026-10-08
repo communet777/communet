@@ -99,7 +99,7 @@ export default function Profil() {
         </aside>
 
         <main className={styles.feed}>
-          {isKommune && internAktiv ? <InternInhalt pid={active.id} user={user} mitUebersicht/> : (<>
+          {isKommune && internAktiv ? <><h1 className={styles.feedTitle} style={{marginTop:0}}>Interner Bereich</h1><InternInhalt pid={active.id} user={user}/></> : (<>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:12,flexWrap:'wrap'}}>
 <h2 className={styles.feedTitle}>Dein Feed</h2>
 <Link href="/feed" style={{fontSize:12,color:'var(--g)'}}>Als eigene Seite öffnen →</Link>
