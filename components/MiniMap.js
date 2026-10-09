@@ -1,3 +1,4 @@
+import { TILE_URL, TILE_SUBDOMAINS, TILE_ATTRIBUTION } from '../lib/tiles'
 import { useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -36,7 +37,7 @@ export default function MiniMap({ lat, lon, name }) {
           touchZoom={false}
           keyboard={false}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <TileLayer url={TILE_URL} subdomains={TILE_SUBDOMAINS} />
           <Marker position={[lat, lon]}>
             <Popup>{name}</Popup>
           </Marker>
@@ -88,10 +89,7 @@ export default function MiniMap({ lat, lon, name }) {
               touchZoom={true}
               keyboard={true}
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a>'
-              />
+              <TileLayer url={TILE_URL} subdomains={TILE_SUBDOMAINS} attribution={TILE_ATTRIBUTION} />
               <Marker position={[lat, lon]}>
                 <Popup>{name}</Popup>
               </Marker>

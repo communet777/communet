@@ -20,6 +20,8 @@ export default function Nachrichten() {
   const { earlyAccess, profiles, active, unreadOther, refreshUnread } = useActiveProfile()
   const router = useRouter()
   const [convs, setConvs] = useState(null)
+  const [q, setQ] = useState('')
+  const [people, setPeople] = useState([])
 
   useEffect(() => { if (!loading && !user) router.replace('/auth/login?next=/nachrichten') }, [user, loading])
   useEffect(() => {
@@ -30,6 +32,12 @@ export default function Nachrichten() {
     return () => clearInterval(t)
   }, [user, earlyAccess])
 
+  useEffect(() => {
+    if (!user || !earlyAccess || q.trim().length < 2) { setPeople([]); return }
+    const t = setTimeout(async () => { const { data } = await supabase.rpc('search_people', { p_q: q.trim() }); setPeople(data || []) }, 250)
+    return () => clearTimeout(t)
+  }, [q, user, earlyAccess])
+
   if (loading || !user) return null
   return (
     <div style={{minHeight:'100vh',background:'var(--bg)'}}>
@@ -39,6 +47,30 @@ export default function Nachrichten() {
         {earlyAccess && <PushToggle/>}
         {active && profiles.length > 1 && <p style={{fontSize:13,color:'var(--muted)',margin:'0 0 12px'}}>Du bist gerade als <strong>{active.name}</strong> unterwegs.{unreadOther > 0 ? ` Ungelesen im anderen Profil: ${unreadOther}.` : ''}</p>}
         {profiles.length > 0 && !earlyAccess && <p>Nachrichten sind in der geschlossenen Testphase nur für Early-Access-Mitglieder verfügbar.</p>}
+        {earlyAccess && (
+          <div style={{marginBottom:16}}>
+            <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Person suchen und anschreiben…" style={{width:'100%',padding:'12px 14px',borderRadius:12,border:'1.5px solid var(--border)',fontSize:15}}/>
+            {q.trim().length >= 2 && (
+              <div style={{marginTop:8}}>
+                {people.length === 0 && <p style={{color:'var(--muted)',fontSize:13,margin:'8px 2px'}}>Niemand gefunden.</p>}
+                {people.map(p => (
+                  <Link key={p.id} href={`/leute/${p.id}`} style={{textDecoration:'none'}}>
+                    <div style={{display:'flex',gap:12,alignItems:'center',background:'var(--card)',borderRadius:12,padding:10,marginBottom:6}}>
+                      <div style={{width:36,height:36,borderRadius:'50%',overflow:'hidden',background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        {p.avatar_url ? <img src={p.avatar_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <Icon name="person" size={20}/>}
+                      </div>
+                      <div style={{minWidth:0,flex:1}}>
+                        <div style={{fontWeight:700,color:'var(--text)'}}>{p.name}</div>
+                        {p.land && <div style={{fontSize:12,color:'var(--muted)'}}>{p.land}</div>}
+                      </div>
+                      <span style={{fontSize:13,color:'var(--g)',fontWeight:600}}>✉️ Schreiben</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {earlyAccess && convs && convs.filter(c => !active || c.my_profile_id === active.id).length === 0 && (
           <p style={{color:'var(--muted)'}}>Noch keine Unterhaltungen. <Link href="/leute" style={{color:'var(--g)'}}>Leute finden</Link> oder auf einer Kommunen-Seite schreiben.</p>
         )}

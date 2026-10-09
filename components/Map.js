@@ -2,6 +2,7 @@ import{useEffect,useRef}from'react'
 import{getTypIconUrl,ICONS}from'../lib/typIcons'
 import{WATER_COLORS}from'../lib/water'
 import{getWaterIcon}from'../lib/waterIcons'
+import{TILE_URL,TILE_ATTRIBUTION,TILE_SUBDOMAINS}from'../lib/tiles'
 import{getTypColor,ICON_SHADOW,FARM_COLOR}from'../lib/typColors'
 // Marker-Formen: Gemeinschaften rund, Wasserquellen als Tropfen, Bio-Hofläden als Sechseck
 const MARKER_BASE='display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none'
@@ -27,7 +28,7 @@ useEffect(()=>{
 if(typeof window==='undefined'||mapInstanceRef.current)return
 const L=require('leaflet');require('leaflet/dist/leaflet.css')
 const map=L.map(mapRef.current,{center:initialView?[initialView.lat,initialView.lon]:[50,10],zoom:initialView?initialView.zoom:4,zoomControl:true})
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18}).addTo(map)
+L.tileLayer(TILE_URL,{attribution:TILE_ATTRIBUTION,maxZoom:18,subdomains:TILE_SUBDOMAINS}).addTo(map)
 mapInstanceRef.current=map
 // Wasserquellen werden auf einer Zeichenfläche (Canvas) gezeichnet, das bleibt auch bei 1000 Punkten flüssig
 canvasRef.current=L.canvas({padding:0.3})
