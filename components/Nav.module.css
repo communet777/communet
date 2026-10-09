@@ -25,7 +25,7 @@
 .switchCol .langBtn{padding:2px 9px;font-size:11px;line-height:1.5}
 .hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px 8px}
 .mobileMenu{position:fixed;top:63px;left:0;right:0;bottom:0;background:var(--sand);z-index:99;display:flex;flex-direction:column;padding:24px 28px;gap:4px;border-top:.5px solid var(--border);overflow-y:auto}
-.mobileLink{font-size:16px;color:var(--text);padding:14px 0;border-bottom:.5px solid var(--border);display:block}
+.mobileLink{font-size:16px;color:var(--text);padding:12px 0;display:flex;align-items:center;gap:10px;border-bottom:.5px solid var(--border)}
 .mobileLang{display:flex;gap:8px;padding:16px 0;border-bottom:.5px solid var(--border)}
 .mobileCta{margin-top:16px;padding:12px 20px;border-radius:10px;background:var(--g);color:#fff;font-size:15px;font-weight:600;text-align:center;display:block}
 @media(max-width:768px){
