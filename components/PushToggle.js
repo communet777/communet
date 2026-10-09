@@ -10,6 +10,7 @@ export default function PushToggle() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [diag, setDiag] = useState('')
+  const [fresh, setFresh] = useState(false) // Test-Button nur direkt nach dem Aktivieren, bis der Test geklappt hat
   const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function PushToggle() {
       const j = sub.toJSON()
       const { error } = await supabase.from('push_subscriptions').upsert({ user_id: user.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth_key: j.keys.auth }, { onConflict: 'endpoint' })
       if (error) throw error
-      setState('on')
+      setState('on'); setFresh(true)
     } catch (e) { setMsg('Das hat nicht geklappt: ' + (e.message || e)) }
     setBusy(false)
   }
@@ -52,7 +53,8 @@ export default function PushToggle() {
       const { data: { session } } = await supabase.auth.getSession()
       const r = await fetch('/api/push/test', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } })
       const j = await r.json()
-      setDiag(JSON.stringify(j, null, 1))
+      if (r.ok && !j.error) setFresh(false)
+      else setDiag(JSON.stringify(j, null, 1))
     } catch (e) { setDiag('Fehler: ' + (e.message || e)) }
     setBusy(false)
   }
@@ -65,6 +67,8 @@ export default function PushToggle() {
   return (
     <div style={box}>
       <span>{state === 'on' ? '🔔 Du bekommst Mitteilungen bei neuen Nachrichten.' : '🔔 Mitteilungen bei neuen Nachrichten aktivieren?'}{msg && <><br/><span style={{color:'#b3261e'}}>{msg}</span></>}</span>
+      {state === 'on' && fresh && <button onClick={test} disabled={busy} style={btn}>Test senden</button>}
+      {diag && <pre style={{width:'100%',fontSize:11,whiteSpace:'pre-wrap',wordBreak:'break-all',background:'var(--bg)',padding:8,borderRadius:8,margin:0}}>{diag}</pre>}
       {state === 'on' ? <button onClick={disable} disabled={busy} style={{...btn, background:'none', color:'var(--muted)', border:'1px solid var(--border)'}}>Ausschalten</button> : <button onClick={enable} disabled={busy} style={btn}>{busy ? '…' : 'Aktivieren'}</button>}
     </div>
   )
