@@ -27,7 +27,7 @@ useEffect(()=>{
 if(typeof window==='undefined'||mapInstanceRef.current)return
 const L=require('leaflet');require('leaflet/dist/leaflet.css')
 const map=L.map(mapRef.current,{center:initialView?[initialView.lat,initialView.lon]:[50,10],zoom:initialView?initialView.zoom:4,zoomControl:true})
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18}).addTo(map)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',maxZoom:19,subdomains:'abcd'}).addTo(map)
 mapInstanceRef.current=map
 // Wasserquellen werden auf einer Zeichenfläche (Canvas) gezeichnet, das bleibt auch bei 1000 Punkten flüssig
 canvasRef.current=L.canvas({padding:0.3})
