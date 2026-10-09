@@ -50,9 +50,9 @@ return(
 <Link href="/karte"className={styles.mobileLink}><Icon name="karte"/> {t('nav_map')}</Link>
 <Link href="/kommunen"className={styles.mobileLink}><Icon name="globus"/> {t('nav_communities')}</Link>
 <Link href="/angebote"className={styles.mobileLink}><Icon name="stern"/> {t('nav_offers')}</Link>
-<Link href="/versorgung"className={`${styles.mobileLink} ${styles.navSupply}`}><TypIcon src={ICONS.korb}size={15}/> {t('nav_supply')}</Link>
+<Link href="/versorgung"className={styles.mobileLink}><TypIcon src={ICONS.korb}size={15}/> {t('nav_supply')}</Link>
 {user&&earlyAccess&&<Link href="/leute"className={styles.mobileLink}><Icon name="person"/> Leute</Link>}
-{user&&earlyAccess&&<Link href="/nachrichten"className={styles.mobileLink}><Icon name="stern"/> Nachrichten{unread>0?` (${unread})`:''}</Link>}
+{user&&earlyAccess&&<Link href="/nachrichten"className={styles.mobileLink}><Icon name="brief"/> Nachrichten{unread>0?` (${unread})`:''}</Link>}
 {user&&<Link href="/app"className={styles.mobileLink}><Icon name="stern"/> App</Link>}
 <div className={styles.mobileLang}>
 <button className={`${styles.langBtn}${lang==='de'?' '+styles.langActive:''}`}onClick={e=>{e.stopPropagation();setLang('de')}}>DE</button>
