@@ -65,8 +65,6 @@ export default function PushToggle() {
   return (
     <div style={box}>
       <span>{state === 'on' ? '🔔 Du bekommst Mitteilungen bei neuen Nachrichten.' : '🔔 Mitteilungen bei neuen Nachrichten aktivieren?'}{msg && <><br/><span style={{color:'#b3261e'}}>{msg}</span></>}</span>
-      {state === 'on' && <button onClick={test} disabled={busy} style={btn}>Test senden</button>}
-      {diag && <pre style={{width:'100%',fontSize:11,whiteSpace:'pre-wrap',wordBreak:'break-all',background:'var(--bg)',padding:8,borderRadius:8,margin:0}}>{diag}</pre>}
       {state === 'on' ? <button onClick={disable} disabled={busy} style={{...btn, background:'none', color:'var(--muted)', border:'1px solid var(--border)'}}>Ausschalten</button> : <button onClick={enable} disabled={busy} style={btn}>{busy ? '…' : 'Aktivieren'}</button>}
     </div>
   )
