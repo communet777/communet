@@ -7,6 +7,8 @@ import{useLang}from'../lib/LanguageContext'
 import{getTypBadge}from'../data/communities'
 import TypIcon from'../components/TypIcon'
 import Icon from'../components/Icon'
+import CountUp from'../components/CountUp'
+import Reveal from'../components/Reveal'
 import{getTypBg}from'../lib/typColors'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
@@ -59,8 +61,8 @@ return(
 <GoldLine/>
 <p className={styles.lead}>{t('home_sub')}</p>
 <div className={styles.stats}>
-<div className={styles.stat}><span className={styles.statN}>{totalCount}+</span><span className={styles.statL}>{t('home_stat_communities')}</span></div>
-<div className={styles.stat}><span className={styles.statN}>{countryCount}+</span><span className={styles.statL}>{t('home_stat_countries')}</span></div>
+<div className={styles.stat}><span className={styles.statN}><CountUp to={totalCount}/>+</span><span className={styles.statL}>{t('home_stat_communities')}</span></div>
+<div className={styles.stat}><span className={styles.statN}><CountUp to={countryCount}/>+</span><span className={styles.statL}>{t('home_stat_countries')}</span></div>
 <div className={styles.stat}><span className={styles.statN}><Icon name="globus" size={30}/></span><span className={styles.statL}>{t('home_stat_offers')}</span></div>
 </div>
 <form onSubmit={handleSearch} className={styles.searchForm} role="search">
@@ -83,7 +85,7 @@ return(
 
 {/* Vision */}
 <section className={styles.vision}>
-<div className={styles.visionInner}>
+<Reveal className={styles.visionInner}>
 {lang==='de'?(
 <>
 <span className={styles.kicker}><span className={styles.kickerLine}/>Unsere Vision<span className={styles.kickerLine}/></span>
@@ -103,7 +105,7 @@ return(
 <Link href="/ueber-uns" className={styles.textLink}>About Communet →</Link>
 </>
 )}
-</div>
+</Reveal>
 </section>
 
 {/* Aktive Gemeinschaften */}
@@ -116,7 +118,7 @@ return(
 </div>
 <Link href="/kommunen" className={styles.textLink}>{t('home_see_all')}</Link>
 </div>
-<ul className={styles.activeList}>
+<Reveal as="ul" className={styles.activeList}>
 {dbKommunen.slice(0,4).map(k=>(
 <li key={k.id}>
 <Link href={`/profil/p/${k.id}`} className={styles.activeItem}>
@@ -131,7 +133,7 @@ return(
 </Link>
 </li>
 ))}
-</ul>
+</Reveal>
 </section>
 )}
 
@@ -140,7 +142,7 @@ return(
 <div className={styles.howInner}>
 <h2 className={styles.h2Light}>{t('home_how_title')}</h2>
 <GoldLine width={120}/>
-<div className={styles.howGrid}>
+<Reveal className={styles.howGrid}>
 <Link href="/auth/login" className={styles.howItem}>
 <span className={styles.howIcon}><Icon name="person" size={28}/></span>
 <strong>{t('home_how1_title')}</strong>
@@ -156,13 +158,13 @@ return(
 <strong>{t('home_how3_title')}</strong>
 <span>{t('home_how3_text')}</span>
 </Link>
-</div>
+</Reveal>
 </div>
 </section>
 
 {/* Deine Kommune noch nicht dabei? (Spirale im Hintergrund) */}
 <section className={styles.cta}>
-<div className={styles.ctaInner}>
+<Reveal className={styles.ctaInner}>
 <Icon name="globus" size={56}/>
 <h2 className={styles.h2}>{t('home_cta_title')}</h2>
 <GoldLine width={120}/>
@@ -171,7 +173,7 @@ return(
 <Link href="/auth/login" className={styles.btnPrimary}>{t('home_cta_btn1')}</Link>
 <Link href="/auth/login" className={styles.btnSecondary}>{t('home_cta_btn2')}</Link>
 </div>
-</div>
+</Reveal>
 </section>
 
 <footer className={styles.footer}>
