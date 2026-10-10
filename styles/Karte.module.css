@@ -37,6 +37,10 @@
 .statusDot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .dotGreen{background:#2d6a4f}
 .dotGray{background:#bbb}
+.addBox{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-top:.5px solid var(--border);background:var(--surface)}
+.addBox strong{font-size:14px;color:var(--text)}
+.addBox span{font-size:12px;color:var(--muted)}
+.addBtn{display:block;text-align:center;padding:10px;background:var(--g);color:#fff;border-radius:8px;font-size:13px;font-weight:600;margin-top:2px}
 .mapWrap{position:relative;flex:1;overflow:hidden}
 .zoomHint{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--surface);border:.5px solid var(--border);border-radius:20px;padding:8px 16px;font-size:13px;color:var(--text);box-shadow:0 4px 16px rgba(0,0,0,.15);pointer-events:none;white-space:nowrap;max-width:calc(100% - 100px);overflow:hidden;text-overflow:ellipsis}
 .mapLoading{display:flex;align-items:center;justify-content:center;height:100%;font-size:24px;color:var(--muted)}
@@ -63,6 +67,7 @@
 .memberPanel{order:4}
 .mapWrap{order:5;flex:none;height:62vh;min-height:320px;border-top:.5px solid var(--border);border-bottom:.5px solid var(--border)}
 .list{order:6;flex:none;overflow:visible;background:var(--sand)}
+.addBox{order:7}
 .popup{left:12px;right:12px;bottom:12px;width:auto}
 .mapWrap :global(.leaflet-container){min-height:0!important}
 }

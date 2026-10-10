@@ -212,6 +212,11 @@ Auch als privat/gesperrt markierte Quellen zeigen
 </div>
 ))}
 </div>
+<div className={styles.addBox}>
+<strong>{t('home_cta_title')}</strong>
+<span>{t('home_cta_sub')}</span>
+<a href="/auth/login" className={styles.addBtn}>{t('home_cta_btn1')}</a>
+</div>
 </div>
 <div className={styles.mapWrap}>
 {user&&(showFarmShops||showWater)&&view&&view.zoom<FARM_MIN_ZOOM&&(
@@ -230,7 +235,7 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.popupName}>{selected.name}</div>
 <span className={`badge ${getTypBadge(selected.typ)}`}>{selected.typ}</span>
 <div className={styles.popupLoc}><Icon name="standort"/> {selected.ort}{selected.ort&&selected.land?' · ':''}{selected.land}</div>
-<div className={styles.popupDesc}>{selected.beschreibung?.slice(0,100)}…</div>
+<div className={styles.popupDesc}>{(selected.beschreibung||'').length>100?selected.beschreibung.slice(0,100)+'…':selected.beschreibung}</div>
 <div className={styles.popupStatus}style={{color:selected.status==='aktiv'?'var(--g)':'var(--muted)'}}>
 {selected.status==='aktiv'?`🟢 ${t('map_active')}`:`⚫ ${t('map_inactive')}`}
 </div>

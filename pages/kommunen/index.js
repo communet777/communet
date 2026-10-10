@@ -173,6 +173,7 @@ return(
 </div>
 <div className={styles.cardName}>{k.name}</div>
 <div className={styles.cardLoc}><Icon name="standort"/> {k.ort}{k.ort&&k.land?' · ':''}{displayLand}</div>
+{(()=>{const d=lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung;return d?<div className={styles.cardDesc}>{d}</div>:null})()}
 <div className={styles.cardFooter}>
 <span>👥 ~{k.members}</span>
 {isDb&&<span style={{color:'var(--g)',fontWeight:500,fontSize:11}}>Auf Communet</span>}
