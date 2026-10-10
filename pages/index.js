@@ -10,6 +10,7 @@ import Icon from'../components/Icon'
 import CountUp from'../components/CountUp'
 import Reveal from'../components/Reveal'
 import{getTypBg}from'../lib/typColors'
+import{getCommunityImage}from'../lib/communityImages'
 import{useCatalog}from'../lib/catalog'
 import{supabase}from'../lib/supabase'
 import styles from'../styles/Home.module.css'
@@ -36,6 +37,8 @@ supabase.from('profiles').select('id,name,kommune_typ,land,avatar_url')
 .then(({data})=>{ if(data) setDbKommunen(data) })
 },[])
 
+const HIGHLIGHT_IDS=[1,85,19] // Sieben Linden, Auroville, Tamera
+const highlights=HIGHLIGHT_IDS.map(id=>COMMUNITIES.find(k=>k.id===id)).filter(Boolean)
 const totalCount=COMMUNITIES.length+dbKommunen.length
 const countrySet=new Set(COMMUNITIES.map(k=>k.land))
 dbKommunen.forEach(k=>{ if(k.land) countrySet.add(k.land.split(',').slice(-1)[0].trim()) })
@@ -72,7 +75,6 @@ return(
 </form>
 <div className={styles.actions}>
 <Link href="/auth/login" className={styles.btnGold}>{t('home_cta_profile')}</Link>
-<Link href="/kommunen" className={styles.btnGhost}>{t('home_cta_commune')}</Link>
 </div>
 </div>
 <div className={styles.heroGlobe}>
@@ -137,6 +139,39 @@ return(
 </section>
 )}
 
+{/* Highlight-Communities */}
+{highlights.length>0&&(
+<section className={styles.hl}>
+<div className={styles.sectionHead}>
+<div>
+<span className={styles.kicker}><span className={styles.kickerLine}/>{t('home_hl_kicker')}</span>
+<h2 className={styles.h2Small}>{t('home_hl_title')}</h2>
+</div>
+<Link href="/kommunen" className={styles.textLink}>{t('home_see_all')}</Link>
+</div>
+<Reveal className={styles.hlGrid}>
+{highlights.map(k=>{
+const foto=getCommunityImage(k.id)
+const desc=lang==='en'?(k.beschreibung_en||k.beschreibung):k.beschreibung
+return(
+<Link key={k.id} href={`/kommunen/${k.id}`} className={styles.hlCard}>
+<span className={styles.hlImg} style={{background:getTypBg(k.typ)}}>
+{foto?<img src={foto.src} alt={k.name} loading="lazy"/>:<TypIcon typ={k.typ} size={64}/>}
+</span>
+<span className={styles.hlBody}>
+<span><span className={`badge ${getTypBadge(k.typ)}`}>{k.typ}</span></span>
+<strong>{k.name}</strong>
+<span className={styles.hlLoc}><Icon name="standort" size={13}/> {k.ort}{k.ort&&k.land?' · ':''}{k.land}</span>
+<span className={styles.hlDesc}>{desc}</span>
+<span className={styles.hlMore}>{t('map_view_profile')}</span>
+{foto&&<span className={styles.hlCredit}>Foto: {foto.autor} · {foto.lizenz}</span>}
+</span>
+</Link>
+)})}
+</Reveal>
+</section>
+)}
+
 {/* Einfach und direkt */}
 <section className={styles.how}>
 <div className={styles.howInner}>
@@ -171,7 +206,7 @@ return(
 <p className={styles.ctaSub}>{t('home_cta_sub')}</p>
 <div className={styles.ctaBtns}>
 <Link href="/auth/login" className={styles.btnPrimary}>{t('home_cta_btn1')}</Link>
-<Link href="/auth/login" className={styles.btnSecondary}>{t('home_cta_btn2')}</Link>
+<Link href="/auth/login" className={styles.textLink}>{t('home_cta_btn2')}</Link>
 </div>
 </Reveal>
 </section>

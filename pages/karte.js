@@ -91,6 +91,9 @@ k.name.toLowerCase().includes(q)||
 )
 })
 
+// Leerer Kartenausschnitt (nahe herangezoomt, nichts eingetragen): freundliche Einladung
+const emptyView=!!view&&view.zoom>=7&&!search.trim()&&!allKommunen.some(k=>k.lat>=view.south&&k.lat<=view.north&&k.lon>=view.west&&k.lon<=view.east)
+
 // Sobald die Suche auf genau einen Treffer eingrenzt, automatisch dorthin zoomen
 useEffect(()=>{
 if(!search.trim())return
@@ -223,6 +226,13 @@ Auch als privat/gesperrt markierte Quellen zeigen
 <div className={styles.zoomHint}>🔍 Zum Anzeigen von {showFarmShops&&showWater?'Hofläden und Wasserquellen':showWater?'Wasserquellen':'Hofläden'} weiter hineinzoomen</div>
 )}
 <MapComponent communities={filtered}selected={selected}selectedZoom={mapZoom}onSelect={selectFromList}farmShops={visibleFarms}selectedFarm={selectedFarm}onSelectFarm={selectFarm}waterSources={showWater&&user?visibleWaterKarte:[]}onSelectWater={selectWater}onViewChange={handleViewChange}initialView={initialView}flyTarget={flyTarget}/>
+{emptyView&&!selected&&!selectedFarm&&!selectedWater&&(
+<div className={styles.emptyHint}>
+<strong>{t('map_empty_title')}</strong>
+<span>{t('map_empty_sub')}</span>
+<a href="/auth/login" className={styles.addBtn}>{t('home_cta_btn1')}</a>
+</div>
+)}
 {selected&&(
 <div className={styles.popup}>
 <button className={styles.popupClose}onClick={()=>setSelected(null)}>✕</button>

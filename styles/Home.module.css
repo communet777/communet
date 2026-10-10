@@ -13,15 +13,15 @@ min-height:100vh;background:var(--ww);color:var(--dg);font-family:var(--sans);li
 background:var(--fg);color:var(--ww);padding:72px clamp(20px,5vw,72px) 88px;min-height:640px}
 .heroText{display:flex;flex-direction:column;gap:22px;max-width:540px}
 .title{font-family:var(--serif);font-weight:700;font-size:clamp(52px,6.2vw,92px);line-height:.98;color:var(--gold);margin:0;letter-spacing:.01em}
-.lead{font-size:18px;line-height:1.65;color:rgba(240,230,210,.96);max-width:460px;margin:0}
+.lead{font-size:18px;line-height:1.65;color:#FFF8EA;max-width:460px;margin:0}
 .stats{display:flex;flex-wrap:wrap;gap:28px;padding-top:4px}
 .stat{display:flex;flex-direction:column;gap:2px}
 .statN{font-family:var(--serif);font-size:38px;font-weight:600;line-height:1;color:var(--gold);min-height:38px;display:flex;align-items:center}
-.statL{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:rgba(240,230,210,.88)}
+.statL{font-size:14px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#FFF8EA}
 .searchForm{display:flex;max-width:460px;width:100%}
 .searchInput{flex:1;min-width:0;min-height:50px;padding:0 20px;border-radius:999px 0 0 999px;border:1px solid rgba(233,173,85,.7);border-right:none;
-background:rgba(240,230,210,.1);color:var(--ww);font:inherit;font-size:16px;outline:none}
-.searchInput::placeholder{color:rgba(240,230,210,.8)}
+background:rgba(240,230,210,.16);color:#FFF8EA;font:inherit;font-size:16px;outline:none}
+.searchInput::placeholder{color:rgba(255,248,234,.92)}
 .searchInput:focus{border-color:var(--gold);background:rgba(240,230,210,.1)}
 .searchBtn{min-height:50px;padding:0 20px;border-radius:0 999px 999px 0;border:1px solid rgba(233,173,85,.5);background:rgba(233,173,85,.18);cursor:pointer;display:flex;align-items:center}
 .searchBtn:hover{background:rgba(233,173,85,.32)}
@@ -36,12 +36,26 @@ background:rgba(240,230,210,.1);color:var(--ww);font:inherit;font-size:16px;outl
 background:radial-gradient(circle closest-side,rgba(233,173,85,.24),rgba(233,173,85,.08) 60%,rgba(233,173,85,0) 100%);transition:transform .4s}
 .globeLink:hover .globe{transform:scale(1.03)}
 .globeLink:focus-visible .globe{outline:2px solid var(--gold);outline-offset:6px}
-.globeHint{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.globeHint{font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
 
 /* Gemeinsame Bausteine */
 .kicker{display:flex;align-items:center;gap:16px;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--goldText);font-weight:600}
 .kickerLine{height:1px;width:40px;background:var(--gold)}
 .h2{font-family:var(--serif);font-weight:600;font-size:clamp(38px,4.4vw,60px);line-height:1.05;color:var(--fg);margin:0}
+.hl{max-width:1440px;margin:0 auto;padding:clamp(40px,6vw,64px) clamp(20px,5vw,72px) clamp(48px,7vw,72px)}
+.active+.hl{padding-top:0}
+.hlGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:20px}
+.hlCard{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:#FBF6EA;border:1px solid var(--line);color:var(--dg);-webkit-tap-highlight-color:transparent;transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+@media (hover:hover) and (pointer:fine){.hlCard:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(23,63,74,.16)}}
+.hlCard:active{transform:scale(.97)}
+.hlImg{display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;overflow:hidden}
+.hlImg img{width:100%;height:100%;object-fit:cover;display:block}
+.hlBody{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px 18px 16px;flex:1}
+.hlBody strong{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.1;color:var(--fg)}
+.hlLoc{font-size:13px;color:var(--soft)}
+.hlDesc{font-size:14px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hlMore{margin-top:auto;padding-top:6px;font-weight:600;font-size:13px;color:var(--fg);border-bottom:1px solid var(--gold);padding-bottom:1px}
+.hlCredit{font-size:11px;color:var(--soft)}
 .h2Small{font-family:var(--serif);font-weight:600;font-size:clamp(32px,3.4vw,46px);line-height:1.1;color:var(--fg);margin:8px 0 0}
 .h2Light{font-family:var(--serif);font-weight:600;font-size:clamp(36px,4vw,54px);line-height:1.1;color:var(--ww);margin:0}
 .textLink{font-weight:600;font-size:15px;color:var(--fg);border-bottom:1px solid var(--gold);padding-bottom:2px}
