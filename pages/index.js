@@ -37,7 +37,7 @@ supabase.from('profiles').select('id,name,kommune_typ,land,avatar_url')
 .then(({data})=>{ if(data) setDbKommunen(data) })
 },[])
 
-const HIGHLIGHT_IDS=[2,3] // ZEGG, Schloss Tempelhof
+const HIGHLIGHT_IDS=[1,85,19] // Sieben Linden, Auroville, Tamera
 const highlights=HIGHLIGHT_IDS.map(id=>COMMUNITIES.find(k=>k.id===id)).filter(Boolean)
 const totalCount=COMMUNITIES.length+dbKommunen.length
 const countrySet=new Set(COMMUNITIES.map(k=>k.land))
