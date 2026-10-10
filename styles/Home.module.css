@@ -54,7 +54,7 @@ background:radial-gradient(circle closest-side,rgba(233,173,85,.24),rgba(233,173
 .hlBody strong{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.1;color:var(--fg)}
 .hlLoc{font-size:13px;color:var(--soft)}
 .hlDesc{font-size:14px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.hlMore{margin-top:auto;padding-top:6px;font-weight:600;font-size:13px;color:var(--fg);border-bottom:1px solid var(--gold);padding-bottom:1px;margin-top:4px}
+.hlMore{margin-top:auto;padding-top:6px;font-weight:600;font-size:13px;color:var(--fg);border-bottom:1px solid var(--gold);padding-bottom:1px}
 .hlCredit{font-size:11px;color:var(--soft)}
 .h2Small{font-family:var(--serif);font-weight:600;font-size:clamp(32px,3.4vw,46px);line-height:1.1;color:var(--fg);margin:8px 0 0}
 .h2Light{font-family:var(--serif);font-weight:600;font-size:clamp(36px,4vw,54px);line-height:1.1;color:var(--ww);margin:0}
