@@ -127,7 +127,7 @@ return(
 <strong>{k.name}</strong>
 <span><span className={`badge ${getTypBadge(k.kommune_typ||'Ökodorf')}`}>{k.kommune_typ||'Ökodorf'}</span> <Icon name="standort" size={12}/> {k.land||'Ort unbekannt'}</span>
 </span>
-<span className={styles.activeStatus}>🟢 Aktiv</span>
+<span className={styles.activeStatus}><span className={styles.activeDot}/>Aktiv</span>
 </Link>
 </li>
 ))}

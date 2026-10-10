@@ -60,7 +60,7 @@ background:radial-gradient(circle closest-side,rgba(233,173,85,.24),rgba(233,173
 .visionText{font-size:18px;line-height:1.8;margin:0;color:var(--dg)}
 
 /* Aktiv */
-.active{max-width:1296px;margin:0 auto;padding:0 clamp(20px,5vw,72px) 104px}
+.active{max-width:1296px;margin:0 auto;padding:clamp(56px,8vw,88px) clamp(20px,5vw,72px) clamp(56px,8vw,88px)}
 .sectionHead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:24px}
 .activeList{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));column-gap:48px}
 .activeItem{display:flex;align-items:center;gap:18px;padding:18px 0;border-top:1px solid var(--line);color:var(--dg)}
@@ -70,7 +70,8 @@ background:radial-gradient(circle closest-side,rgba(233,173,85,.24),rgba(233,173
 .activeText{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
 .activeText strong{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.15}
 .activeText>span{font-size:13px;color:var(--soft)}
-.activeStatus{font-size:11px;color:#173F4A;background:#E1ECEE;padding:3px 8px;border-radius:10px;white-space:nowrap}
+.activeStatus{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#173F4A;background:#E1ECEE;padding:3px 10px;border-radius:10px;white-space:nowrap}
+.activeDot{width:7px;height:7px;border-radius:50%;background:#E9AD55;flex-shrink:0}
 
 /* Einfach und direkt */
 .how{background:var(--fg);color:var(--ww);padding:104px clamp(20px,5vw,72px)}
