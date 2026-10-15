@@ -1,0 +1,42 @@
+/* Geheime Bewerbungsseite Baumhaus – warm, grün-erdig, passend zum Original-Formular (Ton #87774F) */
+.page{min-height:100vh;background:var(--sand);padding:24px 16px 48px}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.hero{width:100%;aspect-ratio:1200/630;object-fit:cover;border-radius:16px;display:block;background:#e6dcc4}
+.card{background:var(--card);border-radius:16px;padding:24px 22px;border:1px solid var(--border);border-top:6px solid #87774F}
+.title{font-size:clamp(28px,6vw,40px)!important;margin-bottom:12px}
+.title::after{display:none!important}
+.intro{margin-bottom:12px}
+.rules{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.secTitle{display:flex;align-items:center;gap:10px;font-size:26px!important;margin-bottom:16px}
+.secNr{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#87774F;color:#fff;font-family:'Work Sans',sans-serif;font-size:14px;font-weight:600;flex-shrink:0}
+.q{display:flex;flex-direction:column;gap:6px;border:none;margin:0 0 20px;padding:0;min-width:0}
+.label{font-weight:600;font-size:15px;padding:0}
+.req{color:#b5452f}
+.hint{font-size:13px;color:var(--muted)}
+.input{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:15px;font-family:inherit;resize:vertical}
+.input:focus{outline:none;border-color:#87774F}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 14px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;line-height:1.3;text-align:left;transition:background .15s,border-color .15s}
+@media (hover:hover){.chip:hover{border-color:#87774F}}
+.chipOn{background:#87774F;border-color:#87774F;color:#fff}
+.scale{border:none;margin:0 0 18px;padding:0}
+.scaleEnds{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);margin-bottom:6px}
+.scaleEnds span{flex:1}
+.scaleEnds span:last-child{text-align:right}
+.scaleDots{display:flex;justify-content:space-between;gap:6px}
+.dot{flex:1;height:42px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:14px;font-weight:600}
+.dotOn{background:#87774F;border-color:#87774F;color:#fff}
+.substRow{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.substName{font-size:14px;color:var(--muted)}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin:4px 0 16px}
+.consent input{margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#87774F}
+.error{background:#fbe9e5;color:#8a2a17;padding:10px 14px;border-radius:10px;font-size:14px;margin-bottom:12px}
+.submit{width:100%;padding:14px;border-radius:999px;border:none;background:var(--g);color:#fff;font-size:16px;font-weight:600}
+.submit:disabled{opacity:.6}
+.sign{margin-top:18px;font-size:14px;color:var(--muted);text-align:center}
+.sent{text-align:center;display:flex;flex-direction:column;gap:6px}
+.sentIcon{font-size:40px}
+.footerImg{width:100%;border-radius:16px;display:block}
+.powered{text-align:center;font-size:12px;color:var(--muted)}
+.powered a{text-decoration:underline}
+.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
