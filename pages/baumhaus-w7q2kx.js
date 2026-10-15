@@ -12,8 +12,9 @@ import s from '../styles/Baumhaus.module.css'
   Grundlage: Google-Formular "Werde Teil der Baumhaus Gemeinschaft", erweitert (Stufe 1).
 */
 
-const HEADER_IMG = 'https://lh4.googleusercontent.com/ltS6cp-2K2aZyFBqqTtgaudQ5dSHq5hzEWWjhoZIb90fckHH3rz0Lj4fVlTr-szeh8dQsgovoc2H0qI=w1200-h630-p'
-const FOOTER_IMG = 'https://docs.google.com/forms-images-rt/ANbbkijZ-s-QDekMdSoYIhhRtvlJ-syvp8OMIvrHHX75zkjfK-JneJeLMQeQiqd6jy43EX3iocn0bB2zVIaK-GHBacQ_Ueuhtbwtkb1rGqFVpZ7kJqV4oREUVLoZUqipPqvNfzWHZcYecFBVtdtvkzFtGo662zu0r_ktFST3RZyCEtoCZziv22myxJ5LcR3StDilDWkeVh8oqtk=w960'
+const BILDER = 'https://dgffntczrhwujjtvbytj.supabase.co/storage/v1/object/public/seiten-bilder/baumhaus/'
+const HEADER_IMG = BILDER + 'wohnzimmer.jpg'
+const FOOTER_IMG = BILDER + 'gemeinschaft.jpg'
 
 const EINZEL = 'single'
 const MEHRFACH = 'multi'
@@ -167,7 +168,7 @@ export default function Baumhaus() {
       </Head>
 
       <div className={s.wrap}>
-        <img className={s.hero} src={HEADER_IMG} alt="" onError={e => { e.currentTarget.style.display = 'none' }} />
+        <img className={s.hero} src={HEADER_IMG} alt="Das Wohnzimmer im Baumhaus" onError={e => { e.currentTarget.style.display = 'none' }} />
 
         <header className={s.card}>
           <h1 className={s.title}>Werde Teil der Baumhaus Gemeinschaft 🌳🏡</h1>
@@ -323,7 +324,7 @@ export default function Baumhaus() {
           </form>
         )}
 
-        <img className={s.footerImg} src={FOOTER_IMG} alt="" onError={e => { e.currentTarget.style.display = 'none' }} />
+        <img className={s.footerImg} src={FOOTER_IMG} alt="Die Baumhaus-Gemeinschaft" onError={e => { e.currentTarget.style.display = 'none' }} />
         <p className={s.powered}>Läuft über <a href="https://communet.net">communet.net</a> · <a href="/datenschutz">Datenschutz</a> · <a href="/impressum">Impressum</a></p>
       </div>
     </div>
