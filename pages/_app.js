@@ -10,5 +10,7 @@ import BottomNav from'../components/BottomNav'
 export default function App({Component,pageProps}){
 // Damit :active (Antipp-Effekt) auch auf dem iPhone sofort greift
 useEffect(()=>{const f=()=>{};document.addEventListener('touchstart',f,{passive:true});return()=>document.removeEventListener('touchstart',f)},[])
+// Eigenständige Seiten (z. B. geheime Formulare) ohne Footer, Navigation und Installationshinweis
+if(Component.standalone)return<LanguageProvider><AuthProvider><Component{...pageProps}/></AuthProvider></LanguageProvider>
 return<LanguageProvider><AuthProvider><ActiveProfileProvider><Component{...pageProps}/><Footer/><BottomNav/><InstallHint/><PwaRegister/></ActiveProfileProvider></AuthProvider></LanguageProvider>
 }
