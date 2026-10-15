@@ -1,7 +1,7 @@
 /* Geheime Bewerbungsseite Baumhaus – warm, grün-erdig, passend zum Original-Formular (Ton #87774F) */
 .page{min-height:100vh;background:var(--sand);padding:24px 16px 48px}
 .wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-.hero{width:100%;aspect-ratio:1200/630;object-fit:cover;border-radius:16px;display:block;background:#e6dcc4}
+.hero{width:100%;aspect-ratio:4/1;object-fit:cover;border-radius:16px;display:block;background:#e6dcc4}
 .card{background:var(--card);border-radius:16px;padding:24px 22px;border:1px solid var(--border);border-top:6px solid #87774F}
 .title{font-size:clamp(28px,6vw,40px)!important;margin-bottom:12px}
 .title::after{display:none!important}
@@ -40,3 +40,4 @@
 .powered{text-align:center;font-size:12px;color:var(--muted)}
 .powered a{text-decoration:underline}
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:600px){.hero{aspect-ratio:5/2}}
