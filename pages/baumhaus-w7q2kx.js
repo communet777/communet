@@ -37,7 +37,11 @@ const FRAGEN = {
 
   stunden: { typ: EINZEL, label: 'Wie viele Stunden pro Woche kannst du für Haus, Garten und Organisation aufbringen?', opts: ['Unter 2', '2 bis 4', '4 bis 8', 'Mehr als 8'] },
   treffen: { typ: EINZEL, label: 'Regelmäßige Haustreffen, zum Beispiel alle zwei Wochen: passt das für dich?', opts: ['Ja', 'Eher ja', 'Eher nein'] },
-  entscheiden: { typ: EINZEL, label: 'Gemeinsam entscheiden, zum Beispiel im Konsens: wie fühlst du dich damit?', opts: ['Kenne ich und mag ich', 'Kenne ich nicht, probiere ich gern aus', 'Klingt anstrengend, aber okay', 'Eher nicht meins'] },
+  entscheiden: { typ: EINZEL, label: 'Gemeinsam entscheiden, zum Beispiel auf den Haustreffen: wie fühlst du dich damit?', opts: ['Kenne ich und mag ich', 'Kenne ich nicht, probiere ich gern aus', 'Klingt anstrengend, aber okay', 'Eher nicht meins'] },
+  mittragen: { typ: EINZEL, label: 'Wenn die Gruppe etwas beschließt, das nicht deine Wunschlösung ist, du aber damit leben kannst …', opts: ['Trage ich mit', 'Trage ich mit, sage aber meine Meinung', 'Fällt mir schwer', 'Kommt aufs Thema an'] },
+  aufgaben: { typ: MEHRFACH, label: 'Welche Aufgabe würdest du gern dauerhaft übernehmen?', hint: 'Mehrfachauswahl möglich', opts: ['Garten', 'Einkauf und Vorräte', 'Reparaturen', 'Finanzen und Kasse', 'Treffen vorbereiten oder moderieren', 'Putzplan', 'Gäste und Neue einführen', 'Lieber wechselnd'] },
+  kritik: { typ: EINZEL, label: 'Wenn dir jemand sagt, dass ihn etwas an dir stört, wie reagierst du meistens?', opts: ['Bin dankbar, dass es angesprochen wird', 'Brauche kurz, dann ist es okay', 'Fühle mich schnell angegriffen', 'Kommt drauf an'] },
+  kennenlernen: { typ: EINZEL, label: 'Wärst du offen für eine Kennenlernzeit, bevor wir uns beide endgültig entscheiden?', opts: ['Ja, finde ich gut', 'Ja, wenn sie nicht zu lang ist', 'Eher nicht'] },
   konflikt: { typ: EINZEL, label: 'Wenn dich etwas an jemandem stört, was machst du meistens?', opts: ['Ich spreche es direkt an', 'Ich warte kurz ab und spreche es dann an', 'Ich bringe es beim Haustreffen ein', 'Ich schlucke es eher runter', 'Kommt drauf an'] },
 }
 
@@ -238,6 +242,7 @@ export default function Baumhaus() {
               <Choice name="dauer" q={FRAGEN.dauer} value={a.dauer} onChange={set} />
               <Choice name="mitkommen" q={FRAGEN.mitkommen} value={a.mitkommen} onChange={set} />
               <Choice name="besuch" q={FRAGEN.besuch} value={a.besuch} onChange={set} />
+              <Choice name="kennenlernen" q={FRAGEN.kennenlernen} value={a.kennenlernen} onChange={set} />
             </Section>
 
             <Section nr="3" title="Wer du bist">
@@ -296,9 +301,12 @@ export default function Baumhaus() {
 
             <Section nr="5" title="Mitmachen">
               <Choice name="stunden" q={FRAGEN.stunden} value={a.stunden} onChange={set} />
+              <Choice name="aufgaben" q={FRAGEN.aufgaben} value={a.aufgaben} onChange={set} />
               <Choice name="treffen" q={FRAGEN.treffen} value={a.treffen} onChange={set} />
               <Choice name="entscheiden" q={FRAGEN.entscheiden} value={a.entscheiden} onChange={set} />
+              <Choice name="mittragen" q={FRAGEN.mittragen} value={a.mittragen} onChange={set} />
               <Choice name="konflikt" q={FRAGEN.konflikt} value={a.konflikt} onChange={set} />
+              <Choice name="kritik" q={FRAGEN.kritik} value={a.kritik} onChange={set} />
             </Section>
 
             <Section nr="6" title="Zum Schluss">
