@@ -2,13 +2,13 @@ import Link from 'next/link'
 import Icon from'./Icon'
 import styles from '../styles/Profil.module.css'
 import TypIcon from './TypIcon'
-import MyStatusBadge from './MyStatusBadge'
+import MyStatusBadge, { statusColor } from './MyStatusBadge'
 
 // Eine Angebots-Karte im Feed (Profil-Vorschau und /feed).
 export default function FeedCard({ o }) {
   return (
     <Link href={`/angebote/${o.id}`} style={{textDecoration:'none'}}>
-      <div className={styles.feedCard} style={o.my_status === 'angenommen' ? { borderLeft: '4px solid var(--g)' } : undefined}>
+      <div className={styles.feedCard} style={{ borderLeft: `4px solid ${statusColor(o.my_status)}` }}>
         <div className={styles.feedCardMeta}><TypIcon typ={o.kommune?.kommune_typ} size={13}/> {o.kommune?.name || 'Kommune'}</div>
         <div style={{display:'flex',gap:8,alignItems:'center',margin:'4px 0',flexWrap:'wrap'}}>
           <MyStatusBadge status={o.my_status}/>
