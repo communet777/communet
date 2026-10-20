@@ -5,6 +5,8 @@ import Link from'next/link'
 import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
 import{useAuth}from'../lib/AuthContext'
+import MyStatusBadge from'../components/MyStatusBadge'
+import{loadMyInterest,sortMineFirst}from'../lib/myInterest'
 import{supabase}from'../lib/supabase'
 import{useActiveProfile}from'../lib/ActiveProfileContext'
 import TypIcon from'../components/TypIcon'
@@ -31,8 +33,9 @@ return R*2*Math.asin(Math.sqrt(a))
 function OfferCard({o,href}){
 return(
 <Link href={href}style={{textDecoration:'none'}}>
-<div className={styles.card}style={{cursor:'pointer'}}>
-<div className={styles.cardTop}>
+<div className={styles.card}style={{cursor:'pointer',...(o.my_status==='angenommen'?{borderLeft:'4px solid var(--g)'}:{})}}>
+<div className={styles.cardTop}style={{flexWrap:'wrap'}}>
+<MyStatusBadge status={o.my_status}/>
 <span className={styles.typBadge}>{o.typ}</span>
 {o.datum&&<span className={styles.dateBadge}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.uhrzeit?' · '+o.uhrzeit.slice(0,5)+' Uhr':''}</span>}
 {!o.datum&&o.von&&<span className={styles.dateBadge}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
@@ -81,6 +84,9 @@ return(
 }
 
 function AngebotePerson(){
+const{user}=useAuth()
+const[mine,setMine]=useState({})
+useEffect(()=>{loadMyInterest(user?.id).then(setMine).catch(()=>{})},[user?.id])
 const[offers,setOffers]=useState([])
 const[kommuneMap,setKommuneMap]=useState({})
 const[search,setSearch]=useState('')
@@ -181,7 +187,7 @@ return(
 </div>
 {loading&&<div className={styles.loading}>Lädt...</div>}
 {!loading&&filtered.length===0&&<div className={styles.empty}><div style={{marginBottom:12}}><Icon name="stern" size={40}/></div><p>Keine Angebote gefunden.</p></div>}
-<div className={styles.grid}>{filtered.map(o=><OfferCard key={o.id}o={o}href={`/angebote/${o.id}`}/>)}</div>
+<div className={styles.grid}>{sortMineFirst(filtered,mine).map(o=><OfferCard key={o.id}o={{...o,my_status:mine[o.id]||null}}href={`/angebote/${o.id}`}/>)}</div>
 <BackToTop/>
 </div>
 )
