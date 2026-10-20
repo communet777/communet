@@ -5,7 +5,7 @@ import Link from'next/link'
 import Nav from'../components/Nav'
 import BackToTop from'../components/BackToTop'
 import{useAuth}from'../lib/AuthContext'
-import MyStatusBadge from'../components/MyStatusBadge'
+import MyStatusBadge,{statusColor}from'../components/MyStatusBadge'
 import{loadMyInterest,sortMineFirst}from'../lib/myInterest'
 import{supabase}from'../lib/supabase'
 import{useActiveProfile}from'../lib/ActiveProfileContext'
@@ -33,7 +33,7 @@ return R*2*Math.asin(Math.sqrt(a))
 function OfferCard({o,href}){
 return(
 <Link href={href}style={{textDecoration:'none'}}>
-<div className={styles.card}style={{cursor:'pointer',...(o.my_status==='angenommen'?{borderLeft:'4px solid var(--g)'}:{})}}>
+<div className={styles.card}style={{cursor:'pointer',...(o.my_status!==undefined?{borderLeft:`4px solid ${statusColor(o.my_status)}`}:{})}}>
 <div className={styles.cardTop}style={{flexWrap:'wrap'}}>
 <MyStatusBadge status={o.my_status}/>
 <span className={styles.typBadge}>{o.typ}</span>
