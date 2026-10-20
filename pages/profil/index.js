@@ -9,6 +9,8 @@ import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import ProfileSwitcher from '../../components/ProfileSwitcher'
 import { InternInhalt } from './intern'
 import { supabase } from '../../lib/supabase'
+import FeedCard from '../../components/FeedCard'
+import { loadFeedOffers } from '../../lib/feed'
 import styles from '../../styles/Profil.module.css'
 
 export default function Profil() {
@@ -39,18 +41,7 @@ export default function Profil() {
   useEffect(() => {
     if (!user) return
     async function loadFeed() {
-      const { data: favs } = await supabase.from('favorites').select('community_id').eq('user_id', user.id)
-      if (!favs || favs.length === 0) { setFeedLoading(false); return }
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-      const uuidIds = favs.map(f => f.community_id).filter(id => uuidRegex.test(id))
-      if (uuidIds.length === 0) { setFeedLoading(false); return }
-      const { data: offs } = await supabase.from('offers').select('*')
-        .in('kommune_id', uuidIds).order('created_at', { ascending: false })
-      if (!offs || offs.length === 0) { setFeedLoading(false); return }
-      const { data: kommunen } = await supabase.from('profiles').select('id, name, avatar_url, kommune_typ').in('id', uuidIds)
-      const kommuneMap = {}
-      if (kommunen) kommunen.forEach(k => { kommuneMap[k.id] = k })
-      setFeedOffers(offs.map(o => ({ ...o, kommune: kommuneMap[o.kommune_id] || null })))
+      try { setFeedOffers(await loadFeedOffers(user.id)) } catch (e) {}
       setFeedLoading(false)
     }
     loadFeed()
@@ -115,21 +106,7 @@ export default function Profil() {
               <Link href="/kommunen" className={styles.btnPrimary} style={{display:'inline-block',marginTop:16}}>Gemeinschaften entdecken</Link>
             </div>
           )}
-          {feedOffers.map(o => (
-            <Link key={o.id} href={`/angebote/${o.id}`} style={{textDecoration:'none'}}>
-              <div className={styles.feedCard}>
-                <div className={styles.feedCardMeta}><TypIcon typ={o.kommune?.kommune_typ} size={13}/> {o.kommune?.name || 'Kommune'}</div>
-                <div style={{display:'flex',gap:8,alignItems:'center',margin:'4px 0'}}>
-                  <span style={{fontSize:11,fontWeight:600,background:'#E1ECEE',color:'var(--g)',padding:'2px 8px',borderRadius:20}}>{o.typ}</span>
-                  {o.datum && <span style={{fontSize:11,color:'var(--muted)'}}>📅 {new Date(o.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'long'})}{o.uhrzeit?' · '+o.uhrzeit.slice(0,5)+' Uhr':''}</span>}
-                  {!o.datum && o.von && <span style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.von).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}{o.bis?' – '+new Date(o.bis).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):''}</span>}
-                </div>
-                <div className={styles.feedCardTitle}>{o.titel}</div>
-                {o.ort && <div className={styles.feedCardOrt}><Icon name="standort"/> {o.ort}</div>}
-                {o.beschreibung && <p className={styles.feedCardDesc}>{o.beschreibung.slice(0,120)}{o.beschreibung.length>120?'…':''}</p>}
-              </div>
-            </Link>
-          ))}
+          {feedOffers.map(o => <FeedCard key={o.id} o={o}/>)}
           </>)}
         </main>
       </div>
