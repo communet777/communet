@@ -217,17 +217,17 @@ function TaskRow({ t, isOwner, tasks, days, compact }) {
           {more && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
               {t.mine && <button style={mini} onClick={() => tasks.act(t.id, 'leave')}>Austragen</button>}
-              {t.can_edit && days.length > 0 && (
-                <select value={t.tag || ''} onChange={e => tasks.setWhen(t.id, e.target.value, t.zeit)} style={{ ...mini, padding: '3px 4px' }}>
-                  <option value="">Ohne Tag</option>
-                  {days.map(d => <option key={d} value={d}>{dayShort(d)}</option>)}
+              {(t.can_edit || t.mine) && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--muted)', width: '100%' }}>↔ Verschieben:
+                <select value={`${t.tag || ''}|${t.zeit || ''}`} onChange={e => { const [d, z] = e.target.value.split('|'); tasks.setWhen(t.id, d, z); setMore(false) }} style={{ ...mini, padding: '4px 6px', fontSize: 12, color: 'var(--text)', maxWidth: '100%' }} aria-label="Verschieben nach">
+                  <option value="|">📦 Ohne festen Tag</option>
+                  {days.map(d => (
+                    <optgroup key={d} label={dayLabel(d)}>
+                      {[['', 'Ganztägig'], ...ZEITEN].map(([z, l]) => <option key={z} value={`${d}|${z}`}>{dayShort(d)} · {l}</option>)}
+                    </optgroup>
+                  ))}
                 </select>
-              )}
-              {t.can_edit && (
-                <select value={t.zeit || ''} onChange={e => tasks.setWhen(t.id, t.tag, e.target.value)} style={{ ...mini, padding: '3px 4px' }}>
-                  <option value="">Ganztägig</option>
-                  {ZEITEN.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-                </select>
+                </label>
               )}
               {t.can_edit && <button style={mini} onClick={() => tasks.act(t.id, 'delete')}>Löschen</button>}
             </div>

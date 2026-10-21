@@ -78,3 +78,19 @@ begin
   if v_role is null or (v_role <> 'owner' and t.created_by is distinct from auth.uid()) then raise exception 'Nicht erlaubt'; end if;
   update public.offer_tasks set tag = p_tag, zeit = nullif(p_zeit,'') where id = p_id;
 end $$;
+
+-- Nachtrag: Verschieben dürfen auch alle, die bei der Aufgabe mitmachen
+create or replace function public.task_set_when(p_id uuid, p_as uuid, p_tag date, p_zeit text)
+returns void language plpgsql security definer set search_path to 'public' as $$
+declare t record; v_role text;
+begin
+  select * into t from public.offer_tasks where id = p_id;
+  if not found then raise exception 'Nicht gefunden'; end if;
+  v_role := public.offer_access_as(t.offer_id, p_as);
+  if v_role is null then raise exception 'Nicht erlaubt'; end if;
+  if v_role <> 'owner' and t.created_by is distinct from auth.uid()
+     and not exists (select 1 from public.offer_task_people where task_id = p_id and user_id = auth.uid()) then
+    raise exception 'Nicht erlaubt';
+  end if;
+  update public.offer_tasks set tag = p_tag, zeit = nullif(p_zeit,'') where id = p_id;
+end $$;
