@@ -199,150 +199,188 @@ function Tasks({ offerId, asId, isOwner }) {
   )
 }
 
-function Schedule({ offerId, isOwner, offer }) {
+function useSchedule(offerId) {
   const [list, setList] = useState([])
-  const [f, setF] = useState({ tag: offer.datum || offer.von || '', uhrzeit: '', titel: '', beschreibung: '' })
-  const [err, setErr] = useState('')
   const load = useCallback(async () => {
     const { data } = await supabase.from('offer_schedule').select('*').eq('offer_id', offerId).order('tag', { nullsFirst: true }).order('uhrzeit', { nullsFirst: true })
     setList(data || [])
   }, [offerId])
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t) }, [load])
+  return { list, load }
+}
+
+// Programmpunkte eines Tages (day = 'YYYY-MM-DD' oder null für "ohne Datum")
+function ScheduleDay({ offerId, isOwner, day, items, reload }) {
+  const [open, setOpen] = useState(false)
+  const [f, setF] = useState({ uhrzeit: '', titel: '', beschreibung: '' })
+  const [err, setErr] = useState('')
   async function add(e) {
     e.preventDefault(); setErr('')
-    const { error } = await supabase.from('offer_schedule').insert({ offer_id: offerId, tag: f.tag || null, uhrzeit: f.uhrzeit || null, titel: f.titel.trim(), beschreibung: f.beschreibung.trim() || null })
+    const { error } = await supabase.from('offer_schedule').insert({ offer_id: offerId, tag: day || null, uhrzeit: f.uhrzeit || null, titel: f.titel.trim(), beschreibung: f.beschreibung.trim() || null })
     if (error) { setErr(error.message); return }
-    setF(x => ({ ...x, uhrzeit: '', titel: '', beschreibung: '' })); load()
+    setF({ uhrzeit: '', titel: '', beschreibung: '' }); setOpen(false); reload()
   }
-  async function del(id) { await supabase.from('offer_schedule').delete().eq('id', id); load() }
-  let last = null
+  async function del(id) { await supabase.from('offer_schedule').delete().eq('id', id); reload() }
+  if (!items.length && !isOwner) return null
   return (
-    <div>
-      {list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>{isOwner ? 'Trage den Ablauf ein, z.B. 14:00 Ankommen, 18:00 Gemeinsam kochen.' : 'Noch kein Zeitplan.'}</div>}
-      {list.map(s => {
-        const head = s.tag !== last ? (last = s.tag, s.tag ? new Date(s.tag + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' }) : 'Ohne Datum') : null
-        return (
-          <div key={s.id}>
-            {head && <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', margin: '10px 0 4px' }}>{head}</div>}
-            <div style={{ display: 'flex', gap: 10, padding: '6px 0', borderTop: '1px solid var(--border)', alignItems: 'baseline' }}>
-              <span style={{ width: 52, fontWeight: 700, flexShrink: 0 }}>{s.uhrzeit ? s.uhrzeit.slice(0, 5) : '–'}</span>
-              <div style={{ flex: 1 }}><strong>{s.titel}</strong>{s.beschreibung && <div style={{ fontSize: 13, color: 'var(--muted)' }}>{s.beschreibung}</div>}</div>
-              {isOwner && <button style={ghost} onClick={() => del(s.id)}>×</button>}
-            </div>
-          </div>
-        )
-      })}
-      {isOwner && (
-        <form onSubmit={add} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 8 }}>
-            <input style={inp} type="date" value={f.tag} onChange={e => setF(x => ({ ...x, tag: e.target.value }))}/>
-            <input style={inp} type="time" value={f.uhrzeit} onChange={e => setF(x => ({ ...x, uhrzeit: e.target.value }))}/>
-          </div>
-          <input style={inp} value={f.titel} onChange={e => setF(x => ({ ...x, titel: e.target.value }))} placeholder="Programmpunkt" maxLength={120}/>
-          <input style={inp} value={f.beschreibung} onChange={e => setF(x => ({ ...x, beschreibung: e.target.value }))} placeholder="Details (optional)" maxLength={500}/>
-          <div><button type="submit" style={btn} disabled={!f.titel.trim()}>Hinzufügen</button></div>
+    <div style={{ marginBottom: 8 }}>
+      {items.map(s => (
+        <div key={s.id} style={{ display: 'flex', gap: 10, padding: '6px 0', borderTop: '1px solid var(--border)', alignItems: 'baseline' }}>
+          <span style={{ width: 52, fontWeight: 700, flexShrink: 0 }}>{s.uhrzeit ? s.uhrzeit.slice(0, 5) : '–'}</span>
+          <div style={{ flex: 1, minWidth: 0 }}><strong>{s.titel}</strong>{s.beschreibung && <div style={{ fontSize: 13, color: 'var(--muted)' }}>{s.beschreibung}</div>}</div>
+          {isOwner && <button style={ghost} onClick={() => del(s.id)} aria-label="Programmpunkt löschen">×</button>}
+        </div>
+      ))}
+      {isOwner && !open && <button style={{ ...ghost, border: '1.5px dashed var(--border)', marginTop: 4 }} onClick={() => setOpen(true)}>＋ Programmpunkt</button>}
+      {isOwner && open && (
+        <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: '92px minmax(0,1fr)', gap: 6, marginTop: 6 }}>
+          <input style={inp} type="time" value={f.uhrzeit} onChange={e => setF(x => ({ ...x, uhrzeit: e.target.value }))} aria-label="Uhrzeit"/>
+          <input autoFocus style={inp} value={f.titel} onChange={e => setF(x => ({ ...x, titel: e.target.value }))} placeholder="z.B. Schalung stellen" maxLength={120}/>
+          <input style={{ ...inp, gridColumn: '1 / -1' }} value={f.beschreibung} onChange={e => setF(x => ({ ...x, beschreibung: e.target.value }))} placeholder="Details (optional)" maxLength={500}/>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 6 }}><button type="submit" style={btn} disabled={!f.titel.trim()}>Hinzufügen</button><button type="button" style={ghost} onClick={() => setOpen(false)}>Abbrechen</button></div>
         </form>
       )}
-      {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
+      {err && <p style={{ color: '#b3261e', fontSize: 13, margin: '6px 0 0' }}>{err}</p>}
     </div>
   )
 }
 
-function Meals({ offer, isOwner, store, onOfferChange }) {
-  const { list, err, add, act, move, edit } = store
-  const [editing, setEditing] = useState(null)
-  const [localErr, setLocalErr] = useState('')
-  const [showOff, setShowOff] = useState(false)
+const subHead = { fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', margin: '8px 0 4px' }
+
+// Ablauf: pro Tag eine Karte mit Programm und (bei Gemeinschaftsessen) Mahlzeiten
+function Ablauf({ offer, isOwner, store, onOfferChange }) {
+  const sched = useSchedule(offer.id)
+  const meals = offer.essen_modus === 'gemeinschaft'
+  const base = offerDays(offer, meals ? store.list : [])
+  const off = offer.mahlzeiten_aus || []
+  const allDays = [...new Set([...base, ...sched.list.map(s => s.tag).filter(Boolean)])].sort()
+  // Teilnehmende sehen nur Tage, an denen etwas steht
+  const days = isOwner ? allDays : allDays.filter(d => sched.list.some(s => s.tag === d) || (meals && SLOTS.some(sl => !off.includes(`${d}|${sl}`))))
+  const undated = sched.list.filter(s => !s.tag)
+  const today = new Date().toLocaleDateString('sv-SE')
+  if (days.length === 0 && undated.length === 0 && !isOwner) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Noch kein Ablauf eingetragen.</div>
+  return (
+    <div>
+      {meals && <MealsExtras offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange} days={days}/>}
+      {days.length === 0 && isOwner && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Für die Tagesansicht braucht das Angebot ein Von-/Bis-Datum oder ein Veranstaltungsdatum. Programmpunkte ohne Datum kannst du unten eintragen.</div>}
+      {days.map(day => (
+        <div key={day} style={{ marginBottom: 14, border: `1.5px solid ${day === today ? 'var(--gold,#E9AD55)' : 'var(--border)'}`, borderRadius: 12, padding: '10px 14px', background: 'var(--bg)' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>{dayLabel(day)}{day === today && <span style={{ marginLeft: 8, fontSize: 11, color: '#173F4A', background: 'var(--gold,#E9AD55)', borderRadius: 10, padding: '1px 8px' }}>Heute</span>}</div>
+          {(isOwner || sched.list.some(s => s.tag === day)) && <div style={subHead}>🕒 Programm</div>}
+          <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={sched.list.filter(s => s.tag === day)} reload={sched.load}/>
+          {meals && <MealsDay offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange} day={day} days={days}/>}
+        </div>
+      ))}
+      {(undated.length > 0 || isOwner) && (
+        <div style={{ border: '1.5px dashed var(--border)', borderRadius: 12, padding: '10px 14px' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Ohne festen Tag</div>
+          <ScheduleDay offerId={offer.id} isOwner={isOwner} day={null} items={undated} reload={sched.load}/>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function useMealOff(offer, store, onOfferChange) {
+  const [err, setErr] = useState('')
   const off = offer.mahlzeiten_aus || []
   const isOff = (day, sl) => off.includes(`${day}|${sl}`)
   async function setOff(next) {
-    setLocalErr('')
+    setErr('')
     const { error } = await supabase.from('offers').update({ mahlzeiten_aus: next }).eq('id', offer.id)
-    if (error) setLocalErr(error.message)
+    if (error) setErr(error.message)
     else if (onOfferChange) onOfferChange({ mahlzeiten_aus: next })
   }
   function hide(day, slots) {
-    const busy = slots.filter(sl => list.some(d => d.tag === day && d.slot === sl))
-    if (busy.length) { setLocalErr(`„${busy.join(', ')}“ am ${dayShort(day)} enthält noch Gerichte – verschiebe oder entferne sie zuerst.`); return }
+    const busy = slots.filter(sl => store.list.some(d => d.tag === day && d.slot === sl))
+    if (busy.length) { setErr(`„${busy.join(', ')}“ am ${dayShort(day)} enthält noch Gerichte – verschiebe oder entferne sie zuerst.`); return }
     setOff([...new Set([...off, ...slots.map(sl => `${day}|${sl}`)])])
   }
   function unhide(keys) { setOff(off.filter(k => !keys.includes(k))) }
-  const allDays = offerDays(offer, list)
-  const days = isOwner ? allDays : allDays.filter(d => SLOTS.some(sl => !isOff(d, sl)))
-  const [quick, setQuick] = useState(null) // { tag, slot }
-  const [name, setName] = useState('')
-  const unplaced = list.filter(d => d.can_move && !(d.tag && d.slot))
+  return { off, isOff, hide, unhide, err }
+}
 
+// Mahlzeiten eines Tages innerhalb der Ablauf-Karte
+function MealsDay({ offer, isOwner, store, onOfferChange, day, days }) {
+  const { list, err, add, act, move, edit } = store
+  const { off, isOff, hide, err: offErr } = useMealOff(offer, store, onOfferChange)
+  const [editing, setEditing] = useState(null)
+  const [quick, setQuick] = useState(null)
+  const [name, setName] = useState('')
+  const slots = SLOTS.filter(sl => !isOff(day, sl))
+  if (slots.length === 0) return null
   async function submitQuick(e) {
     e.preventDefault()
-    const ok = await add({ name, category: SLOT_CAT[quick.slot] || 'Hauptgericht', wish: isOwner, tag: quick.tag, slot: quick.slot })
+    const ok = await add({ name, category: SLOT_CAT[quick] || 'Hauptgericht', wish: isOwner, tag: day, slot: quick })
     if (ok) { setName(''); setQuick(null) }
   }
-  if (days.length === 0) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Für die Tagesansicht braucht das Angebot ein Von-/Bis-Datum oder ein Veranstaltungsdatum. Trage es beim Bearbeiten des Angebots ein.</div>
   return (
     <div>
-      {unplaced.length > 0 && (
-        <div style={{ background: 'var(--bg)', borderRadius: 10, padding: '8px 12px', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Noch keiner Mahlzeit zugeordnet</div>
-          {unplaced.map(d => (
-            <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '4px 0' }}>
-              <span style={{ flex: 1, minWidth: 120 }}>{d.name} <span style={{ fontSize: 11, color: 'var(--muted)' }}>({d.category})</span></span>
-              <MoveSelect dish={d} days={days} onMove={move} off={offer.mahlzeiten_aus || []}/>
-            </div>
-          ))}
-        </div>
-      )}
-      {days.map(day => (
-        <div key={day} style={{ marginBottom: 14, border: '1.5px solid var(--border)', borderRadius: 12, padding: '10px 14px', background: 'var(--bg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
-            <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{dayLabel(day)}</span>
-            {isOwner && SLOTS.some(sl => !isOff(day, sl)) && <button style={ghost} onClick={() => hide(day, SLOTS)}>Tag ohne Essen</button>}
-          </div>
-          {SLOTS.filter(sl => !isOff(day, sl)).map(sl => {
-            const items = list.filter(d => d.tag === day && d.slot === sl)
-            const isQuick = quick && quick.tag === day && quick.slot === sl
-            return (
-              <div key={sl} style={{ display: 'flex', gap: 10, padding: '6px 0', borderTop: '1px solid var(--border)', alignItems: 'flex-start' }}>
-                <span style={{ width: 96, fontWeight: 600, fontSize: 13, flexShrink: 0 }}>{sl}{isOwner && <button title="Diese Mahlzeit entfernen" style={{ ...ghost, marginLeft: 4, padding: '0 6px' }} onClick={() => hide(day, [sl])}>×</button>}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {items.map(d => editing === d.id ? (
-                    <EditDish key={d.id} dish={d} onSave={edit} onCancel={() => setEditing(null)}/>
-                  ) : (
-                    <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
-                      <span style={{ flex: 1, minWidth: 110 }}>
-                        <strong>{d.name}</strong> <span style={{ fontSize: 11, color: 'var(--muted)' }}>{d.category}</span>
-                        {d.tags?.map(t => <span key={t} style={{ marginLeft: 6, fontSize: 11, background: '#E1ECEE', color: 'var(--g)', borderRadius: 10, padding: '1px 8px' }}>{t}</span>)}
-                        <div style={{ fontSize: 12, color: d.claimed_by ? 'var(--muted)' : '#b3261e' }}>{d.claimed_by ? (d.mine ? '👩‍🍳 Du' : `👩‍🍳 ${d.claimed_name || 'Jemand'}`) : '🙋 Gesucht'}</div>
-                      </span>
-                      {!d.claimed_by && !isOwner && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
-                      {(d.can_move || isOwner) && <button style={ghost} onClick={() => setEditing(d.id)}>✏️ Bearbeiten</button>}
-                      {d.mine && <button style={ghost} onClick={() => act(d.id, 'release')}>Zurückziehen</button>}
-                      {isOwner && !d.mine && <button style={ghost} onClick={() => act(d.id, 'delete')}>Entfernen</button>}
-                      <MoveSelect dish={d} days={days} onMove={move} off={offer.mahlzeiten_aus || []}/>
-                    </div>
-                  ))}
-                  {isQuick ? (
-                    <form onSubmit={submitQuick} style={{ display: 'flex', gap: 6 }}>
-                      <input autoFocus style={inp} value={name} onChange={e => setName(e.target.value)} placeholder={isOwner ? 'Was wird gesucht?' : 'Was kochst/bringst du?'} maxLength={80}/>
-                      <button type="submit" style={btn} disabled={!name.trim()}>OK</button>
-                      <button type="button" style={ghost} onClick={() => setQuick(null)}>×</button>
-                    </form>
-                  ) : (
-                    <button style={{ ...ghost, border: '1.5px dashed var(--border)' }} onClick={() => { setQuick({ tag: day, slot: sl }); setName('') }}>＋ {isOwner ? 'Wunsch' : 'Gericht'}</button>
-                  )}
+      <div style={{ ...subHead, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ flex: 1 }}>🍲 Essen</span>
+        {isOwner && <button style={{ ...ghost, textTransform: 'none', letterSpacing: 0 }} onClick={() => hide(day, SLOTS)}>Tag ohne Essen</button>}
+      </div>
+      {slots.map(sl => {
+        const items = list.filter(d => d.tag === day && d.slot === sl)
+        return (
+          <div key={sl} style={{ display: 'flex', gap: 10, padding: '6px 0', borderTop: '1px solid var(--border)', alignItems: 'flex-start' }}>
+            <span style={{ width: 96, fontWeight: 600, fontSize: 13, flexShrink: 0 }}>{sl}{isOwner && <button title="Diese Mahlzeit entfernen" style={{ ...ghost, marginLeft: 4, padding: '0 6px' }} onClick={() => hide(day, [sl])}>×</button>}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {items.map(d => editing === d.id ? (
+                <EditDish key={d.id} dish={d} onSave={edit} onCancel={() => setEditing(null)}/>
+              ) : (
+                <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
+                  <span style={{ flex: 1, minWidth: 110 }}>
+                    <strong>{d.name}</strong> <span style={{ fontSize: 11, color: 'var(--muted)' }}>{d.category}</span>
+                    {d.tags?.map(t => <span key={t} style={{ marginLeft: 6, fontSize: 11, background: '#E1ECEE', color: 'var(--g)', borderRadius: 10, padding: '1px 8px' }}>{t}</span>)}
+                    <div style={{ fontSize: 12, color: d.claimed_by ? 'var(--muted)' : '#b3261e' }}>{d.claimed_by ? (d.mine ? '👩‍🍳 Du' : `👩‍🍳 ${d.claimed_name || 'Jemand'}`) : '🙋 Gesucht'}</div>
+                  </span>
+                  {!d.claimed_by && !isOwner && <button style={btn} onClick={() => act(d.id, 'claim')}>Ich bring’s</button>}
+                  {(d.can_move || isOwner) && <button style={ghost} onClick={() => setEditing(d.id)}>✏️ Bearbeiten</button>}
+                  {d.mine && <button style={ghost} onClick={() => act(d.id, 'release')}>Zurückziehen</button>}
+                  {isOwner && !d.mine && <button style={ghost} onClick={() => act(d.id, 'delete')}>Entfernen</button>}
+                  <MoveSelect dish={d} days={days} onMove={move} off={off}/>
                 </div>
-              </div>
-            )
-          })}
+              ))}
+              {quick === sl ? (
+                <form onSubmit={submitQuick} style={{ display: 'flex', gap: 6 }}>
+                  <input autoFocus style={inp} value={name} onChange={e => setName(e.target.value)} placeholder={isOwner ? 'Was wird gesucht?' : 'Was kochst/bringst du?'} maxLength={80}/>
+                  <button type="submit" style={btn} disabled={!name.trim()}>OK</button>
+                  <button type="button" style={ghost} onClick={() => setQuick(null)}>×</button>
+                </form>
+              ) : (
+                <button style={{ ...ghost, border: '1.5px dashed var(--border)' }} onClick={() => { setQuick(sl); setName('') }}>＋ {isOwner ? 'Wunsch' : 'Gericht'}</button>
+              )}
+            </div>
+          </div>
+        )
+      })}
+      {(err || offErr) && <p style={{ color: '#b3261e', fontSize: 13, margin: '6px 0 0' }}>{err || offErr}</p>}
+    </div>
+  )
+}
+
+// Über den Tageskarten: nicht zugeordnete Gerichte und ausgeblendete Mahlzeiten
+function MealsExtras({ offer, isOwner, store, onOfferChange, days }) {
+  const { off, unhide } = useMealOff(offer, store, onOfferChange)
+  const [showOff, setShowOff] = useState(false)
+  const unplaced = store.list.filter(d => d.can_move && !(d.tag && d.slot))
+  if (!unplaced.length && !(isOwner && off.length)) return null
+  return (
+    <div style={{ background: 'var(--bg)', borderRadius: 10, padding: '8px 12px', marginBottom: 14 }}>
+      {unplaced.length > 0 && <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Noch keiner Mahlzeit zugeordnet</div>}
+      {unplaced.map(d => (
+        <div key={d.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '4px 0' }}>
+          <span style={{ flex: 1, minWidth: 120 }}>{d.name} <span style={{ fontSize: 11, color: 'var(--muted)' }}>({d.category})</span></span>
+          <MoveSelect dish={d} days={days} onMove={store.move} off={off}/>
         </div>
       ))}
       {isOwner && off.length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <button style={ghost} onClick={() => setShowOff(v => !v)}>{showOff ? 'Ausgeblendete verbergen' : `Ausgeblendete anzeigen (${off.length})`}</button>
-          {showOff && off.slice().sort().map(k => { const [d, sl] = k.split('|'); return <div key={k} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '4px 0', fontSize: 13 }}><span style={{ flex: 1, color: 'var(--muted)' }}>{dayShort(d)} · {sl}</span><button style={ghost} onClick={() => unhide([k])}>Wieder einblenden</button></div> })}
+        <div style={{ marginTop: unplaced.length ? 8 : 0 }}>
+          <button style={ghost} onClick={() => setShowOff(v => !v)}>{showOff ? 'Ausgeblendete Mahlzeiten verbergen' : `Ausgeblendete Mahlzeiten (${off.length})`}</button>
+          {showOff && off.slice().sort().map(k => { const [d, sl] = k.split('|'); return <div key={k} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '4px 0', fontSize: 13 }}><span style={{ flex: 1, color: 'var(--muted)' }}>{dayShort(d)} · {sl}</span><button style={ghost} onClick={() => unhide([k])}>Wieder anzeigen</button></div> })}
         </div>
       )}
-      {(err || localErr) && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{err || localErr}</p>}
     </div>
   )
 }
@@ -419,44 +457,71 @@ export default function OfferOrganisation({ offer, asId, role, chat, onOfferChan
   const isOwner = role === 'owner'
   const modus = offer.essen_modus
   const store = useDishes(offer, asId)
-  // Je nach Essensorganisation genau ein Essens-Reiter: Gemeinschaftsessen -> Mahlzeiten, Buffet/keine Angabe -> Mitbringen, versorgt -> keiner
+  // Vier Fragen der Teilnehmenden: Was ist los? Wann passiert was? Was mache ich? Wie komme ich hin? (+ Dateien)
   const tabs = [
-    ['chat', '💬 Chat'],
-    ...(modus === 'gemeinschaft' ? [['meals', '🍲 Mahlzeiten']] : modus === 'versorgt' ? [] : [['essen', '🥙 Mitbringen']]),
-    ['aufgaben', '✅ Aufgaben'], ['rides', '🚗 Mitfahren'], ['plan', '🕒 Zeitplan'],
-    ...(chat ? [['dateien', '📎 Dateien']] : []),
+    ['chat', '💬', 'Chat'],
+    ['ablauf', '📅', 'Ablauf'],
+    ['aufgaben', '✅', 'Aufgaben'],
+    ['anreise', '🚗', 'Anreise'],
+    ...(chat ? [['dateien', '📎', 'Dateien']] : []),
   ]
-  const [tab, setTab] = useState(tabs[0][0])
-  const cur = tabs.some(t => t[0] === tab) ? tab : tabs[0][0]
+  const [tab, setTab] = useState('chat')
+  const cur = tabs.some(t => t[0] === tab) ? tab : 'chat'
   async function setModus(v) {
     const { error } = await supabase.from('offers').update({ essen_modus: v || null }).eq('id', offer.id)
     if (!error && onOfferChange) onOfferChange({ essen_modus: v || null })
   }
+  const buffet = modus !== 'gemeinschaft' && modus !== 'versorgt'
   return (
     <div style={card}>
-      {isOwner && (
-        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 14 }}>🍽️ Essensorganisation (nur du als Kommune stellst das ein)
-          <select value={modus || ''} onChange={e => setModus(e.target.value)} style={{ ...inp, marginTop: 4 }}>
-            <option value="">– noch nicht festgelegt –</option>
-            <option value="versorgt">Für Essen ist gesorgt (Veranstalter)</option>
-            <option value="gemeinschaft">Gemeinschaftsessen (mehrere Mahlzeiten, wechselnde Köche)</option>
-            <option value="buffet">Buffet (jeder bringt etwas mit)</option>
-          </select>
-        </label>
-      )}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-        {tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} style={{ ...ghost, fontSize: 13, padding: '7px 12px', background: cur === k ? 'var(--g)' : 'transparent', color: cur === k ? 'white' : 'var(--text)', fontWeight: 600 }}>{l}</button>)}
+      <div role="tablist" style={{ display: 'grid', gridTemplateColumns: `repeat(${tabs.length}, minmax(0,1fr))`, gap: 4, background: 'var(--bg)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+        {tabs.map(([k, ic, l]) => {
+          const on = cur === k
+          return (
+            <button key={k} role="tab" aria-selected={on} onClick={() => setTab(k)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '8px 2px', borderRadius: 9, border: 'none', background: on ? 'var(--g)' : 'transparent', color: on ? 'white' : 'var(--text)', cursor: 'pointer', minWidth: 0 }}>
+              <span aria-hidden style={{ fontSize: 18, lineHeight: 1 }}>{ic}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{l}</span>
+            </button>
+          )
+        })}
       </div>
-      {modus === 'versorgt' && <div style={{ fontSize: 13, marginBottom: 12, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>🍽️ Für das Essen ist gesorgt – du musst nichts mitbringen.</div>}
+
       {cur === 'chat' && (chat
         ? <OfferChat offerId={offer.id} asId={asId} ankuendigung={offer.ankuendigung} embedded/>
         : <div style={{ fontSize: 13, color: 'var(--muted)', background: 'var(--bg)', borderRadius: 10, padding: '10px 12px' }}>🔒 Der Gruppen-Chat und die Dateien sind nur für die Gruppe sichtbar. Als Bewohner kannst du dich mit deinem persönlichen Profil anmelden und dich anschließend als Kommune selbst freischalten.</div>)}
+
+      {cur === 'ablauf' && (
+        <div>
+          {isOwner && (
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 14 }}>🍽️ Essensorganisation (nur du als Kommune stellst das ein)
+              <select value={modus || ''} onChange={e => setModus(e.target.value)} style={{ ...inp, marginTop: 4 }}>
+                <option value="">– noch nicht festgelegt –</option>
+                <option value="versorgt">Für Essen ist gesorgt (Veranstalter)</option>
+                <option value="gemeinschaft">Gemeinschaftsessen (Mahlzeiten im Ablauf, wechselnde Köche)</option>
+                <option value="buffet">Buffet (jeder bringt etwas mit – unter Aufgaben)</option>
+              </select>
+            </label>
+          )}
+          {modus === 'versorgt' && <div style={{ fontSize: 13, marginBottom: 12, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>🍽️ Für das Essen ist gesorgt – du musst nichts mitbringen.</div>}
+          <Ablauf offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange}/>
+        </div>
+      )}
+
+      {cur === 'aufgaben' && (
+        <div>
+          <div style={subHead}>✅ Aufgaben</div>
+          <Tasks offerId={offer.id} asId={asId} isOwner={isOwner}/>
+          {buffet && (
+            <div style={{ marginTop: 20 }}>
+              <div style={subHead}>🥙 Mitbringen</div>
+              <Dishes offer={offer} asId={asId} isOwner={isOwner} store={store}/>
+            </div>
+          )}
+        </div>
+      )}
+
+      {cur === 'anreise' && <Rides offer={offer} asId={asId} isOwner={isOwner}/>}
       {cur === 'dateien' && chat && <OfferFiles offerId={offer.id} asId={asId} isOwner={isOwner}/>}
-      {cur === 'meals' && <Meals offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange}/>}
-      {cur === 'rides' && <Rides offer={offer} asId={asId} isOwner={isOwner}/>}
-      {cur === 'essen' && <Dishes offer={offer} asId={asId} isOwner={isOwner} store={store}/>}
-      {cur === 'aufgaben' && <Tasks offerId={offer.id} asId={asId} isOwner={isOwner}/>}
-      {cur === 'plan' && <Schedule offerId={offer.id} isOwner={isOwner} offer={offer}/>}
     </div>
   )
 }
