@@ -155,60 +155,78 @@ function Dishes({ offer, asId, isOwner, store }) {
   )
 }
 
+const ZEITEN = [['morgens', 'Morgens'], ['mittags', 'Mittags'], ['abends', 'Abends']]
+const zeitLabel = z => (ZEITEN.find(x => x[0] === z) || [null, 'Ganztägig'])[1]
+// Programmpunkt mit Uhrzeit -> Tageszeit
+const zeitVon = uhr => !uhr ? null : (parseInt(uhr, 10) < 11 ? 'morgens' : parseInt(uhr, 10) < 17 ? 'mittags' : 'abends')
+
 function useTasks(offerId, asId) {
   const [list, setList] = useState([])
   const [err, setErr] = useState('')
   const load = useCallback(async () => {
-    const { data } = await supabase.rpc('offer_tasks_list2', { p_offer: offerId, p_as: asId })
+    const { data } = await supabase.rpc('offer_tasks_list3', { p_offer: offerId, p_as: asId })
     setList(data || [])
   }, [offerId, asId])
   useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t) }, [load])
   async function act(id, action) {
     setErr('')
-    const { error } = await supabase.rpc('task_act', { p_id: id, p_as: asId, p_action: action })
+    const { error } = await supabase.rpc('task_act2', { p_id: id, p_as: asId, p_action: action })
     if (error) setErr(error.message)
     load()
   }
-  async function add(title, tag) {
+  async function add(f) {
     setErr('')
-    const { error } = await supabase.rpc('task_add2', { p_offer: offerId, p_as: asId, p_title: title, p_tag: tag || null })
+    const { error } = await supabase.rpc('task_add3', { p_offer: offerId, p_as: asId, p_title: f.title, p_tag: f.tag || null, p_zeit: f.zeit || null, p_anzahl: f.anzahl ? parseInt(f.anzahl, 10) : null })
     if (error) { setErr(error.message); return false }
     load(); return true
   }
-  async function setTag(id, tag) {
+  async function setWhen(id, tag, zeit) {
     setErr('')
-    const { error } = await supabase.rpc('task_set_tag', { p_id: id, p_as: asId, p_tag: tag || null })
+    const { error } = await supabase.rpc('task_set_when', { p_id: id, p_as: asId, p_tag: tag || null, p_zeit: zeit || null })
     if (error) setErr(error.message)
     load()
   }
-  return { list, err, act, add, setTag }
+  return { list, err, act, add, setWhen }
 }
 
 const mini = { padding: '3px 8px', borderRadius: 7, border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--muted)', fontSize: 11, cursor: 'pointer' }
 const miniBtn = { ...mini, border: 'none', background: 'var(--g)', color: 'white', fontWeight: 600 }
+const chip = on => ({ ...mini, fontSize: 12, padding: '5px 10px', background: on ? 'var(--g)' : 'transparent', color: on ? 'white' : 'var(--text)', borderColor: on ? 'var(--g)' : 'var(--border)' })
 
-// Eine Aufgabe als kompakte Zeile; compact = in der Ablauf-Spalte
+// Eine Aufgabe; mehrere Personen können mitmachen. compact = in der Ablauf-Spalte
 function TaskRow({ t, isOwner, tasks, days, compact }) {
   const [more, setMore] = useState(false)
+  const people = t.people || []
+  const full = t.anzahl && people.length >= t.anzahl
+  const canTick = t.mine || isOwner
   return (
     <div style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-        <button onClick={() => (t.mine || isOwner) && t.assignee && tasks.act(t.id, 'toggle')} aria-label={t.done ? 'Als offen markieren' : 'Als erledigt markieren'} style={{ width: 18, height: 18, flexShrink: 0, marginTop: 1, borderRadius: 5, border: '1.5px solid var(--g)', background: t.done ? 'var(--g)' : 'transparent', color: 'white', fontSize: 11, lineHeight: '14px', padding: 0, cursor: (t.mine || isOwner) && t.assignee ? 'pointer' : 'default' }}>{t.done ? '✓' : ''}</button>
+        <button onClick={() => canTick && tasks.act(t.id, 'toggle')} aria-label={t.done ? 'Als offen markieren' : 'Als erledigt markieren'} style={{ width: 18, height: 18, flexShrink: 0, marginTop: 1, borderRadius: 5, border: '1.5px solid var(--g)', background: t.done ? 'var(--g)' : 'transparent', color: 'white', fontSize: 11, lineHeight: '14px', padding: 0, cursor: canTick ? 'pointer' : 'default', opacity: canTick ? 1 : .5 }}>{t.done ? '✓' : ''}</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, textDecoration: t.done ? 'line-through' : 'none', color: t.done ? 'var(--muted)' : 'var(--text)', wordBreak: 'break-word' }}>{t.title}</div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 2 }}>
-            <span style={{ fontSize: 12, color: t.assignee ? 'var(--muted)' : '#b3261e' }}>{t.assignee ? `👤 ${t.mine ? 'Du' : t.assignee_name}` : '🙋 offen'}</span>
-            {!compact && t.tag && <span style={{ fontSize: 11, color: 'var(--g)', background: '#E1ECEE', borderRadius: 10, padding: '1px 8px' }}>{dayShort(t.tag)}</span>}
-            {!t.assignee && !isOwner && <button style={miniBtn} onClick={() => tasks.act(t.id, 'take')}>Übernehmen</button>}
-            {(t.mine || isOwner || t.can_edit) && <button style={{ ...mini, border: 'none', padding: '2px 4px' }} onClick={() => setMore(v => !v)} aria-label="Mehr">⋯</button>}
+          {!compact && (t.tag || t.zeit) && <div style={{ fontSize: 11, color: 'var(--g)', marginTop: 1 }}>{t.tag ? dayShort(t.tag) : ''}{t.tag && t.zeit ? ' · ' : ''}{t.zeit ? zeitLabel(t.zeit) : ''}</div>}
+          <div style={{ fontSize: 12, color: people.length ? 'var(--muted)' : '#b3261e', marginTop: 2, wordBreak: 'break-word' }}>
+            {people.length ? `👥 ${people.map(p => p.name).join(', ')}` : '🙋 noch niemand'}{t.anzahl ? ` (${people.length}/${t.anzahl})` : ''}
+          </div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
+            {!t.mine && !t.done && !full && <button style={miniBtn} onClick={() => tasks.act(t.id, 'join')}>Mitmachen</button>}
+            {t.mine && !t.done && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--g)' }}>✓ Du bist dabei</span>}
+            <button style={{ ...mini, border: 'none', padding: '2px 4px' }} onClick={() => setMore(v => !v)} aria-label="Mehr">⋯</button>
           </div>
           {more && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-              {(t.mine || isOwner) && t.assignee && !t.done && <button style={mini} onClick={() => tasks.act(t.id, 'release')}>Abgeben</button>}
+              {t.mine && <button style={mini} onClick={() => tasks.act(t.id, 'leave')}>Austragen</button>}
               {t.can_edit && days.length > 0 && (
-                <select value={t.tag || ''} onChange={e => tasks.setTag(t.id, e.target.value)} style={{ ...mini, padding: '3px 4px' }}>
+                <select value={t.tag || ''} onChange={e => tasks.setWhen(t.id, e.target.value, t.zeit)} style={{ ...mini, padding: '3px 4px' }}>
                   <option value="">Ohne Tag</option>
                   {days.map(d => <option key={d} value={d}>{dayShort(d)}</option>)}
+                </select>
+              )}
+              {t.can_edit && (
+                <select value={t.zeit || ''} onChange={e => tasks.setWhen(t.id, t.tag, e.target.value)} style={{ ...mini, padding: '3px 4px' }}>
+                  <option value="">Ganztägig</option>
+                  {ZEITEN.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
                 </select>
               )}
               {t.can_edit && <button style={mini} onClick={() => tasks.act(t.id, 'delete')}>Löschen</button>}
@@ -220,25 +238,32 @@ function TaskRow({ t, isOwner, tasks, days, compact }) {
   )
 }
 
-function TaskAdd({ tasks, days, fixedDay, label = '＋ Aufgabe' }) {
+function TaskAdd({ tasks, days, fixedDay, fixedZeit, label = '＋ Aufgabe', small }) {
   const [open, setOpen] = useState(false)
-  const [title, setTitle] = useState('')
-  const [tag, setTag] = useState(fixedDay || '')
+  const [f, setF] = useState({ title: '', tag: fixedDay || '', zeit: fixedZeit || '', anzahl: '' })
   async function submit(e) {
     e.preventDefault()
-    if (await tasks.add(title, fixedDay || tag)) { setTitle(''); setOpen(false) }
+    if (await tasks.add({ ...f, tag: fixedDay || f.tag, zeit: fixedZeit !== undefined ? fixedZeit : f.zeit })) { setF(x => ({ ...x, title: '', anzahl: '' })); setOpen(false) }
   }
-  if (!open) return <button style={{ ...ghost, border: '1.5px dashed var(--border)', marginTop: 6 }} onClick={() => setOpen(true)}>{label}</button>
+  if (!open) return small
+    ? <button style={{ ...mini, border: 'none', padding: '0 4px', fontSize: 15, color: 'var(--g)' }} onClick={() => setOpen(true)} aria-label="Aufgabe hinzufügen">＋</button>
+    : <button style={{ ...ghost, border: '1.5px dashed var(--border)', marginTop: 6 }} onClick={() => setOpen(true)}>{label}</button>
   return (
-    <form onSubmit={submit} style={{ display: 'grid', gap: 6, marginTop: 6 }}>
-      <input autoFocus style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="z.B. Rosen pflanzen" maxLength={120}/>
+    <form onSubmit={submit} style={{ display: 'grid', gap: 6, marginTop: 6, width: '100%' }}>
+      <input autoFocus style={inp} value={f.title} onChange={e => setF(x => ({ ...x, title: e.target.value }))} placeholder="z.B. Rosen pflanzen" maxLength={120}/>
       {!fixedDay && days.length > 0 && (
-        <select style={inp} value={tag} onChange={e => setTag(e.target.value)}>
+        <select style={inp} value={f.tag} onChange={e => setF(x => ({ ...x, tag: e.target.value }))}>
           <option value="">Ohne festen Tag</option>
           {days.map(d => <option key={d} value={d}>{dayLabel(d)}</option>)}
         </select>
       )}
-      <div style={{ display: 'flex', gap: 6 }}><button type="submit" style={btn} disabled={!title.trim()}>Hinzufügen</button><button type="button" style={ghost} onClick={() => setOpen(false)}>Abbrechen</button></div>
+      {fixedZeit === undefined && (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {[['', 'Ganztägig'], ...ZEITEN].map(([k, l]) => <button type="button" key={k} style={chip(f.zeit === k)} onClick={() => setF(x => ({ ...x, zeit: k }))}>{l}</button>)}
+        </div>
+      )}
+      <input style={inp} type="number" min="1" max="50" inputMode="numeric" value={f.anzahl} onChange={e => setF(x => ({ ...x, anzahl: e.target.value }))} placeholder="Wie viele Leute? (optional)"/>
+      <div style={{ display: 'flex', gap: 6 }}><button type="submit" style={btn} disabled={!f.title.trim()}>Hinzufügen</button><button type="button" style={ghost} onClick={() => setOpen(false)}>Abbrechen</button></div>
     </form>
   )
 }
@@ -268,7 +293,7 @@ function useSchedule(offerId) {
 }
 
 // Programmpunkte eines Tages (day = 'YYYY-MM-DD' oder null für "ohne Datum")
-function ScheduleDay({ offerId, isOwner, day, items, reload }) {
+function ScheduleDay({ offerId, isOwner, day, items, reload, mode = 'all' }) {
   const [open, setOpen] = useState(false)
   const [f, setF] = useState({ uhrzeit: '', titel: '', beschreibung: '' })
   const [err, setErr] = useState('')
@@ -279,10 +304,11 @@ function ScheduleDay({ offerId, isOwner, day, items, reload }) {
     setF({ uhrzeit: '', titel: '', beschreibung: '' }); setOpen(false); reload()
   }
   async function del(id) { await supabase.from('offer_schedule').delete().eq('id', id); reload() }
-  if (!items.length && !isOwner) return null
+  if (mode === 'form' && !isOwner) return null
+  if (mode !== 'form' && !items.length && !isOwner) return null
   return (
     <div>
-      {items.map(s => (
+      {mode !== 'form' && items.map(s => (
         <div key={s.id} style={{ display: 'flex', gap: 6, padding: '6px 0', borderTop: '1px solid var(--border)', alignItems: 'flex-start' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--g)' }}>🕒 {s.uhrzeit ? s.uhrzeit.slice(0, 5) : 'ohne Uhrzeit'}</div>
@@ -292,8 +318,8 @@ function ScheduleDay({ offerId, isOwner, day, items, reload }) {
           {isOwner && <button style={{ ...mini, border: 'none' }} onClick={() => del(s.id)} aria-label="Programmpunkt löschen">×</button>}
         </div>
       ))}
-      {isOwner && !open && <button style={{ ...ghost, border: '1.5px dashed var(--border)', marginTop: 4 }} onClick={() => setOpen(true)}>＋ Programmpunkt</button>}
-      {isOwner && open && (
+      {isOwner && mode !== 'rows' && !open && <button style={{ ...ghost, border: '1.5px dashed var(--border)', marginTop: 6 }} onClick={() => setOpen(true)}>＋ Programmpunkt mit Uhrzeit</button>}
+      {isOwner && mode !== 'rows' && open && (
         <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 6, marginTop: 6 }}>
           <input style={inp} type="time" value={f.uhrzeit} onChange={e => setF(x => ({ ...x, uhrzeit: e.target.value }))} aria-label="Uhrzeit"/>
           <input autoFocus style={inp} value={f.titel} onChange={e => setF(x => ({ ...x, titel: e.target.value }))} placeholder="z.B. Schalung stellen" maxLength={120}/>
@@ -313,10 +339,9 @@ function Ablauf({ offer, isOwner, store, tasks, days: baseDays, onOfferChange })
   const meals = offer.essen_modus === 'gemeinschaft'
   const off = offer.mahlzeiten_aus || []
   const allDays = [...new Set([...baseDays, ...sched.list.map(s => s.tag).filter(Boolean)])].sort()
-  const hasLeft = d => sched.list.some(s => s.tag === d) || tasks.list.some(t => t.tag === d)
   const hasMeals = d => meals && SLOTS.some(sl => !off.includes(`${d}|${sl}`))
-  // Teilnehmende sehen nur Tage, an denen etwas steht
-  const days = isOwner ? allDays : allDays.filter(d => hasLeft(d) || hasMeals(d))
+  // Alle sehen alle Tage, weil jeder Aufgaben eintragen kann
+  const days = allDays
   const undated = sched.list.filter(s => !s.tag)
   const today = new Date().toLocaleDateString('sv-SE')
   if (days.length === 0 && undated.length === 0 && !isOwner) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Noch kein Ablauf eingetragen.</div>
@@ -329,11 +354,24 @@ function Ablauf({ offer, isOwner, store, tasks, days: baseDays, onOfferChange })
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{dayLabel(day)}{day === today && <span style={{ marginLeft: 8, fontSize: 11, color: '#173F4A', background: 'var(--gold,#E9AD55)', borderRadius: 10, padding: '1px 8px' }}>Heute</span>}</div>
           <div style={{ display: 'grid', gridTemplateColumns: meals ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr)', gap: 12 }}>
             <div style={{ minWidth: 0 }}>
-              <div style={subHead}>🛠️ Programm & Aufgaben</div>
-              <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={sched.list.filter(s => s.tag === day)} reload={sched.load}/>
-              {tasks.list.filter(t => t.tag === day).map(t => <TaskRow key={t.id} t={t} isOwner={isOwner} tasks={tasks} days={days} compact/>)}
-              {!hasLeft(day) && <div style={{ fontSize: 12, color: 'var(--muted)', padding: '4px 0' }}>Noch nichts geplant.</div>}
-              <TaskAdd tasks={tasks} days={days} fixedDay={day}/>
+              <div style={subHead}>🛠️ Aufgaben</div>
+              {[['', 'Ganztägig'], ...ZEITEN].map(([z, l]) => {
+                const prog = sched.list.filter(x => x.tag === day && (zeitVon(x.uhrzeit) || '') === z)
+                const tl = tasks.list.filter(t => t.tag === day && (t.zeit || '') === z)
+                if (z === '' && !prog.length && !tl.length) return null
+                return (
+                  <div key={z} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--g)' }}>
+                      <span style={{ flex: 1 }}>{l}</span>
+                      <TaskAdd tasks={tasks} days={days} fixedDay={day} fixedZeit={z} small/>
+                    </div>
+                    <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={prog} reload={sched.load} mode="rows"/>
+                    {tl.map(t => <TaskRow key={t.id} t={t} isOwner={isOwner} tasks={tasks} days={days} compact/>)}
+                    {!prog.length && !tl.length && <div style={{ fontSize: 12, color: 'var(--muted)' }}>–</div>}
+                  </div>
+                )
+              })}
+              <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={[]} reload={sched.load} mode="form"/>
             </div>
             {meals && (
               <div style={{ minWidth: 0, borderLeft: '1px solid var(--border)', paddingLeft: 12 }}>
@@ -573,13 +611,13 @@ export default function OfferOrganisation({ offer, asId, role, chat, onOfferChan
   const buffet = modus !== 'gemeinschaft' && modus !== 'versorgt'
   return (
     <div style={card}>
-      <div role="tablist" style={{ display: 'grid', gridTemplateColumns: `repeat(${tabs.length}, minmax(0,1fr))`, gap: 4, background: 'var(--bg)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+      <div role="tablist" style={{ display: 'grid', gridTemplateColumns: `repeat(${tabs.length}, minmax(0,1fr))`, gap: 2, background: 'var(--bg)', borderRadius: 12, padding: 3, marginBottom: 16 }}>
         {tabs.map(([k, ic, l]) => {
           const on = cur === k
           return (
             <button key={k} role="tab" aria-selected={on} onClick={() => setTab(k)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '8px 2px', borderRadius: 9, border: 'none', background: on ? 'var(--g)' : 'transparent', color: on ? 'white' : 'var(--text)', cursor: 'pointer', minWidth: 0 }}>
               <span aria-hidden style={{ fontSize: 18, lineHeight: 1 }}>{ic}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{l}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '-.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{l}</span>
             </button>
           )
         })}
