@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import OfferChat from './OfferChat'
+import OfferFiles from './OfferFiles'
 
 const CATS = ['Vorspeise', 'Hauptgericht', 'Beilage', 'Dessert', 'Getränke', 'Material / Sonstiges']
 const TAGS = ['vegan', 'vegetarisch', 'glutenfrei', 'Nüsse', 'laktosefrei']
@@ -413,14 +415,16 @@ function Rides({ offer, asId, isOwner }) {
   )
 }
 
-export default function OfferOrganisation({ offer, asId, role, onOfferChange }) {
+export default function OfferOrganisation({ offer, asId, role, chat, onOfferChange }) {
   const isOwner = role === 'owner'
   const modus = offer.essen_modus
   const store = useDishes(offer, asId)
   // Je nach Essensorganisation genau ein Essens-Reiter: Gemeinschaftsessen -> Mahlzeiten, Buffet/keine Angabe -> Mitbringen, versorgt -> keiner
   const tabs = [
+    ['chat', '💬 Chat'],
     ...(modus === 'gemeinschaft' ? [['meals', '🍲 Mahlzeiten']] : modus === 'versorgt' ? [] : [['essen', '🥙 Mitbringen']]),
     ['aufgaben', '✅ Aufgaben'], ['rides', '🚗 Mitfahren'], ['plan', '🕒 Zeitplan'],
+    ...(chat ? [['dateien', '📎 Dateien']] : []),
   ]
   const [tab, setTab] = useState(tabs[0][0])
   const cur = tabs.some(t => t[0] === tab) ? tab : tabs[0][0]
@@ -444,6 +448,10 @@ export default function OfferOrganisation({ offer, asId, role, onOfferChange }) 
         {tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} style={{ ...ghost, fontSize: 13, padding: '7px 12px', background: cur === k ? 'var(--g)' : 'transparent', color: cur === k ? 'white' : 'var(--text)', fontWeight: 600 }}>{l}</button>)}
       </div>
       {modus === 'versorgt' && <div style={{ fontSize: 13, marginBottom: 12, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>🍽️ Für das Essen ist gesorgt – du musst nichts mitbringen.</div>}
+      {cur === 'chat' && (chat
+        ? <OfferChat offerId={offer.id} asId={asId} ankuendigung={offer.ankuendigung} embedded/>
+        : <div style={{ fontSize: 13, color: 'var(--muted)', background: 'var(--bg)', borderRadius: 10, padding: '10px 12px' }}>🔒 Der Gruppen-Chat und die Dateien sind nur für die Gruppe sichtbar. Als Bewohner kannst du dich mit deinem persönlichen Profil anmelden und dich anschließend als Kommune selbst freischalten.</div>)}
+      {cur === 'dateien' && chat && <OfferFiles offerId={offer.id} asId={asId} isOwner={isOwner}/>}
       {cur === 'meals' && <Meals offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange}/>}
       {cur === 'rides' && <Rides offer={offer} asId={asId} isOwner={isOwner}/>}
       {cur === 'essen' && <Dishes offer={offer} asId={asId} isOwner={isOwner} store={store}/>}

@@ -8,7 +8,6 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import MessageBox from '../../components/MessageBox'
-import OfferChat from '../../components/OfferChat'
 import OfferOrganisation from '../../components/OfferOrganisation'
 import OfferWeather from '../../components/OfferWeather'
 import { notifyOfferPush } from '../../lib/push'
@@ -122,7 +121,7 @@ export default function AngebotDetail() {
           </div>
         )}
 
-        {offer.ankuendigung && interest?.role && (
+        {offer.ankuendigung && interest?.role && !interest?.chat && (
           <div style={{background:'#FFF4DC',border:'1.5px solid var(--gold,#E9AD55)',borderRadius:14,padding:16,marginBottom:24}}>
             <div style={{fontWeight:700,marginBottom:6}}>📢 Ankündigung</div>
             <div style={{whiteSpace:'pre-wrap',fontSize:14,color:'#173F4A'}}>{offer.ankuendigung}</div>
@@ -189,9 +188,7 @@ export default function AngebotDetail() {
           </div>
         )}
 
-        {interest?.role && <OfferOrganisation offer={offer} asId={active?.id} role={interest.role} onOfferChange={p => setOffer(o => ({ ...o, ...p }))}/>}
-
-        {interest?.role && <OfferChat offerId={id} asId={active?.id}/>}
+        {interest?.role && <OfferOrganisation offer={offer} asId={active?.id} role={interest.role} chat={!!interest.chat} onOfferChange={p => setOffer(o => ({ ...o, ...p }))}/>}
 
         {/* Kommune-Info */}
         {kommune && (
