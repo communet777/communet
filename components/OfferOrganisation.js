@@ -194,7 +194,7 @@ const miniBtn = { ...mini, border: 'none', background: 'var(--g)', color: 'white
 const chip = on => ({ ...mini, fontSize: 12, padding: '5px 10px', background: on ? 'var(--g)' : 'transparent', color: on ? 'white' : 'var(--text)', borderColor: on ? 'var(--g)' : 'var(--border)' })
 
 // Eine Aufgabe; mehrere Personen können mitmachen. compact = in der Ablauf-Spalte
-function TaskRow({ t, isOwner, tasks, days, compact }) {
+function TaskRow({ t, isOwner, tasks, days, compact, allDay }) {
   const [more, setMore] = useState(false)
   const people = t.people || []
   const full = t.anzahl && people.length >= t.anzahl
@@ -204,8 +204,8 @@ function TaskRow({ t, isOwner, tasks, days, compact }) {
       <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
         <button onClick={() => canTick && tasks.act(t.id, 'toggle')} aria-label={t.done ? 'Als offen markieren' : 'Als erledigt markieren'} style={{ width: 18, height: 18, flexShrink: 0, marginTop: 1, borderRadius: 5, border: '1.5px solid var(--g)', background: t.done ? 'var(--g)' : 'transparent', color: 'white', fontSize: 11, lineHeight: '14px', padding: 0, cursor: canTick ? 'pointer' : 'default', opacity: canTick ? 1 : .5 }}>{t.done ? '✓' : ''}</button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, textDecoration: t.done ? 'line-through' : 'none', color: t.done ? 'var(--muted)' : 'var(--text)', wordBreak: 'break-word' }}>{t.title}</div>
-          {!compact && (t.tag || t.zeit) && <div style={{ fontSize: 11, color: 'var(--g)', marginTop: 1 }}>{t.tag ? dayShort(t.tag) : ''}{t.tag && t.zeit ? ' · ' : ''}{t.zeit ? zeitLabel(t.zeit) : ''}</div>}
+          <div style={{ fontSize: 14, fontWeight: 600, textDecoration: t.done ? 'line-through' : 'none', color: t.done ? 'var(--muted)' : 'var(--text)', wordBreak: 'break-word' }}>{t.title}{allDay && <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 5px', marginLeft: 4 }}>ganztägig</span>}</div>
+          {!compact && (t.tag || t.zeit) && <div style={{ fontSize: 11, color: 'var(--g)', marginTop: 1 }}>{t.tag ? `${dayShort(t.tag)} · ${zeitLabel(t.zeit)}` : zeitLabel(t.zeit)}</div>}
           <div style={{ fontSize: 12, color: people.length ? 'var(--muted)' : '#b3261e', marginTop: 2, wordBreak: 'break-word' }}>
             {people.length ? `👥 ${people.map(p => p.name).join(', ')}` : '🙋 noch niemand'}{t.anzahl ? ` (${people.length}/${t.anzahl})` : ''}
           </div>
@@ -272,9 +272,9 @@ function Tasks({ isOwner, tasks, days }) {
   const open = tasks.list.filter(t => !t.done), done = tasks.list.filter(t => t.done)
   return (
     <div>
+      <div style={{ marginBottom: 8 }}><TaskAdd tasks={tasks} days={days} label="＋ Aufgabe hinzufügen"/></div>
       {tasks.list.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 6 }}>Noch keine Aufgaben. Jeder in der Gruppe kann welche anlegen, z.B. Aufbau, Einkauf, Rosen pflanzen.</div>}
       {open.map(t => <TaskRow key={t.id} t={t} isOwner={isOwner} tasks={tasks} days={days}/>)}
-      <TaskAdd tasks={tasks} days={days}/>
       {done.length > 0 && <div style={{ ...subHead, marginTop: 16 }}>Erledigt ({done.length})</div>}
       {done.map(t => <TaskRow key={t.id} t={t} isOwner={isOwner} tasks={tasks} days={days}/>)}
       {tasks.err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{tasks.err}</p>}
@@ -334,61 +334,70 @@ function ScheduleDay({ offerId, isOwner, day, items, reload, mode = 'all' }) {
 
 
 // Ablauf: pro Tag eine Karte mit Programm und (bei Gemeinschaftsessen) Mahlzeiten
+// Tageszeit -> passende Mahlzeit(en) in der rechten Spalte
+const ZEIT_MEALS = { morgens: ['Frühstück'], mittags: ['Mittagessen'], abends: ['Abendessen', 'Snacks'] }
+
 function Ablauf({ offer, isOwner, store, tasks, days: baseDays, onOfferChange }) {
   const sched = useSchedule(offer.id)
   const meals = offer.essen_modus === 'gemeinschaft'
-  const off = offer.mahlzeiten_aus || []
-  const allDays = [...new Set([...baseDays, ...sched.list.map(s => s.tag).filter(Boolean)])].sort()
-  const hasMeals = d => meals && SLOTS.some(sl => !off.includes(`${d}|${sl}`))
-  // Alle sehen alle Tage, weil jeder Aufgaben eintragen kann
-  const days = allDays
+  const mealOff = useMealOff(offer, store, onOfferChange)
+  const days = [...new Set([...baseDays, ...sched.list.map(s => s.tag).filter(Boolean)])].sort()
   const undated = sched.list.filter(s => !s.tag)
   const today = new Date().toLocaleDateString('sv-SE')
+  const cols = meals ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr)'
+  const tag = <span style={{ fontSize: 10, color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 5px', marginLeft: 4 }}>ganztägig</span>
   if (days.length === 0 && undated.length === 0 && !isOwner) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Noch kein Ablauf eingetragen.</div>
   return (
     <div>
       {meals && <MealsExtras offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange} days={days}/>}
       {days.length === 0 && isOwner && <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Für die Tagesansicht braucht das Angebot ein Von-/Bis-Datum oder ein Veranstaltungsdatum. Programmpunkte ohne Datum kannst du unten eintragen.</div>}
-      {days.map(day => (
-        <div key={day} style={{ marginBottom: 14, border: `1.5px solid ${day === today ? 'var(--gold,#E9AD55)' : 'var(--border)'}`, borderRadius: 12, padding: '10px 12px', background: 'var(--bg)' }}>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{dayLabel(day)}{day === today && <span style={{ marginLeft: 8, fontSize: 11, color: '#173F4A', background: 'var(--gold,#E9AD55)', borderRadius: 10, padding: '1px 8px' }}>Heute</span>}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: meals ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr)', gap: 12 }}>
-            <div style={{ minWidth: 0 }}>
+      {days.map(day => {
+        const allDayProg = sched.list.filter(x => x.tag === day && !x.uhrzeit)
+        const allDayTasks = tasks.list.filter(t => t.tag === day && !t.zeit)
+        return (
+          <div key={day} style={{ marginBottom: 14, border: `1.5px solid ${day === today ? 'var(--gold,#E9AD55)' : 'var(--border)'}`, borderRadius: 12, padding: '10px 12px', background: 'var(--bg)' }}>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>{dayLabel(day)}{day === today && <span style={{ marginLeft: 8, fontSize: 11, color: '#173F4A', background: 'var(--gold,#E9AD55)', borderRadius: 10, padding: '1px 8px' }}>Heute</span>}</div>
+            <TaskAdd tasks={tasks} days={days} fixedDay={day} label="＋ Aufgabe hinzufügen"/>
+            <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 12, marginTop: 8 }}>
               <div style={subHead}>🛠️ Aufgaben</div>
-              {[['', 'Ganztägig'], ...ZEITEN].map(([z, l]) => {
-                const prog = sched.list.filter(x => x.tag === day && (zeitVon(x.uhrzeit) || '') === z)
-                const tl = tasks.list.filter(t => t.tag === day && (t.zeit || '') === z)
-                if (z === '' && !prog.length && !tl.length) return null
-                return (
-                  <div key={z} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--g)' }}>
-                      <span style={{ flex: 1 }}>{l}</span>
-                      <TaskAdd tasks={tasks} days={days} fixedDay={day} fixedZeit={z} small/>
-                    </div>
-                    <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={prog} reload={sched.load} mode="rows"/>
-                    {tl.map(t => <TaskRow key={t.id} t={t} isOwner={isOwner} tasks={tasks} days={days} compact/>)}
-                    {!prog.length && !tl.length && <div style={{ fontSize: 12, color: 'var(--muted)' }}>–</div>}
-                  </div>
-                )
-              })}
-              <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={[]} reload={sched.load} mode="form"/>
+              {meals && <div style={{ ...subHead, borderLeft: '1px solid var(--border)', paddingLeft: 12 }}>🍲 Essen</div>}
             </div>
-            {meals && (
-              <div style={{ minWidth: 0, borderLeft: '1px solid var(--border)', paddingLeft: 12 }}>
-                <MealsDay offer={offer} isOwner={isOwner} store={store} onOfferChange={onOfferChange} day={day} days={days}/>
-                {!hasMeals(day) && <><div style={subHead}>🍲 Essen</div><div style={{ fontSize: 12, color: 'var(--muted)' }}>Kein Essen geplant.</div></>}
-              </div>
-            )}
+            {ZEITEN.map(([z, l]) => {
+              const prog = sched.list.filter(x => x.tag === day && x.uhrzeit && zeitVon(x.uhrzeit) === z)
+              const tl = tasks.list.filter(t => t.tag === day && t.zeit === z)
+              const empty = !prog.length && !tl.length && !allDayProg.length && !allDayTasks.length
+              return (
+                <div key={z} style={{ borderTop: '1px solid var(--border)', padding: '6px 0 4px' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--g)', marginBottom: 2 }}>{l}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 12 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={prog} reload={sched.load} mode="rows"/>
+                      {tl.map(t => <TaskRow key={t.id} t={t} isOwner={isOwner} tasks={tasks} days={days} compact/>)}
+                      {allDayProg.map(x => <div key={x.id} style={{ padding: '6px 0', borderTop: '1px solid var(--border)', fontSize: 14, fontWeight: 600 }}>{x.titel}{tag}</div>)}
+                      {allDayTasks.map(t => <TaskRow key={t.id} t={t} isOwner={isOwner} tasks={tasks} days={days} compact allDay/>)}
+                      {empty && <div style={{ fontSize: 12, color: 'var(--muted)' }}>–</div>}
+                    </div>
+                    {meals && (
+                      <div style={{ minWidth: 0, borderLeft: '1px solid var(--border)', paddingLeft: 12 }}>
+                        {ZEIT_MEALS[z].map(sl => <MealSlot key={sl} offer={offer} isOwner={isOwner} store={store} mealOff={mealOff} day={day} sl={sl} days={days}/>)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            <ScheduleDay offerId={offer.id} isOwner={isOwner} day={day} items={[]} reload={sched.load} mode="form"/>
+            {meals && isOwner && SLOTS.some(sl => !mealOff.isOff(day, sl)) && <button style={{ ...mini, marginTop: 6, marginLeft: 6 }} onClick={() => mealOff.hide(day, SLOTS)}>Tag ohne Essen</button>}
           </div>
-        </div>
-      ))}
+        )
+      })}
       {(undated.length > 0 || isOwner) && (
         <div style={{ border: '1.5px dashed var(--border)', borderRadius: 12, padding: '10px 12px' }}>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Programm ohne festen Tag</div>
           <ScheduleDay offerId={offer.id} isOwner={isOwner} day={null} items={undated} reload={sched.load}/>
         </div>
       )}
-      {tasks.err && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{tasks.err}</p>}
+      {(tasks.err || mealOff.err || store.err) && <p style={{ color: '#b3261e', fontSize: 13, margin: '8px 0 0' }}>{tasks.err || mealOff.err || store.err}</p>}
     </div>
   )
 }
@@ -412,7 +421,6 @@ function useMealOff(offer, store, onOfferChange) {
   return { off, isOff, hide, unhide, err }
 }
 
-// Mahlzeiten eines Tages innerhalb der Ablauf-Karte
 function MealItem({ d, isOwner, store, days, off }) {
   const { act, move, edit } = store
   const [more, setMore] = useState(false)
@@ -438,44 +446,32 @@ function MealItem({ d, isOwner, store, days, off }) {
   )
 }
 
-// Mahlzeiten eines Tages innerhalb der Ablauf-Karte (rechte Spalte)
-function MealsDay({ offer, isOwner, store, onOfferChange, day, days }) {
-  const { list, err, add } = store
-  const { off, isOff, hide, err: offErr } = useMealOff(offer, store, onOfferChange)
-  const [quick, setQuick] = useState(null)
+// Eine Mahlzeit (z.B. Abendessen) eines Tages in der rechten Spalte
+function MealSlot({ offer, isOwner, store, mealOff, day, sl, days }) {
+  const [quick, setQuick] = useState(false)
   const [name, setName] = useState('')
-  const slots = SLOTS.filter(sl => !isOff(day, sl))
-  if (slots.length === 0) return null
-  async function submitQuick(e) {
+  if (mealOff.isOff(day, sl)) return sl === 'Snacks' ? null : <div style={{ fontSize: 12, color: 'var(--muted)', padding: '2px 0' }}>{sl}: kein Essen</div>
+  const items = store.list.filter(d => d.tag === day && d.slot === sl)
+  async function submit(e) {
     e.preventDefault()
-    const ok = await add({ name, category: SLOT_CAT[quick] || 'Hauptgericht', wish: isOwner, tag: day, slot: quick })
-    if (ok) { setName(''); setQuick(null) }
+    const ok = await store.add({ name, category: SLOT_CAT[sl] || 'Hauptgericht', wish: isOwner, tag: day, slot: sl })
+    if (ok) { setName(''); setQuick(false) }
   }
   return (
-    <div>
-      <div style={subHead}>🍲 Essen</div>
-      {slots.map(sl => {
-        const items = list.filter(d => d.tag === day && d.slot === sl)
-        return (
-          <div key={sl} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--g)', marginBottom: 2 }}>
-              <span style={{ flex: 1 }}>{sl}</span>
-              {quick !== sl && <button style={{ ...mini, border: 'none', padding: '0 4px', fontSize: 15, color: 'var(--g)' }} onClick={() => { setQuick(sl); setName('') }} aria-label={`${isOwner ? 'Wunsch' : 'Gericht'} für ${sl} eintragen`}>＋</button>}
-              {isOwner && <button title="Diese Mahlzeit ausblenden" style={{ ...mini, border: 'none', padding: '0 4px' }} onClick={() => hide(day, [sl])}>×</button>}
-            </div>
-            {items.map(d => <MealItem key={d.id} d={d} isOwner={isOwner} store={store} days={days} off={off}/>)}
-            {items.length === 0 && quick !== sl && <div style={{ fontSize: 12, color: 'var(--muted)' }}>–</div>}
-            {quick === sl && (
-              <form onSubmit={submitQuick} style={{ display: 'grid', gap: 4 }}>
-                <input autoFocus style={inp} value={name} onChange={e => setName(e.target.value)} placeholder={isOwner ? 'Was wird gesucht?' : 'Was kochst du?'} maxLength={80}/>
-                <div style={{ display: 'flex', gap: 4 }}><button type="submit" style={miniBtn} disabled={!name.trim()}>OK</button><button type="button" style={mini} onClick={() => setQuick(null)}>Abbrechen</button></div>
-              </form>
-            )}
-          </div>
-        )
-      })}
-      {isOwner && <button style={{ ...mini, marginTop: 6 }} onClick={() => hide(day, SLOTS)}>Tag ohne Essen</button>}
-      {(err || offErr) && <p style={{ color: '#b3261e', fontSize: 12, margin: '6px 0 0' }}>{err || offErr}</p>}
+    <div style={{ marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--muted)' }}>
+        <span style={{ flex: 1 }}>{sl}</span>
+        {!quick && <button style={{ ...mini, border: 'none', padding: '0 4px', fontSize: 15, color: 'var(--g)' }} onClick={() => { setQuick(true); setName('') }} aria-label={`${isOwner ? 'Wunsch' : 'Gericht'} für ${sl} eintragen`}>＋</button>}
+        {isOwner && <button title="Diese Mahlzeit ausblenden" style={{ ...mini, border: 'none', padding: '0 4px' }} onClick={() => mealOff.hide(day, [sl])}>×</button>}
+      </div>
+      {items.map(d => <MealItem key={d.id} d={d} isOwner={isOwner} store={store} days={days} off={mealOff.off}/>)}
+      {items.length === 0 && !quick && <div style={{ fontSize: 12, color: 'var(--muted)' }}>–</div>}
+      {quick && (
+        <form onSubmit={submit} style={{ display: 'grid', gap: 4 }}>
+          <input autoFocus style={inp} value={name} onChange={e => setName(e.target.value)} placeholder={isOwner ? 'Was wird gesucht?' : 'Was kochst du?'} maxLength={80}/>
+          <div style={{ display: 'flex', gap: 4 }}><button type="submit" style={miniBtn} disabled={!name.trim()}>OK</button><button type="button" style={mini} onClick={() => setQuick(false)}>Abbrechen</button></div>
+        </form>
+      )}
     </div>
   )
 }
