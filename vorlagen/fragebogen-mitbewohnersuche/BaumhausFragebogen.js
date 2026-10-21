@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Head from 'next/head'
-import { supabase } from '../lib/supabase'
-import s from '../styles/Baumhaus.module.css'
+import { supabase } from '../../lib/supabase'
+import s from '../../styles/Baumhaus.module.css'
 
 /*
   Geheime Bewerbungsseite fürs Baumhaus (Mitbewohnersuche).
