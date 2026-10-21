@@ -139,6 +139,17 @@ export default function AngebotDetail() {
           </div>
         )}
 
+        {interest?.role && <OfferOrganisation offer={offer} asId={active?.id} role={interest.role} chat={!!interest.chat} onOfferChange={p => setOffer(o => ({ ...o, ...p }))}/>}
+
+        {interest?.participants?.length > 0 && (
+          <div style={{background:'var(--card)',borderRadius:14,padding:20,marginBottom:24}}>
+            <div style={{fontWeight:700,marginBottom:8}}>Teilnehmende ({interest.participants.length})</div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {interest.participants.map(p => <Link key={p.user_id} href={`/leute/${p.user_id}`} style={{fontSize:13,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:20,padding:'4px 12px',color:'var(--text)',textDecoration:'none'}}>{p.name}{(p.anreise || p.abreise) ? ` · ${fmt(p.anreise)}–${fmt(p.abreise)}` : ''}</Link>)}
+            </div>
+          </div>
+        )}
+
         {user && earlyAccess && interest && (
           <div style={{background:'var(--card)',borderRadius:14,padding:20,marginBottom:24}}>
             {interest.role === 'owner' ? (
@@ -178,17 +189,6 @@ export default function AngebotDetail() {
             )}
           </div>
         )}
-
-        {interest?.participants?.length > 0 && (
-          <div style={{background:'var(--card)',borderRadius:14,padding:20,marginBottom:24}}>
-            <div style={{fontWeight:700,marginBottom:8}}>Teilnehmende ({interest.participants.length})</div>
-            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              {interest.participants.map(p => <Link key={p.user_id} href={`/leute/${p.user_id}`} style={{fontSize:13,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:20,padding:'4px 12px',color:'var(--text)',textDecoration:'none'}}>{p.name}{(p.anreise || p.abreise) ? ` · ${fmt(p.anreise)}–${fmt(p.abreise)}` : ''}</Link>)}
-            </div>
-          </div>
-        )}
-
-        {interest?.role && <OfferOrganisation offer={offer} asId={active?.id} role={interest.role} chat={!!interest.chat} onOfferChange={p => setOffer(o => ({ ...o, ...p }))}/>}
 
         {/* Kommune-Info */}
         {kommune && (
