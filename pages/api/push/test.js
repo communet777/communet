@@ -9,7 +9,13 @@ export default async function handler(req, res) {
   const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
   const priv = process.env.VAPID_PRIVATE_KEY
   const info = { hasPublic: !!pub, hasPrivate: !!priv, subject: process.env.VAPID_SUBJECT || null, publicTail: pub ? pub.slice(-6) : null }
-  if (!token) return res.status(401).json({ ...info, error: 'nicht angemeldet' })
+  // Ohne gültige Anmeldung keine Auskunft über die Server-Einstellungen
+  if (!token) return res.status(401).json({ error: 'nicht angemeldet' })
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false },
+  })
+  const { data: u } = await supabase.auth.getUser(token)
+  if (!u?.user) return res.status(401).json({ error: 'nicht angemeldet' })
   if (!pub || !priv) return res.status(200).json({ ...info, error: 'Schlüssel fehlen im Server' })
   try {
     const ecdh = crypto.createECDH('prime256v1')
@@ -17,9 +23,6 @@ export default async function handler(req, res) {
     info.keysMatch = ecdh.getPublicKey().toString('base64url') === pub
   } catch (e) { info.keysMatch = false; info.keyError = e.message }
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false },
-  })
   const { data: subs, error } = await supabase.from('push_subscriptions').select('endpoint,p256dh,auth_key')
   if (error) return res.status(200).json({ ...info, error: error.message })
   info.devices = subs.length

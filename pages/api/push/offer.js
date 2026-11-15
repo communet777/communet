@@ -1,5 +1,6 @@
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { pushTargets, dropSubscription } from '../../../lib/pushServer'
 
 // Push zu Angeboten (Chat, Anfrage, Freischaltung, Ankündigung). Die Datenbank liefert nur Empfänger,
 // wenn die Aktion wirklich gerade stattgefunden hat und der Aufrufer dazu berechtigt ist.
@@ -16,7 +17,7 @@ export default async function handler(req, res) {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false },
   })
-  const { data: targets, error } = await supabase.rpc('offer_push_targets', { p_offer: offer, p_as: as, p_kind: kind, p_user: user || null })
+  const { data: targets, error } = await pushTargets(supabase, 'offer_push_targets', { p_offer: offer, p_as: as, p_kind: kind, p_user: user || null })
   if (error || !targets?.length) return res.status(200).json({ ok: true, sent: 0 })
 
   let sent = 0
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
       )
       sent++
     } catch (e) {
-      if (e.statusCode === 404 || e.statusCode === 410) await supabase.rpc('drop_push_subscription', { p_endpoint: t.endpoint })
+      if (e.statusCode === 404 || e.statusCode === 410) await dropSubscription(supabase, t.endpoint)
     }
   }))
   res.status(200).json({ ok: true, sent })

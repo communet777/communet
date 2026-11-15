@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { parseIcs, eventsToRows } from '../../lib/ical'
+import { lookup } from 'dns/promises'
+import net from 'net'
 
 // Gleicht einen iCal-Feed (z. B. von kalender.digital) mit dem Kalender des Internen Bereichs ab.
 // Läuft mit den Rechten der angemeldeten Person (Row Level Security), nicht mit einem Dienstschlüssel.
@@ -14,11 +16,33 @@ function hostErlaubt(hostname) {
   return true
 }
 
+// Interne, lokale und reservierte Adressen (IPv4 und IPv6)
+function ipIntern(ip) {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split('.').map(Number)
+    return a === 0 || a === 10 || a === 127 || a >= 224 ||
+      (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) || (a === 192 && (b === 168 || b === 0)) ||
+      (a === 198 && (b === 18 || b === 19))
+  }
+  const v = ip.toLowerCase()
+  if (v.startsWith('::ffff:')) { const t = v.slice(7); return net.isIPv4(t) ? ipIntern(t) : true }
+  return v === '::' || v === '::1' || /^f[cd]/.test(v) || /^fe[89ab]/.test(v) || v.startsWith('ff')
+}
+
+// Prüft, wohin der Name tatsächlich zeigt: Ein öffentlich klingender Name darf nicht auf eine interne Adresse führen.
+async function zielOeffentlich(hostname) {
+  try {
+    const adressen = await lookup(hostname, { all: true })
+    return adressen.length > 0 && adressen.every(a => !ipIntern(a.address))
+  } catch { return false }
+}
+
 async function holen(startUrl) {
   let url = startUrl
   for (let i = 0; i < 4; i++) {
     const u = new URL(url)
-    if (u.protocol !== 'https:' || !hostErlaubt(u.hostname)) throw new Error('Nur https-Adressen von öffentlichen Servern sind erlaubt.')
+    if (u.protocol !== 'https:' || !hostErlaubt(u.hostname) || !(await zielOeffentlich(u.hostname))) throw new Error('Nur https-Adressen von öffentlichen Servern sind erlaubt.')
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 15000)
     let r
@@ -26,6 +50,7 @@ async function holen(startUrl) {
     finally { clearTimeout(timer) }
     if (r.status >= 300 && r.status < 400 && r.headers.get('location')) { url = new URL(r.headers.get('location'), url).toString(); continue }
     if (!r.ok) throw new Error(`Der Kalender-Server antwortet mit Fehler ${r.status}.`)
+    if (Number(r.headers.get('content-length') || 0) > MAX_BYTES) throw new Error('Die Kalenderdatei ist zu groß.')
     const buf = Buffer.from(await r.arrayBuffer())
     if (buf.length > MAX_BYTES) throw new Error('Die Kalenderdatei ist zu groß.')
     return buf.toString('utf8')

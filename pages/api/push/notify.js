@@ -1,5 +1,6 @@
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { pushTargets, dropSubscription } from '../../../lib/pushServer'
 
 // Wird nach dem Senden einer Nachricht aufgerufen. Die Datenbank liefert nur dann Empfänger zurück,
 // wenn der Aufrufer wirklich die letzte Nachricht dieser Unterhaltung gesendet hat.
@@ -16,7 +17,7 @@ export default async function handler(req, res) {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false },
   })
-  const { data: targets, error } = await supabase.rpc('push_targets', { p_conv: conv })
+  const { data: targets, error } = await pushTargets(supabase, 'push_targets', { p_conv: conv })
   if (error || !targets?.length) return res.status(200).json({ ok: true, sent: 0 })
 
   let sent = 0
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
       )
       sent++
     } catch (e) {
-      if (e.statusCode === 404 || e.statusCode === 410) await supabase.rpc('drop_push_subscription', { p_endpoint: t.endpoint })
+      if (e.statusCode === 404 || e.statusCode === 410) await dropSubscription(supabase, t.endpoint)
     }
   }))
   res.status(200).json({ ok: true, sent })
