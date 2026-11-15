@@ -1,6 +1,5 @@
 -- STAND 15.11.2026: Entwurf, in der Datenbank noch NICHT eingespielt.
--- Communet – Sicherheits-Migration (Entwurf, 15.11.2026)
--- Noch NICHT eingespielt. Jeder Block ist einzeln weglassbar.
+-- Communet – Sicherheits-Migration (15.11.2026)
 
 -- =====================================================================
 -- 1) Early-Access-Codes: Testcode entfernen, Rateversuche begrenzen
@@ -170,15 +169,6 @@ begin
     execute format('grant execute on function %s to authenticated', f);
   end loop;
 
-  -- Trigger-Funktionen braucht niemand direkt aufzurufen
-  foreach f in array array[
-    'public.handle_new_user()',
-    'public.offer_interest_force_status()',
-    'public.offer_interest_guard_update()',
-    'public.termine_sichtbarkeit_guard()'
-  ] loop
-    execute format('revoke execute on function %s from public, anon, authenticated', f);
-  end loop;
 end $$;
 
 -- 3b) Fester Suchpfad für die drei Funktionen ohne
@@ -189,7 +179,7 @@ alter function public.storage_offer_id(text) set search_path = public;
 -- 3c) Datei-Uploads begrenzen (gilt nur für neue Uploads)
 update storage.buckets
    set file_size_limit = 5242880,                                  -- 5 MB
-       allowed_mime_types = array['image/jpeg','image/png','image/webp']
+       allowed_mime_types = array['image/jpeg','image/png','image/webp','image/gif','image/heic','image/avif']
  where id = 'avatars';
 update storage.buckets
    set file_size_limit = 20971520                                  -- 20 MB
