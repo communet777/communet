@@ -6,6 +6,7 @@ import { useAuth } from '../../lib/AuthContext'
 import { useActiveProfile } from '../../lib/ActiveProfileContext'
 import { supabase } from '../../lib/supabase'
 import { notifyPush } from '../../lib/push'
+import { linkify } from '../../lib/linkify'
 
 export default function Thread() {
   const router = useRouter()
@@ -69,7 +70,7 @@ export default function Thread() {
             const mine = info && m.sender_profile_id === info.my_profile_id
             return (
               <div key={m.id} style={{alignSelf:mine?'flex-end':'flex-start',maxWidth:'80%',background:mine?'var(--g)':'var(--card)',color:mine?'white':'var(--text)',borderRadius:14,padding:'9px 13px',fontSize:14,lineHeight:1.5,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
-                {m.body}
+                {linkify(m.body)}
                 <div style={{fontSize:10,opacity:0.65,marginTop:3,textAlign:'right'}}>{new Date(m.created_at).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
               </div>
             )
