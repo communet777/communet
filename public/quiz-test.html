@@ -49,11 +49,11 @@ img.ic{display:block}
 .logo .ln{font-family:var(--serif);font-weight:700;font-size:21px;letter-spacing:.09em}
 .logo .lc{font-size:9px;letter-spacing:.22em;color:var(--gold-text);margin-top:2px}
 .links{display:flex;align-items:center;gap:4px;margin-left:auto;flex-wrap:wrap}
-.link{background:none;border:0;padding:7px 13px;border-radius:8px;font-size:13.5px;color:var(--muted)}
+.link{background:none;border:0;text-decoration:none;padding:7px 13px;border-radius:8px;font-size:13.5px;color:var(--muted)}
 .link:hover{background:rgba(233,173,85,.12);color:var(--petrol)}
 .link.on{color:var(--petrol);font-weight:600;box-shadow:inset 0 -2px 0 var(--gold);border-radius:8px 8px 0 0}
 .link.supply{border:1px solid var(--gold);color:var(--gold-text);font-weight:600;display:inline-flex;gap:6px;align-items:center}
-.navcta{background:var(--petrol);color:#fff;border:0;border-radius:8px;padding:7px 18px;font-size:13.5px;font-weight:500;margin-left:6px}
+.navcta{text-decoration:none;background:var(--petrol);color:#fff;border:0;border-radius:8px;padding:7px 18px;font-size:13.5px;font-weight:500;margin-left:6px}
 .lang{display:flex;border:.5px solid rgba(0,0,0,.12);border-radius:8px;overflow:hidden}
 .lang span{padding:4px 9px;font-size:11.5px;color:var(--muted)}
 .lang span.on{background:var(--petrol);color:#fff}
@@ -319,18 +319,19 @@ input[type=range]:focus-visible{outline:3px solid var(--gold);outline-offset:6px
   <div class="seg" role="group" aria-label="Ansicht wechseln">
     <button data-tier="gast" class="on">Gast</button><button data-tier="konto">Mit Konto</button><button data-tier="pro">Pro</button>
   </div>
-  <span class="note">Testversion: Anmeldung und Pro sind nur gespielt, Karte und Personen sind Beispieldaten.</span>
+  <label for="player" style="margin-left:10px">Dein Vorname (freiwillig):</label><input id="player" maxlength="40" style="background:#3a3a3a;border:0;border-radius:6px;color:#fff;padding:3px 8px;font:inherit;font-size:12.5px;width:110px">
+  <span class="note">Testversion: Anmeldung und Pro im Quiz sind nur gespielt. Dein Durchlauf wird anonym für die Auswertung gespeichert.</span>
 </div></div>
 
 <nav class="nav"><div class="wrap">
-  <div class="logo" aria-label="Communet"><img class="ic" id="logoIco" width="32" height="32" alt=""><span class="lt"><span class="ln">COMMUNET</span><span class="lc">CONNECT · LIVE · CREATE</span></span></div>
+  <a class="logo" href="/" aria-label="Communet Startseite" style="text-decoration:none"><img class="ic" id="logoIco" width="32" height="32" alt=""><span class="lt"><span class="ln">COMMUNET</span><span class="lc">CONNECT · LIVE · CREATE</span></span></a>
   <div class="links">
-    <button class="link hide-md" data-dead>Karte</button>
-    <button class="link hide-md" data-dead>Kommunen</button>
-    <button class="link hide-md" data-dead>Angebote</button>
-    <button class="link supply hide-md" data-dead><img class="ic" id="korbIco" width="15" height="15" alt=""> Versorgung</button>
+    <a class="link hide-md" href="/karte">Karte</a>
+    <a class="link hide-md" href="/kommunen">Kommunen</a>
+    <a class="link hide-md" href="/angebote">Angebote</a>
+    <a class="link supply hide-md" href="/versorgung"><img class="ic" id="korbIco" width="15" height="15" alt=""> Versorgung</a>
     <button class="link on" id="tabForms">Gemeinschaftsformen</button>
-    <button class="navcta" data-dead>Anmelden</button>
+    <a class="navcta" href="/auth/login">Anmelden</a>
     <div class="lang"><span class="on">DE</span><span>EN</span></div>
   </div>
 </div></nav>
@@ -1267,7 +1268,21 @@ function showPin(id){
   $('#pinSave').onclick=()=>toast('Gemerkt (nur in der Vorschau)');
 }
 
-function logRun(){}
+/* Testprotokoll: fertige Durchläufe in Supabase (Tabelle quiz_runs, nur Einfügen, kein Lesen von außen) */
+const SB_URL='https://dgffntczrhwujjtvbytj.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZmZudGN6cmh3dWpqdHZieXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxMjU2NjgsImV4cCI6MjEwMDcwMTY2OH0.p1XSBHbShlTGwi8YYuZhniiZJxTDVgUQWOxkPNfPPNM';
+let whatIfCount=0;
+function logRun(stage){
+  if(stage!=='fertig'&&stage!=='was-wäre-wenn')return;
+  if(stage==='fertig')whatIfCount=0;else if(++whatIfCount>10)return;
+  try{
+    const sc=score(S.ans);const u=sc.u;const ax={};AXES.forEach(a=>{if(u[a]!=null)ax[a]=Math.round(u[a]*100)/100});
+    const player=((document.getElementById('player')||{}).value||'').trim().slice(0,40)||null;
+    const data={tier:S.tier,antworten:S.hist.filter(id=>S.ans[id]!=null).map(id=>{const q=id==='duel'?S.duelQ:QIDX[id];return {id,art:q.k,frage:q.t,antwort:answerText(q,S.ans[id])}}),
+      ergebnis:sc.rank.map(k=>({form:TYPES[k].name,prozent:sc.pct[k]})),themen:ax,hinweise:[...new Set(sc.hints)]};
+    fetch(SB_URL+'/rest/v1/quiz_runs',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+      body:JSON.stringify({run_id:S.runId,player,stage:stage==='fertig'?'fertig':'was-waere-wenn',data})}).catch(()=>{});
+  }catch(e){}
+}
 /* ===== HINWEIS + PARTIKEL ===== */
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
 const fx=$('#fx'),ctx=fx.getContext('2d');let parts=[],stars=[];
